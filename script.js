@@ -61,7 +61,7 @@ const INITIAL_SUBMISSIONS = [
     title: '✉️ [업무자동화] AI 주간 보고서 자동 작성 프롬프트 스크립트',
     desc: '매주 1시간씩 걸리던 주간 실적 정리 작업을 Notion 템플릿과 연동하여 1분 만에 초안을 만드는 AI 프롬프트 세트를 작성해보았습니다.',
     content: `System: 당신은 수석 개발자입니다.\nInput: 금주 진행한 깃허브 커밋 5개\nTask: 커밋 로그를 기반으로 사내 보고용 주간 보고서 마크다운을 자동 작성하세요.`,
-    author: '김철수 대리',
+    author: '김OO 대리',
     dept: '디지털혁신팀',
     votes: 8,
     date: '2026.07.26'
@@ -71,7 +71,7 @@ const INITIAL_SUBMISSIONS = [
     title: '📊 [생산성] 파이썬 엑셀 데이터 자동 결합 & 요약 유틸리티',
     desc: '흩어져 있는 5개 부서 엑셀 파일을 Copilot의 도움을 받아 단 20줄의 Python 코드로 병합하는 실습물을 구현했습니다.',
     content: `import pandas as pd\n# Copilot으로 생성한 초간단 엑셀 합치기\nfiles = ['dept1.xlsx', 'dept2.xlsx']\ndf = pd.concat([pd.read_excel(f) for f in files])\ndf.to_excel('merged_result.xlsx', index=False)`,
-    author: '이영희 과장',
+    author: '이OO 과장',
     dept: '경영지원팀',
     votes: 12,
     date: '2026.07.27'
@@ -81,7 +81,7 @@ const INITIAL_SUBMISSIONS = [
     title: '🤖 [커뮤니케이션] Slack 공지사항 가독성 개선 자동 프롬프트',
     desc: '긴 텍스트 공지사항을 핵심 요약 3줄과 체크리스트로 자동 재구성해주는 슬랙용 프롬프터입니다.',
     content: `Task: 아래 긴 공지글을 읽고\n1. [핵심 요약 3줄]\n2. [직원 조치 사항]\n으로 분리하여 카드 형태로 템플릿화하세요.`,
-    author: '박민수 프로',
+    author: '박OO 매니저',
     dept: '소프트웨어개발실',
     votes: 5,
     date: '2026.07.27'
@@ -100,18 +100,18 @@ class VibePortalApp {
     });
 
     this.userInfo = this.loadFromStorage('vibecoding_user_info', {
-      name: '홍길동 프로',
-      dept: '소프트웨어개발실'
+      name: '',
+      dept: ''
     });
 
     this.submissions = this.loadFromStorage('vibecoding_submissions', INITIAL_SUBMISSIONS);
-    this.userVotes = this.loadFromStorage('vibecoding_user_votes', []); // Array of submitted IDs voted by this user
+    this.userVotes = this.loadFromStorage('vibecoding_user_votes', []);
 
     this.theme = this.loadFromStorage('vibecoding_theme', 'light');
 
     this.activeTab = 'course'; // 'course', 'gallery', 'my_sub'
     this.searchQuery = '';
-    this.sortBy = 'votes'; // 'votes', 'latest', 'title'
+    this.sortBy = 'votes';
   }
 
   loadFromStorage(key, fallback) {
@@ -210,19 +210,16 @@ class VibePortalApp {
     this.saveProgress();
   }
 
-  // Voting action
   toggleVote(subId) {
     const sub = this.submissions.find(s => s.id === subId);
     if (!sub) return;
 
     const voteIdx = this.userVotes.indexOf(subId);
     if (voteIdx > -1) {
-      // Cancel vote
       this.userVotes.splice(voteIdx, 1);
       sub.votes = Math.max(0, sub.votes - 1);
       showToast(`'${sub.title}' 투표를 취소했습니다.`, 'info');
     } else {
-      // Cast vote
       this.userVotes.push(subId);
       sub.votes += 1;
       showToast(`⭐ '${sub.title}'에 투표하셨습니다! (집합교육 시상 반영)`, 'success');
@@ -231,26 +228,30 @@ class VibePortalApp {
     this.saveSubmissions();
   }
 
-  // Add new user submission
-  addSubmission(title, desc, content) {
+  addSubmission(authorName, authorDept, title, desc, content) {
     const now = new Date();
     const dateStr = `${now.getFullYear()}.${String(now.getMonth() + 1).padStart(2, '0')}.${String(now.getDate()).padStart(2, '0')}`;
+
+    // Update active user info if provided
+    if (authorName) this.userInfo.name = authorName;
+    if (authorDept) this.userInfo.dept = authorDept;
+    this.saveUserInfo();
 
     const newSub = {
       id: 'sub-' + Date.now(),
       title,
       desc,
       content,
-      author: this.userInfo.name,
-      dept: this.userInfo.dept,
-      votes: 1, // Automatic initial vote by author
+      author: authorName || '익명 직원',
+      dept: authorDept || '사내 부서',
+      votes: 1,
       date: dateStr
     };
 
     this.submissions.unshift(newSub);
     this.userVotes.push(newSub.id);
     this.saveSubmissions();
-    showToast('🚀 실습물이 성공적으로 제출되어 집합교육 시상 후보에 등록되었습니다!', 'success');
+    showToast('🚀 실습물이 제출되어 집합교육 시상 후보에 등록되었습니다!', 'success');
     triggerConfetti();
   }
 }
@@ -258,7 +259,7 @@ class VibePortalApp {
 // Instantiate App
 const app = new VibePortalApp();
 
-// DOM Loading Init
+// DOM Init
 document.addEventListener('DOMContentLoaded', () => {
   initTheme();
   renderHeaderAndBanner();
@@ -289,10 +290,13 @@ function initTheme() {
 }
 
 function renderHeaderAndBanner() {
-  document.getElementById('headerUserName').textContent = app.userInfo.name;
-  document.getElementById('headerUserDept').textContent = app.userInfo.dept;
-  document.getElementById('welcomeUserName').textContent = app.userInfo.name;
-  document.getElementById('headerAvatar').textContent = app.userInfo.name.charAt(0);
+  const name = app.userInfo.name;
+  const dept = app.userInfo.dept;
+
+  document.getElementById('headerUserName').textContent = name ? name : '이름 등록 (클릭)';
+  document.getElementById('headerUserDept').textContent = dept ? dept : '소속 부서 미설정';
+  document.getElementById('welcomeUserName').textContent = name ? name : '사내 임직원';
+  document.getElementById('headerAvatar').textContent = name ? name.charAt(0) : '👤';
 
   const progress = app.getCourseProgress();
   document.getElementById('statOverallProgress').textContent = progress;
@@ -304,7 +308,7 @@ function renderHeaderAndBanner() {
 
 function renderTabBadges() {
   document.getElementById('galleryCountBadge').textContent = app.submissions.length;
-  const myCount = app.submissions.filter(s => s.author === app.userInfo.name).length;
+  const myCount = app.userInfo.name ? app.submissions.filter(s => s.author === app.userInfo.name).length : 0;
   document.getElementById('mySubCountBadge').textContent = myCount;
 }
 
@@ -325,7 +329,6 @@ function setupSearchAndFilters() {
     renderMainView();
   });
 
-  // Category Tabs
   const categoryTabs = document.getElementById('categoryTabs');
   categoryTabs.addEventListener('click', (e) => {
     const btn = e.target.closest('.tab-btn');
@@ -338,14 +341,12 @@ function setupSearchAndFilters() {
     renderMainView();
   });
 
-  // Sort select
   document.getElementById('sortSelect').addEventListener('change', (e) => {
     app.sortBy = e.target.value;
     renderMainView();
   });
 }
 
-// Main Dynamic View Renderer
 function renderMainView() {
   const grid = document.getElementById('mainGrid');
   grid.innerHTML = '';
@@ -365,7 +366,6 @@ function renderMainView() {
   }
 }
 
-// Render Single Core Basic Course Card
 function renderSingleCourseCard(container) {
   const isCompleted = app.progress.completedCourses.includes(app.course.id);
   const progressPercent = app.getCourseProgress();
@@ -435,15 +435,17 @@ function renderSingleCourseCard(container) {
   container.appendChild(card);
 }
 
-// Render Submissions Gallery (All or My submissions)
 function renderSubmissionsGallery(container, myOnly = false) {
   let list = [...app.submissions];
 
   if (myOnly) {
-    list = list.filter(s => s.author === app.userInfo.name);
+    if (app.userInfo.name) {
+      list = list.filter(s => s.author === app.userInfo.name);
+    } else {
+      list = [];
+    }
   }
 
-  // Search Filter
   if (app.searchQuery) {
     const q = app.searchQuery;
     list = list.filter(s => 
@@ -454,7 +456,6 @@ function renderSubmissionsGallery(container, myOnly = false) {
     );
   }
 
-  // Sort
   if (app.sortBy === 'votes') {
     list.sort((a, b) => b.votes - a.votes);
   } else if (app.sortBy === 'latest') {
@@ -471,7 +472,7 @@ function renderSubmissionsGallery(container, myOnly = false) {
         <div class="empty-icon">🎨</div>
         <h3>${myOnly ? '아직 제출한 실습물이 없습니다.' : '등록된 실습물이 없습니다.'}</h3>
         <p style="color: var(--text-muted); font-size: 0.9rem;">
-          ${myOnly ? '기초 교육을 수강하고 첫 번째 실습물을 제출해 집합교육 시상에 도전해 보세요!' : '첫 번째 시상 후보 작품을 작성해 보세요.'}
+          ${myOnly ? '상단의 [실습물 제출하기] 버튼을 눌러 이름과 작품을 등록해보세요!' : '첫 번째 시상 후보 작품을 작성해 보세요.'}
         </p>
         <button class="btn btn-accent" onclick="openSubmitModal()">✨ 실습물 제출하기</button>
       </div>
@@ -479,8 +480,6 @@ function renderSubmissionsGallery(container, myOnly = false) {
     return;
   }
 
-  // Ranked Submissions Render
-  // Calculate Rank
   const sortedByVoteList = [...app.submissions].sort((a, b) => b.votes - a.votes);
 
   list.forEach(sub => {
@@ -498,10 +497,10 @@ function renderSubmissionsGallery(container, myOnly = false) {
     card.innerHTML = `
       <div class="submission-card-header">
         <div class="author-badge">
-          <div class="author-avatar">${sub.author.charAt(0)}</div>
+          <div class="author-avatar">${sub.author ? sub.author.charAt(0) : '👤'}</div>
           <div>
-            <div style="font-weight:700; font-size:0.95rem;">${sub.author}</div>
-            <div style="font-size:0.775rem; color:var(--text-muted);">${sub.dept} · ${sub.date}</div>
+            <div style="font-weight:700; font-size:0.95rem;">${sub.author || '익명 직원'}</div>
+            <div style="font-size:0.775rem; color:var(--text-muted);">${sub.dept || '사내 부서'} · ${sub.date}</div>
           </div>
         </div>
         ${rankBadgeText ? `<span class="rank-badge">${rankBadgeText}</span>` : ''}
@@ -536,9 +535,6 @@ function escapeHTML(str) {
   return str.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
 }
 
-// ==========================================
-// Modal Handlers
-// ==========================================
 function setupModalEvents() {
   document.querySelectorAll('[data-close-modal]').forEach(btn => {
     btn.addEventListener('click', () => {
@@ -564,8 +560,8 @@ function setupModalEvents() {
   });
 
   document.getElementById('userProfileBtn').addEventListener('click', () => {
-    document.getElementById('inputUserName').value = app.userInfo.name;
-    document.getElementById('inputUserDept').value = app.userInfo.dept;
+    document.getElementById('inputUserName').value = app.userInfo.name || '';
+    document.getElementById('inputUserDept').value = app.userInfo.dept || '';
     openModal('profileModal');
   });
 
@@ -598,6 +594,9 @@ function closeModal(id) {
 }
 
 function openSubmitModal() {
+  // Pre-fill author info if stored
+  if (app.userInfo.name) document.getElementById('subAuthorName').value = app.userInfo.name;
+  if (app.userInfo.dept) document.getElementById('subAuthorDept').value = app.userInfo.dept;
   openModal('submitProjectModal');
 }
 
@@ -663,21 +662,21 @@ function renderDetailChapters() {
   });
 }
 
-// Submission Form Setup
 function setupSubmissionForm() {
   const form = document.getElementById('submissionForm');
   form.onsubmit = (e) => {
     e.preventDefault();
+    const authorName = document.getElementById('subAuthorName').value.trim();
+    const authorDept = document.getElementById('subAuthorDept').value.trim();
     const title = document.getElementById('subTitle').value.trim();
     const desc = document.getElementById('subDesc').value.trim();
     const content = document.getElementById('subContent').value.trim();
 
     if (title && desc && content) {
-      app.addSubmission(title, desc, content);
+      app.addSubmission(authorName, authorDept, title, desc, content);
       form.reset();
       closeModal('submitProjectModal');
 
-      // Switch to Gallery tab
       app.activeTab = 'gallery';
       document.querySelectorAll('#categoryTabs .tab-btn').forEach(b => {
         b.classList.toggle('active', b.dataset.category === 'gallery');
@@ -690,7 +689,6 @@ function setupSubmissionForm() {
   };
 }
 
-// Quiz Modal
 function openQuizModal() {
   document.getElementById('quizCourseTitle').textContent = app.course.title;
   renderQuizContent();
@@ -795,8 +793,8 @@ function gradeQuiz() {
 
 function openCertificateModal() {
   document.getElementById('certCourseTitle').textContent = app.course.title;
-  document.getElementById('certUserName').textContent = app.userInfo.name;
-  document.getElementById('certDeptName').textContent = app.userInfo.dept;
+  document.getElementById('certUserName').textContent = app.userInfo.name || '사내 임직원';
+  document.getElementById('certDeptName').textContent = app.userInfo.dept || '소속 부서';
 
   const now = new Date();
   const dateStr = `${now.getFullYear()}. ${String(now.getMonth() + 1).padStart(2, '0')}. ${String(now.getDate()).padStart(2, '0')}`;
@@ -822,7 +820,7 @@ function setupProfileForm() {
       renderTabBadges();
       renderMainView();
       closeModal('profileModal');
-      showToast('프로필 정보가 변경되었습니다.', 'success');
+      showToast(`'${name}' 님으로 프로필 정보가 등록되었습니다.`, 'success');
     }
   };
 }
