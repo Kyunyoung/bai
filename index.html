@@ -4,7 +4,7 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>바이브코딩 사내 교육 포털 | PPT 59개 슬라이드 교재</title>
-  <meta name="description" content="바이브코딩 사내 교육 포털 - 250개 경찰서 엑셀 취합 및 표도우미 실습 59개 슬라이드 교육 교재 정독 포털">
+  <meta name="description" content="바이브코딩 사내 교육 포털 - 250개 경찰서 엑셀 취합 및 표도우미 실습 59개 슬라이드 교육 교재 전용 슬라이드 뷰어">
   <link rel="stylesheet" href="styles.css">
 </head>
 <body>
@@ -23,13 +23,6 @@
         </div>
       </a>
 
-      <!-- Search Input -->
-      <div class="search-wrapper">
-        <span class="search-icon">🔍</span>
-        <input type="text" id="searchInput" class="search-input" placeholder="슬라이드 제목, 파트, AI 프롬프트 검색..." aria-label="교육 슬라이드 검색">
-        <button id="searchClearBtn" class="search-clear-btn" title="검색어 지우기">✕</button>
-      </div>
-
       <!-- Header Actions -->
       <div class="header-actions">
         <!-- Self Assessment Quiz Trigger -->
@@ -46,114 +39,53 @@
   </header>
 
   <!-- Main Portal Container -->
-  <div class="app-container">
+  <div class="app-container" style="max-width: 1000px; padding: 24px 16px;">
 
-    <!-- Hero Banner / Course Announcement -->
-    <section class="dashboard-banner">
-      <div class="banner-pattern"></div>
-      <div class="banner-content">
-        <div class="banner-title-group">
-          <span class="category-tag" style="background: rgba(255,255,255,0.25); color: #fff; font-size:0.8rem; margin-bottom:8px; display:inline-block;">
-            📚 공식 사내 교육 교재 (59개 슬라이드)
-          </span>
-          <h1>업무 자동화를 위한 바이브 코딩 교육 자료</h1>
-          <p>
-            K-감사관 만화 시나리오 기반 59개 슬라이드 전체 발표자료입니다.<br>
-            초급 엑셀 자동 취합부터 중급 한글 보고서 표도우미 제작까지 순서대로 학습하세요.
-          </p>
-        </div>
-
-        <!-- Progress and Stats Grid -->
-        <div class="stats-grid" style="grid-template-columns: 1fr auto;">
-          <div class="stat-card">
-            <span class="stat-label">교재 학습 전체 진도율</span>
-            <div class="stat-value-group">
-              <span class="stat-number" id="statOverallProgress">0</span>
-              <span class="stat-unit">%</span>
-              <span style="font-size:0.9rem; color:rgba(255,255,255,0.85); margin-left:12px;" id="statSlideCountDisplay">(0 / 59 완료)</span>
-            </div>
-            <div class="banner-progress-bar-bg">
-              <div class="banner-progress-bar-fill" id="bannerProgressFill"></div>
-            </div>
-          </div>
-
-          <div class="stat-card" style="display:flex; align-items:center; justify-content:center;">
-            <button class="btn btn-primary" style="padding:14px 24px; font-size:1rem; font-weight:700;" onclick="openCourseDetailModal()">
-              📊 슬라이드 뷰어 열기
-            </button>
-          </div>
-        </div>
+    <!-- Top Compact Header & Progress Status -->
+    <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom: 16px; flex-wrap:wrap; gap:12px;">
+      <div>
+        <h1 style="font-size: 1.5rem; font-weight: 800; color:var(--text-main); margin-bottom:4px;">
+          📊 업무 자동화를 위한 바이브 코딩 (59개 슬라이드)
+        </h1>
+        <p style="font-size: 0.875rem; color:var(--text-muted);">
+          화면 어디든 클릭하거나 키보드 방향키(➔)를 이용해 59개 슬라이드 교재를 순서대로 학습하세요.
+        </p>
       </div>
-    </section>
 
-    <!-- Navigation Tabs & Filter Bar -->
-    <section class="controls-section">
-      <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 16px;">
-        
-        <div class="category-tabs" id="categoryTabs">
-          <button class="tab-btn active" data-part="all">
-            <span>📚 전체 슬라이드 (59)</span>
-          </button>
-          <button class="tab-btn" data-part="PART 01. 도입부">
-            <span>PART 01. 도입부</span>
-          </button>
-          <button class="tab-btn" data-part="PART 02. 초급 - 개발환경 세팅">
-            <span>PART 02. 세팅</span>
-          </button>
-          <button class="tab-btn" data-part="PART 03. 초급 - 엑셀 취합 실습">
-            <span>PART 03. 엑셀취합</span>
-          </button>
-          <button class="tab-btn" data-part="PART 04. 중급 - 한글 보고서 표도우미">
-            <span>PART 04. 표도우미</span>
-          </button>
-        </div>
-
-        <div>
-          <span id="resultsCount" style="font-size:0.875rem; color:var(--text-muted); font-weight:600;"></span>
-        </div>
-
+      <div style="display:flex; align-items:center; gap:12px; background:var(--bg-card); padding:8px 16px; border-radius:var(--radius-md); border:1px solid var(--border-color);">
+        <span style="font-size:0.85rem; font-weight:700; color:var(--primary-600);">학습 진도율</span>
+        <span style="font-size:1.2rem; font-weight:800; color:var(--primary-600);" id="statOverallProgress">0%</span>
+        <span style="font-size:0.8rem; color:var(--text-muted);" id="statSlideCountDisplay">(0 / 59)</span>
       </div>
-    </section>
+    </div>
 
-    <!-- Dynamic Content Main Grid -->
-    <main id="mainGrid" class="courses-grid" aria-label="교육 슬라이드 목차">
+    <!-- Part Category Tabs -->
+    <div class="category-tabs" id="partTabs" style="margin-bottom: 16px;">
+      <button class="tab-btn active" data-part="all">
+        <span>📚 전체 슬라이드 (59)</span>
+      </button>
+      <button class="tab-btn" data-part="PART 01">
+        <span>PART 01. 도입부</span>
+      </button>
+      <button class="tab-btn" data-part="PART 02">
+        <span>PART 02. 세팅</span>
+      </button>
+      <button class="tab-btn" data-part="PART 03">
+        <span>PART 03. 엑셀취합</span>
+      </button>
+      <button class="tab-btn" data-part="PART 04">
+        <span>PART 04. 표도우미</span>
+      </button>
+    </div>
+
+    <!-- MAIN SINGLE THEATER SLIDE VIEWER CANVAS -->
+    <main id="mainViewerStage" style="width:100%;">
       <!-- Injected by script.js -->
     </main>
 
   </div>
 
-  <!-- MODAL 1: Interactive PPT Slide Deck Viewer Modal -->
-  <div id="courseDetailModal" class="modal-overlay" aria-hidden="true" role="dialog">
-    <div class="modal-container" style="max-width: 920px;">
-      <div class="modal-header">
-        <div class="modal-title-group">
-          <span class="category-tag">공식 교육 교재</span>
-          <h3 id="detailTitle" style="font-size: 1.15rem; font-weight: 700;">교육 교재 시청</h3>
-        </div>
-        <button class="modal-close-btn" data-close-modal="courseDetailModal" title="닫기">✕</button>
-      </div>
-
-      <div class="modal-body" style="padding: 18px 24px;">
-        <p id="detailDesc" style="color: var(--text-muted); font-size: 0.9rem; font-weight:600; margin-bottom: 4px;"></p>
-
-        <!-- Chapter Interactive PPT Player -->
-        <div id="detailChaptersList" style="display:flex; flex-direction:column; gap:12px;">
-          <!-- Injected by script.js -->
-        </div>
-
-        <div style="display: flex; justify-content: space-between; align-items: center; margin-top: 8px; padding-top: 14px; border-top: 1px solid var(--border-color);">
-          <button class="btn btn-outline" id="detailMasterToggleBtn" style="padding: 6px 14px; font-size: 0.85rem;" onclick="app.markAllSlidesViewed()">
-            <span>✔</span> 전체 완료 처리
-          </button>
-          <button class="btn btn-primary" id="startQuizBtn" style="padding: 6px 18px; font-size: 0.85rem;" onclick="closeModal('courseDetailModal'); openQuizModal();">
-            📝 자가진단 퀴즈 풀기
-          </button>
-        </div>
-      </div>
-    </div>
-  </div>
-
-  <!-- MODAL 2: Quiz Modal -->
+  <!-- MODAL 1: Quiz Modal -->
   <div id="quizModal" class="modal-overlay" aria-hidden="true" role="dialog">
     <div class="modal-container" style="max-width: 680px;">
       <div class="modal-header">
@@ -170,7 +102,7 @@
     </div>
   </div>
 
-  <!-- MODAL 3: Completion Certificate Modal -->
+  <!-- MODAL 2: Completion Certificate Modal -->
   <div id="certificateModal" class="modal-overlay" aria-hidden="true" role="dialog">
     <div class="modal-container" style="max-width: 720px; background: transparent; border: none; box-shadow: none;">
       <div style="display:flex; justify-content:flex-end; margin-bottom:12px;">

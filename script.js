@@ -1,6 +1,6 @@
 /* ==========================================
    바이브코딩 사내 교육 포털 - Core JavaScript (ES6+)
-   100% 교육 교재 시청 전용 포털 (59개 PPT 슬라이드 메인 뷰어 & 슬라이드 목차)
+   극도로 심플한 단일 메인 슬라이드 시청 전용 포털 (59개 PPT 슬라이드)
    ========================================== */
 
 // Exact 59 Slides Dataset
@@ -323,7 +323,7 @@ df = df[required_columns]`,
   }
 ];
 
-// Add remaining dummy slide metadata for Slides 31 ~ 59 if missing
+// Add remaining slide metadata for Slides 31 ~ 59
 for (let i = 31; i <= 59; i++) {
   if (!PPT_SLIDES.find(s => s.num === i)) {
     let part = 'PART 04. 중급 - 한글 보고서 표도우미';
@@ -344,8 +344,6 @@ class VibePortalApp {
   constructor() {
     this.slides = PPT_SLIDES;
     this.currentSlideIndex = 0;
-    this.selectedPart = 'all';
-    this.searchQuery = '';
     this.theme = this.loadFromStorage('vibecoding_theme', 'light');
     this.viewedSlides = new Set(this.loadFromStorage('vibecoding_viewed_slides', []));
   }
@@ -385,7 +383,7 @@ class VibePortalApp {
     this.slides.forEach(s => this.viewedSlides.add(s.num));
     this.saveViewedSlides();
     showToast('🎉 전체 59개 슬라이드 완강 처리가 되었습니다!', 'success');
-    renderHeaderAndBanner();
+    renderHeaderAndProgress();
     renderMainView();
   }
 
@@ -399,9 +397,8 @@ const app = new VibePortalApp();
 // DOM Initialization
 document.addEventListener('DOMContentLoaded', () => {
   initTheme();
-  renderHeaderAndBanner();
-  setupCategoryTabs();
-  setupSearch();
+  renderHeaderAndProgress();
+  setupPartTabs();
   setupModalEvents();
   setupKeyboardSlideNav();
   renderMainView();
@@ -424,22 +421,19 @@ function initTheme() {
   }
 }
 
-function renderHeaderAndBanner() {
+function renderHeaderAndProgress() {
   const percent = app.getProgressPercent();
   const count = app.viewedSlides.size;
 
   const statOverall = document.getElementById('statOverallProgress');
-  if (statOverall) statOverall.textContent = percent;
+  if (statOverall) statOverall.textContent = `${percent}%`;
 
   const statCount = document.getElementById('statSlideCountDisplay');
   if (statCount) statCount.textContent = `(${count} / ${app.slides.length} 완료)`;
-
-  const fill = document.getElementById('bannerProgressFill');
-  if (fill) fill.style.width = `${percent}%`;
 }
 
-function setupCategoryTabs() {
-  const tabsContainer = document.getElementById('categoryTabs');
+function setupPartTabs() {
+  const tabsContainer = document.getElementById('partTabs');
   if (!tabsContainer) return;
 
   tabsContainer.addEventListener('click', (e) => {
@@ -449,222 +443,129 @@ function setupCategoryTabs() {
     tabsContainer.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
     btn.classList.add('active');
 
-    app.selectedPart = btn.dataset.part || 'all';
+    const partKeyword = btn.dataset.part;
+    if (partKeyword === 'all') {
+      app.currentSlideIndex = 0;
+    } else {
+      const targetIdx = app.slides.findIndex(s => s.part.includes(partKeyword));
+      if (targetIdx !== -1) {
+        app.currentSlideIndex = targetIdx;
+      }
+    }
     renderMainView();
   });
 }
 
-function setupSearch() {
-  const searchInput = document.getElementById('searchInput');
-  const searchClearBtn = document.getElementById('searchClearBtn');
-
-  if (searchInput) {
-    searchInput.addEventListener('input', (e) => {
-      app.searchQuery = e.target.value.trim().toLowerCase();
-      if (searchClearBtn) searchClearBtn.style.display = app.searchQuery ? 'block' : 'none';
-      renderMainView();
-    });
-  }
-
-  if (searchClearBtn) {
-    searchClearBtn.addEventListener('click', () => {
-      if (searchInput) searchInput.value = '';
-      app.searchQuery = '';
-      searchClearBtn.style.display = 'none';
-      renderMainView();
-    });
-  }
-}
-
 function renderMainView() {
-  const grid = document.getElementById('mainGrid');
-  if (!grid) return;
-  grid.innerHTML = '';
+  const stage = document.getElementById('mainViewerStage');
+  if (!stage) return;
 
-  let list = [...app.slides];
-
-  if (app.selectedPart !== 'all') {
-    list = list.filter(s => s.part.includes(app.selectedPart));
-  }
-
-  if (app.searchQuery) {
-    const q = app.searchQuery;
-    list = list.filter(s =>
-      s.title.toLowerCase().includes(q) ||
-      s.subtitle.toLowerCase().includes(q) ||
-      s.part.toLowerCase().includes(q) ||
-      (s.prompt && s.prompt.toLowerCase().includes(q)) ||
-      (s.code && s.code.toLowerCase().includes(q))
-    );
-  }
-
-  const resultsCount = document.getElementById('resultsCount');
-  if (resultsCount) {
-    resultsCount.textContent = `총 ${list.length}개의 교육 슬라이드`;
-  }
-
-  if (list.length === 0) {
-    grid.innerHTML = `
-      <div class="empty-state" style="grid-column: 1 / -1; text-align:center; padding:48px 24px;">
-        <div style="font-size:2.5rem; margin-bottom:12px;">🔍</div>
-        <h3>검색 조건에 해당되는 슬라이드가 없습니다.</h3>
-        <p style="color:var(--text-muted); font-size:0.9rem;">검색어를 확인하거나 전체 슬라이드 탭을 선택해 보세요.</p>
-      </div>
-    `;
-    return;
-  }
-
-  list.forEach((slide) => {
-    const isViewed = app.viewedSlides.has(slide.num);
-    const card = document.createElement('article');
-    card.className = `submission-card slide-card-thumb ${isViewed ? 'viewed' : ''}`;
-    card.style.cursor = 'pointer';
-    card.style.display = 'flex';
-    card.style.flexDirection = 'column';
-    card.style.position = 'relative';
-
-    const globalIdx = app.slides.findIndex(s => s.num === slide.num);
-
-    card.innerHTML = `
-      <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:8px;">
-        <span class="category-tag" style="font-size:0.75rem;">${slide.part}</span>
-        <span style="font-size:0.8rem; font-weight:800; color:var(--primary-600);">SLIDE ${slide.num}</span>
-      </div>
-
-      <div style="text-align:center; margin:8px 0; overflow:hidden; border-radius:var(--radius-md); background:var(--bg-main);">
-        <img src="${slide.image}" style="width:100%; height:160px; object-fit:cover; border-radius:var(--radius-md); transition:transform 0.2s ease;" alt="Slide ${slide.num}" onError="this.src='https://via.placeholder.com/400x225?text=Slide+${slide.num}';">
-      </div>
-
-      <h3 style="font-size: 0.975rem; font-weight: 700; color: var(--text-main); margin-bottom:4px; line-height:1.4;">${slide.title}</h3>
-      <p style="font-size: 0.825rem; color: var(--text-muted); line-height: 1.4; margin-bottom:12px;">${slide.subtitle}</p>
-
-      <div style="margin-top:auto; display:flex; justify-content:space-between; align-items:center; padding-top:10px; border-top:1px solid var(--border-color);">
-        ${isViewed ? `
-          <span style="font-size:0.775rem; color:var(--accent-emerald); font-weight:700;">✔ 수강 완료</span>
-        ` : `
-          <span style="font-size:0.775rem; color:var(--text-muted);">미수강</span>
-        `}
-        <button class="btn btn-outline" style="padding:4px 10px; font-size:0.775rem;" onclick="event.stopPropagation(); openCourseDetailModal(${globalIdx});">
-          ▶ 열기
-        </button>
-      </div>
-    `;
-
-    card.addEventListener('click', () => {
-      openCourseDetailModal(globalIdx);
-    });
-
-    grid.appendChild(card);
-  });
-}
-
-function openCourseDetailModal(slideIndex = 0) {
-  app.currentSlideIndex = slideIndex;
-  renderPPTSlidePlayer();
-  openModal('courseDetailModal');
-}
-
-function renderPPTSlidePlayer() {
   const slide = app.slides[app.currentSlideIndex];
   app.markSlideViewed(slide.num);
-
-  const chaptersContainer = document.getElementById('detailChaptersList');
-  const titleEl = document.getElementById('detailTitle');
-  const descEl = document.getElementById('detailDesc');
-
-  if (titleEl) titleEl.textContent = slide.part;
-  if (descEl) descEl.textContent = `[Slide ${slide.num} / ${app.slides.length}] ${slide.title}`;
+  renderHeaderAndProgress();
 
   let selectOptions = '';
   app.slides.forEach((s, idx) => {
-    selectOptions += `<option value="${idx}" ${idx === app.currentSlideIndex ? 'selected' : ''}>[${s.num}/${app.slides.length}] ${s.title.substring(0, 28)}</option>`;
+    const viewedTag = app.viewedSlides.has(s.num) ? '✔ ' : '';
+    selectOptions += `<option value="${idx}" ${idx === app.currentSlideIndex ? 'selected' : ''}>${viewedTag}[Slide ${s.num}] ${s.title.substring(0, 32)}</option>`;
   });
 
   const progressPercent = Math.round((slide.num / app.slides.length) * 100);
 
-  chaptersContainer.innerHTML = `
-    <!-- Top Progress Bar -->
-    <div class="slide-top-progress" title="슬라이드 위치 ${progressPercent}%">
-      <div class="slide-top-progress-fill" style="width: ${progressPercent}%"></div>
-    </div>
-
-    <!-- Minimalist Slide Control Top Bar -->
-    <div style="display:flex; align-items:center; justify-content:space-between; background:var(--bg-card); padding:8px 14px; border-radius:var(--radius-md); border:1px solid var(--border-color); flex-wrap:wrap; gap:10px;">
+  stage.innerHTML = `
+    <!-- MAIN SINGLE STAGE CONTAINER -->
+    <div style="background:var(--bg-card); border:1px solid var(--border-color); border-radius:var(--radius-xl); padding:20px; box-shadow:var(--shadow-lg);">
       
-      <!-- Nav Buttons -->
-      <div style="display:flex; align-items:center; gap:8px;">
-        <button class="btn btn-outline" style="padding:5px 14px; font-size:0.85rem;" onclick="changeSlide(-1)" title="이전 (◀)">
-          ◀ 이전
-        </button>
-        <button class="btn btn-primary" style="padding:5px 18px; font-size:0.85rem;" onclick="changeSlide(1)" title="다음 (▶) / 화면 클릭">
-          다음 ▶
-        </button>
+      <!-- Slide Part Tag & Title Header -->
+      <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:12px; flex-wrap:wrap; gap:8px;">
+        <div>
+          <span class="category-tag" style="font-size:0.8rem;">${slide.part}</span>
+          <h2 style="font-size:1.25rem; font-weight:800; color:var(--text-main); margin-top:4px;">
+            ${slide.title}
+          </h2>
+        </div>
+
+        <div style="display:flex; align-items:center; gap:8px;">
+          <button class="btn btn-outline" style="padding:4px 10px; font-size:0.775rem;" onclick="app.markAllSlidesViewed()">
+            ✔ 전체 완강 처리
+          </button>
+        </div>
       </div>
 
-      <!-- Slide Counter & Jump Selector -->
-      <div style="display:flex; align-items:center; gap:10px;">
-        <span style="font-size:0.85rem; font-weight:800; color:var(--primary-600);">
-          SLIDE ${slide.num} / ${app.slides.length}
-        </span>
-        <select onchange="jumpToSlide(parseInt(this.value, 10))" class="filter-select" style="max-width:210px; padding:4px 8px; font-size:0.8rem;">
-          ${selectOptions}
-        </select>
-      </div>
-    </div>
-
-    <!-- ANYWHERE-CLICKABLE SLIDE CANVAS STAGE -->
-    <div class="slide-clickable-stage" onclick="changeSlide(1)" title="화면 어디든 클릭 시 다음 슬라이드로 이동">
-      
-      <div class="anywhere-click-badge">
-        <span>화면 클릭 = 다음 슬라이드 ▶</span>
+      <!-- Top Progress Bar -->
+      <div class="slide-top-progress" title="슬라이드 위치 ${progressPercent}%">
+        <div class="slide-top-progress-fill" style="width: ${progressPercent}%"></div>
       </div>
 
-      <!-- Presentation Slide Image -->
-      <div style="text-align:center;">
-        <img src="${slide.image}" class="slide-comic-img" alt="Slide ${slide.num} presentation" onError="this.style.display='none';">
+      <!-- Control Bar -->
+      <div style="display:flex; align-items:center; justify-content:space-between; background:var(--bg-main); padding:8px 14px; border-radius:var(--radius-md); border:1px solid var(--border-color); flex-wrap:wrap; gap:10px; margin-bottom:14px;">
+        
+        <div style="display:flex; align-items:center; gap:8px;">
+          <button class="btn btn-outline" style="padding:6px 14px; font-size:0.875rem;" onclick="changeSlide(-1)" title="이전 슬라이드 (◀)">
+            ◀ 이전
+          </button>
+          <button class="btn btn-primary" style="padding:6px 18px; font-size:0.875rem;" onclick="changeSlide(1)" title="다음 슬라이드 (▶) / 클릭">
+            다음 ▶
+          </button>
+        </div>
+
+        <div style="display:flex; align-items:center; gap:10px;">
+          <span style="font-size:0.9rem; font-weight:800; color:var(--primary-600);">
+            SLIDE ${slide.num} / ${app.slides.length}
+          </span>
+          <select onchange="jumpToSlide(parseInt(this.value, 10))" class="filter-select" style="max-width:240px; padding:4px 10px; font-size:0.825rem;">
+            ${selectOptions}
+          </select>
+        </div>
       </div>
 
-      <!-- Minimal Prompts & Codes if Present -->
-      ${slide.prompt ? `
-        <div style="margin-top: 12px;" onclick="event.stopPropagation();">
-          <div style="font-size: 0.8rem; font-weight:700; color:var(--primary-600); margin-bottom:4px; display:flex; justify-content:space-between; align-items:center;">
-            <span>📋 AI 프롬프트 (클릭 시 1초 복사)</span>
-            <button class="btn btn-outline" style="padding:2px 8px; font-size:0.75rem;" onclick="copyTextToClipboard(\`${escapeHTML(slide.prompt)}\`)">복사하기</button>
+      <!-- ANYWHERE-CLICKABLE SLIDE STAGE -->
+      <div class="slide-clickable-stage" onclick="changeSlide(1)" title="화면 어디든 클릭 시 다음 슬라이드로 이동합니다">
+        <div class="anywhere-click-badge">
+          <span>화면 클릭 = 다음 슬라이드 ▶</span>
+        </div>
+
+        <div style="text-align:center;">
+          <img src="${slide.image}" class="slide-comic-img" style="max-height:580px;" alt="Slide ${slide.num}" onError="this.style.display='none';">
+        </div>
+
+        <!-- AI Prompt Copy Chip if Present -->
+        ${slide.prompt ? `
+          <div style="margin-top: 14px;" onclick="event.stopPropagation();">
+            <div style="font-size: 0.8rem; font-weight:700; color:var(--primary-600); margin-bottom:4px; display:flex; justify-content:space-between; align-items:center;">
+              <span>📋 AI 프롬프트 (클릭 시 1초 복사)</span>
+              <button class="btn btn-outline" style="padding:2px 8px; font-size:0.75rem;" onclick="copyTextToClipboard(\`${escapeHTML(slide.prompt)}\`)">복사하기</button>
+            </div>
+            <div class="prompt-copy-box" onclick="copyTextToClipboard(\`${escapeHTML(slide.prompt)}\`)">${escapeHTML(slide.prompt)}</div>
           </div>
-          <div class="prompt-copy-box" onclick="copyTextToClipboard(\`${escapeHTML(slide.prompt)}\`)">${escapeHTML(slide.prompt)}</div>
-        </div>
-      ` : ''}
+        ` : ''}
 
-      ${slide.code ? `
-        <div style="margin-top: 12px;" onclick="event.stopPropagation();">
-          <div style="font-size: 0.8rem; font-weight:700; color:var(--text-muted); margin-bottom:4px;">💻 코드 예시</div>
-          <div class="code-box" style="font-size:0.8rem; margin:0;"><pre><code>${escapeHTML(slide.code)}</code></pre></div>
-        </div>
-      ` : ''}
+        ${slide.code ? `
+          <div style="margin-top: 14px;" onclick="event.stopPropagation();">
+            <div style="font-size: 0.8rem; font-weight:700; color:var(--text-muted); margin-bottom:4px;">💻 코드 예시</div>
+            <div class="code-box" style="font-size:0.8rem; margin:0;"><pre><code>${escapeHTML(slide.code)}</code></pre></div>
+          </div>
+        ` : ''}
 
-      ${slide.cmd ? `
-        <div style="margin-top: 12px;" onclick="event.stopPropagation();">
-          <div style="font-size: 0.8rem; font-weight:700; color:var(--accent-emerald); margin-bottom:4px;">⚡ 실행 명령어</div>
-          <div class="code-box" style="font-size:0.8rem; background:#047857; color:white;"><code>${escapeHTML(slide.cmd)}</code></div>
-        </div>
-      ` : ''}
-    </div>
+        ${slide.cmd ? `
+          <div style="margin-top: 14px;" onclick="event.stopPropagation();">
+            <div style="font-size: 0.8rem; font-weight:700; color:var(--accent-emerald); margin-bottom:4px;">⚡ 실행 명령어</div>
+            <div class="code-box" style="font-size:0.8rem; background:#047857; color:white;"><code>${escapeHTML(slide.cmd)}</code></div>
+          </div>
+        ` : ''}
+      </div>
 
-    <!-- Minimal Bottom Helper Bar -->
-    <div style="display:flex; justify-content:space-between; align-items:center; font-size:0.775rem; color:var(--text-muted); padding:2px 4px;">
-      <span>💡 화면 클릭, ➔, Space, Enter 키로 다음 슬라이드로 넘어갑니다.</span>
-      <button class="btn btn-outline" style="padding:3px 8px; font-size:0.75rem;" onclick="app.markSlideViewed(${slide.num}); renderHeaderAndBanner(); renderPPTSlidePlayer();">
-        ✔ 학습 기록
-      </button>
+      <!-- Bottom Keyboard & Touch Navigation Info -->
+      <div style="display:flex; justify-content:space-between; align-items:center; font-size:0.8rem; color:var(--text-muted); margin-top:12px; padding:0 4px;">
+        <span>💡 화면 어디든 클릭 또는 키보드 방향키(➔), Space, Enter로 다음 슬라이드로 이동합니다.</span>
+        <span>${app.viewedSlides.has(slide.num) ? '✔ 수강완료' : '학습중'}</span>
+      </div>
     </div>
   `;
 }
 
 function setupKeyboardSlideNav() {
   document.addEventListener('keydown', (e) => {
-    const modal = document.getElementById('courseDetailModal');
-    if (!modal || !modal.classList.contains('active')) return;
-
     if (e.key === 'ArrowRight' || e.key === 'Space' || e.key === 'Enter') {
       e.preventDefault();
       changeSlide(1);
@@ -677,15 +578,13 @@ function setupKeyboardSlideNav() {
 
 function changeSlide(direction) {
   app.currentSlideIndex = (app.currentSlideIndex + direction + app.slides.length) % app.slides.length;
-  renderPPTSlidePlayer();
-  renderHeaderAndBanner();
+  renderMainView();
 }
 
 function jumpToSlide(index) {
   if (index >= 0 && index < app.slides.length) {
     app.currentSlideIndex = index;
-    renderPPTSlidePlayer();
-    renderHeaderAndBanner();
+    renderMainView();
   }
 }
 
@@ -693,18 +592,12 @@ function setupModalEvents() {
   document.querySelectorAll('[data-close-modal]').forEach(btn => {
     btn.addEventListener('click', () => {
       closeModal(btn.dataset.closeModal);
-      renderHeaderAndBanner();
-      renderMainView();
     });
   });
 
   document.querySelectorAll('.modal-overlay').forEach(overlay => {
     overlay.addEventListener('click', (e) => {
-      if (e.target === overlay) {
-        closeModal(overlay.id);
-        renderHeaderAndBanner();
-        renderMainView();
-      }
+      if (e.target === overlay) closeModal(overlay.id);
     });
   });
 
