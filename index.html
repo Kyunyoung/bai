@@ -3,8 +3,8 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>바이브코딩 사내 교육 포털 | 사번 기반 식별 & 순위 투표</title>
-  <meta name="description" content="사내 바이브코딩 교육 포털 - 사번(직원 고유번호) 기반 개별 식별, 250개 경찰서 엑셀 취합 & 표도우미 실습 교육 및 집합교육 순위 투표">
+  <title>바이브코딩 사내 교육 포털 | PPT 59개 슬라이드 교재</title>
+  <meta name="description" content="바이브코딩 사내 교육 포털 - 250개 경찰서 엑셀 취합 및 표도우미 실습 59개 슬라이드 교육 교재 정독 포털">
   <link rel="stylesheet" href="styles.css">
 </head>
 <body>
@@ -19,36 +19,27 @@
         <div class="logo-icon">🚀</div>
         <div>
           <span>VIBE CODING</span>
-          <span class="brand-badge">사내 교육 포털</span>
+          <span class="brand-badge">교육 교재 포털</span>
         </div>
       </a>
 
       <!-- Search Input -->
       <div class="search-wrapper">
         <span class="search-icon">🔍</span>
-        <input type="text" id="searchInput" class="search-input" placeholder="사번, 이름, 부서, 프롬프트, 실습물 검색..." aria-label="교육 자료 및 실습물 검색">
+        <input type="text" id="searchInput" class="search-input" placeholder="슬라이드 제목, 파트, AI 프롬프트 검색..." aria-label="교육 슬라이드 검색">
         <button id="searchClearBtn" class="search-clear-btn" title="검색어 지우기">✕</button>
       </div>
 
       <!-- Header Actions -->
       <div class="header-actions">
-        <!-- Rank Voting Action Trigger -->
-        <button class="btn btn-accent" style="padding: 8px 14px; font-size: 0.85rem;" onclick="openRankVoteModal()" title="사번 인증 1위, 2위, 3위 투표하기">
-          🏆 순위 투표 (1·2·3위)
+        <!-- Self Assessment Quiz Trigger -->
+        <button class="btn btn-outline" style="padding: 8px 14px; font-size: 0.85rem;" onclick="openQuizModal()" title="학습 자가진단 퀴즈">
+          📝 자가진단 퀴즈
         </button>
 
         <!-- Dark / Light Theme Toggle -->
         <button id="themeToggleBtn" class="theme-toggle-btn" title="다크/라이트 모드 전환" aria-label="테마 전환">
           <span id="themeIcon">🌙</span>
-        </button>
-
-        <!-- Profile / Employee Identification Button -->
-        <button id="userProfileBtn" class="user-profile-btn" title="내 사번/성명 등록 (내부망 명단 선택)">
-          <div class="user-avatar" id="headerAvatar">👤</div>
-          <div class="user-info">
-            <span class="user-name" id="headerUserName">사번 미등록 (클릭)</span>
-            <span class="user-dept" id="headerUserDept">소속 부서 미설정</span>
-          </div>
         </button>
       </div>
     </div>
@@ -57,106 +48,81 @@
   <!-- Main Portal Container -->
   <div class="app-container">
 
-    <!-- Hero Banner / Contest Announcement -->
+    <!-- Hero Banner / Course Announcement -->
     <section class="dashboard-banner">
       <div class="banner-pattern"></div>
       <div class="banner-content">
         <div class="banner-title-group">
           <span class="category-tag" style="background: rgba(255,255,255,0.25); color: #fff; font-size:0.8rem; margin-bottom:8px; display:inline-block;">
-            📌 사번 고유 식별 기반 1인 1회 투표
+            📚 공식 사내 교육 교재 (59개 슬라이드)
           </span>
-          <h1>바이브코딩 기초 교육 & 사번 식별 실습물 시상 투표</h1>
+          <h1>업무 자동화를 위한 바이브 코딩 교육 자료</h1>
           <p>
-            PPT 59개 슬라이드(K-감사관 만화 시나리오) 교재를 학습하고 나만의 엑셀 자동화 프롬프트를 제출하세요!<br>
-            각 임직원은 <strong>사번(고유 직원번호)</strong>으로 식별되며, 1인당 <strong>🥇 1위(3점), 🥈 2위(2점), 🥉 3위(1점)</strong> 후보를 각 1명씩 정당하게 투표할 수 있습니다.
+            K-감사관 만화 시나리오 기반 59개 슬라이드 전체 발표자료입니다.<br>
+            초급 엑셀 자동 취합부터 중급 한글 보고서 표도우미 제작까지 순서대로 학습하세요.
           </p>
         </div>
 
         <!-- Progress and Stats Grid -->
-        <div class="stats-grid">
+        <div class="stats-grid" style="grid-template-columns: 1fr auto;">
           <div class="stat-card">
-            <span class="stat-label">PPT 슬라이드 진도율</span>
+            <span class="stat-label">교재 학습 전체 진도율</span>
             <div class="stat-value-group">
               <span class="stat-number" id="statOverallProgress">0</span>
               <span class="stat-unit">%</span>
+              <span style="font-size:0.9rem; color:rgba(255,255,255,0.85); margin-left:12px;" id="statSlideCountDisplay">(0 / 59 완료)</span>
             </div>
             <div class="banner-progress-bar-bg">
               <div class="banner-progress-bar-fill" id="bannerProgressFill"></div>
             </div>
           </div>
 
-          <div class="stat-card">
-            <span class="stat-label">제출된 실습물</span>
-            <div class="stat-value-group">
-              <span class="stat-number" id="statSubmissionCount">0</span>
-              <span class="stat-unit">개</span>
-            </div>
-          </div>
-
-          <div class="stat-card">
-            <span class="stat-label">내 사번 투표 인증</span>
-            <div class="stat-value-group">
-              <span class="stat-number" id="statMyVotesCount" style="font-size:1.1rem;">미인증</span>
-            </div>
+          <div class="stat-card" style="display:flex; align-items:center; justify-content:center;">
+            <button class="btn btn-primary" style="padding:14px 24px; font-size:1rem; font-weight:700;" onclick="openCourseDetailModal()">
+              📊 슬라이드 뷰어 열기
+            </button>
           </div>
         </div>
       </div>
     </section>
-
-    <!-- Gathering Event Alert Banner -->
-    <div class="event-alert-banner">
-      <div class="event-alert-text">
-        <span style="font-size: 1.3rem;">🆔</span>
-        <span>사번(직원 고유번호) 기반으로 개별 식별되며, 최다 점수 획득자에게 집합교육 시상이 진행됩니다.</span>
-      </div>
-      <div style="display:flex; gap:10px;">
-        <button class="btn btn-outline" style="background:#fff; color:#d97706; font-weight:700;" onclick="openRankVoteModal()">
-          🏆 1·2·3위 투표하기
-        </button>
-        <button class="btn btn-primary" id="openSubmitModalBtn">
-          ✨ 실습물 제출하기
-        </button>
-      </div>
-    </div>
 
     <!-- Navigation Tabs & Filter Bar -->
     <section class="controls-section">
       <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 16px;">
         
         <div class="category-tabs" id="categoryTabs">
-          <button class="tab-btn active" data-category="course">
-            <span>📚 PPT 만화 슬라이드 교재</span>
+          <button class="tab-btn active" data-part="all">
+            <span>📚 전체 슬라이드 (59)</span>
           </button>
-          <button class="tab-btn" data-category="gallery">
-            <span>🎨 실습물 시상 투표 갤러리</span>
-            <span class="tab-count" id="galleryCountBadge">0</span>
+          <button class="tab-btn" data-part="PART 01. 도입부">
+            <span>PART 01. 도입부</span>
           </button>
-          <button class="tab-btn" data-category="my_sub">
-            <span>✏️ 내가 제출한 작품</span>
-            <span class="tab-count" id="mySubCountBadge">0</span>
+          <button class="tab-btn" data-part="PART 02. 초급 - 개발환경 세팅">
+            <span>PART 02. 세팅</span>
+          </button>
+          <button class="tab-btn" data-part="PART 03. 초급 - 엑셀 취합 실습">
+            <span>PART 03. 엑셀취합</span>
+          </button>
+          <button class="tab-btn" data-part="PART 04. 중급 - 한글 보고서 표도우미">
+            <span>PART 04. 표도우미</span>
           </button>
         </div>
 
-        <div style="display: flex; align-items: center; gap: 12px;">
-          <select id="sortSelect" class="filter-select" aria-label="정렬 방식" style="display:none; padding:8px 14px; border-radius:var(--radius-md); border:1px solid var(--border-color); background:var(--bg-card); color:var(--text-main);">
-            <option value="votes">🏆 종합 득점 순 (1·2·3위 표)</option>
-            <option value="latest">최신 제출 순</option>
-            <option value="title">제목 순</option>
-          </select>
-          <span id="resultsCount" style="font-size:0.85rem; color:var(--text-muted);"></span>
+        <div>
+          <span id="resultsCount" style="font-size:0.875rem; color:var(--text-muted); font-weight:600;"></span>
         </div>
 
       </div>
     </section>
 
     <!-- Dynamic Content Main Grid -->
-    <main id="mainGrid" class="courses-grid" aria-label="교육 코스 및 실습물 갤러리">
+    <main id="mainGrid" class="courses-grid" aria-label="교육 슬라이드 목차">
       <!-- Injected by script.js -->
     </main>
 
   </div>
 
-  <!-- MODAL 1: Course Detail & Interactive PPT Slide Deck Player Modal -->
+  <!-- MODAL 1: Interactive PPT Slide Deck Viewer Modal -->
   <div id="courseDetailModal" class="modal-overlay" aria-hidden="true" role="dialog">
     <div class="modal-container" style="max-width: 920px;">
       <div class="modal-header">
@@ -176,185 +142,18 @@
         </div>
 
         <div style="display: flex; justify-content: space-between; align-items: center; margin-top: 8px; padding-top: 14px; border-top: 1px solid var(--border-color);">
-          <button class="btn btn-outline" id="detailMasterToggleBtn" style="padding: 6px 12px; font-size: 0.85rem;">
-            <span>✔</span> 전체 수강 완료
+          <button class="btn btn-outline" id="detailMasterToggleBtn" style="padding: 6px 14px; font-size: 0.85rem;" onclick="app.markAllSlidesViewed()">
+            <span>✔</span> 전체 완료 처리
           </button>
-          <div style="display: flex; gap: 10px;">
-            <button class="btn btn-accent" id="openSubmitFromDetailBtn" style="padding: 6px 14px; font-size: 0.85rem;">
-              ✨ 실습물 제출
-            </button>
-            <button class="btn btn-primary" id="startQuizBtn" style="padding: 6px 16px; font-size: 0.85rem;">
-              📝 자가진단 퀴즈
-            </button>
-          </div>
-        </div>
-      </div>
-    </div>
-  </div>
-
-  <!-- MODAL 2: 1위/2위/3위 순위 투표 모달 (Rank Voting Modal with Employee ID Check) -->
-  <div id="rankVoteModal" class="modal-overlay" aria-hidden="true" role="dialog">
-    <div class="modal-container" style="max-width: 640px;">
-      <div class="modal-header">
-        <div class="modal-title-group">
-          <span class="category-tag" style="background:var(--accent-amber); color:white;">사번 1인 1회 투표</span>
-          <h3 style="font-size: 1.2rem; font-weight: 700;">🏆 직장 집합교육 1위·2위·3위 순위 투표</h3>
-        </div>
-        <button class="modal-close-btn" data-close-modal="rankVoteModal" title="닫기">✕</button>
-      </div>
-
-      <form id="rankVoteForm" class="modal-body">
-        <div style="background-color: var(--primary-50); padding: 14px 18px; border-radius: var(--radius-md); font-size: 0.875rem; color: var(--text-main); border-left: 4px solid var(--primary-600);">
-          🔑 현재 등록 사번: <strong id="voteModalEmpIdDisplay" style="color:var(--primary-700);">사번 미등록</strong><br>
-          임직원 사번 1개당 <strong>🥇 1위(3점), 🥈 2위(2점), 🥉 3위(1점)</strong> 작품을 각각 1개씩 다르게 투표하세요.
-        </div>
-
-        <!-- 1위 선택 -->
-        <div>
-          <label style="font-size:0.9rem; font-weight:700; color:var(--text-main); display:block; margin-bottom:6px;">
-            🥇 1위 선택 (3점 부여) <span style="color:var(--accent-rose)">*</span>
-          </label>
-          <select id="voteRank1Select" class="filter-select" style="width:100%; padding:10px 14px; border-radius:var(--radius-md); border:1px solid var(--border-color); background:var(--bg-main);" required>
-            <!-- Injected by script.js -->
-          </select>
-        </div>
-
-        <!-- 2위 선택 -->
-        <div>
-          <label style="font-size:0.9rem; font-weight:700; color:var(--text-main); display:block; margin-bottom:6px;">
-            🥈 2위 선택 (2점 부여) <span style="color:var(--accent-rose)">*</span>
-          </label>
-          <select id="voteRank2Select" class="filter-select" style="width:100%; padding:10px 14px; border-radius:var(--radius-md); border:1px solid var(--border-color); background:var(--bg-main);" required>
-            <!-- Injected by script.js -->
-          </select>
-        </div>
-
-        <!-- 3위 선택 -->
-        <div>
-          <label style="font-size:0.9rem; font-weight:700; color:var(--text-main); display:block; margin-bottom:6px;">
-            🥉 3위 선택 (1점 부여) <span style="color:var(--accent-rose)">*</span>
-          </label>
-          <select id="voteRank3Select" class="filter-select" style="width:100%; padding:10px 14px; border-radius:var(--radius-md); border:1px solid var(--border-color); background:var(--bg-main);" required>
-            <!-- Injected by script.js -->
-          </select>
-        </div>
-
-        <div style="display:flex; justify-content:flex-end; gap:12px; margin-top:12px;">
-          <button type="button" class="btn btn-outline" data-close-modal="rankVoteModal">취소</button>
-          <button type="submit" class="btn btn-accent" style="padding:10px 24px;">🏆 사번 인증 투표 저장하기</button>
-        </div>
-      </form>
-    </div>
-  </div>
-
-  <!-- MODAL 3: Submit Practical Assignment Modal -->
-  <div id="submitProjectModal" class="modal-overlay" aria-hidden="true" role="dialog">
-    <div class="modal-container" style="max-width: 680px;">
-      <div class="modal-header">
-        <div class="modal-title-group">
-          <span class="category-tag" style="background:var(--accent-amber); color:white;">시상 후보 등록</span>
-          <h3 style="font-size: 1.2rem; font-weight: 700;">✨ 실습물 제출하기 (사번 명기)</h3>
-        </div>
-        <button class="modal-close-btn" data-close-modal="submitProjectModal" title="닫기">✕</button>
-      </div>
-
-      <form id="submissionForm" class="modal-body">
-        <div style="background-color: var(--primary-50); padding: 14px 18px; border-radius: var(--radius-md); font-size: 0.875rem; color: var(--text-main);">
-          💡 250개 경찰서 엑셀 취합 또는 한글 보고서 표도우미 프롬프트/코드를 작성자의 사번과 함께 제출하세요!
-        </div>
-
-        <div style="display:grid; grid-template-columns: 1fr 1fr 1fr; gap:12px;">
-          <div>
-            <label for="subAuthorEmpId" style="font-size:0.85rem; font-weight:700; display:block; margin-bottom:4px;">사번 (고유번호)</label>
-            <input type="text" id="subAuthorEmpId" class="search-input" style="border-radius:var(--radius-md);" placeholder="예: 20240101" required>
-          </div>
-          <div>
-            <label for="subAuthorName" style="font-size:0.85rem; font-weight:700; display:block; margin-bottom:4px;">작성자 성명/직급</label>
-            <input type="text" id="subAuthorName" class="search-input" style="border-radius:var(--radius-md);" placeholder="예: 김OO 대리" required>
-          </div>
-          <div>
-            <label for="subAuthorDept" style="font-size:0.85rem; font-weight:700; display:block; margin-bottom:4px;">소속 부서</label>
-            <input type="text" id="subAuthorDept" class="search-input" style="border-radius:var(--radius-md);" placeholder="예: 디지털감사팀" required>
-          </div>
-        </div>
-
-        <div>
-          <label for="subTitle" style="font-size:0.85rem; font-weight:700; display:block; margin-bottom:4px;">실습물 제목</label>
-          <input type="text" id="subTitle" class="search-input" style="border-radius:var(--radius-md);" placeholder="예: [엑셀 취합] 특정 열 선별 및 원본파일명 자동 기록 프롬프트" required>
-        </div>
-
-        <div>
-          <label for="subDesc" style="font-size:0.85rem; font-weight:700; display:block; margin-bottom:4px;">작품 설명 (어떤 문제를 해결했나요?)</label>
-          <input type="text" id="subDesc" class="search-input" style="border-radius:var(--radius-md);" placeholder="예: 250개 경찰서 파일 중 점검결과 열만 모으고 누락 시 경고를 띄웁니다." required>
-        </div>
-
-        <div>
-          <label for="subContent" style="font-size:0.85rem; font-weight:700; display:block; margin-bottom:4px;">AI 프롬프트 / 파이썬 코드 내용</label>
-          <textarea id="subContent" rows="6" class="search-input" style="border-radius:var(--radius-md); height:auto; font-family:monospace; padding:12px;" placeholder="ChatGPT에 입력한 프롬프트 또는 생성된 Python 코드를 입력하세요." required></textarea>
-        </div>
-
-        <div style="display:flex; justify-content:flex-end; gap:12px; margin-top:12px;">
-          <button type="button" class="btn btn-outline" data-close-modal="submitProjectModal">취소</button>
-          <button type="submit" class="btn btn-accent" style="padding:10px 24px;">🚀 사번 명기 실습물 등록</button>
-        </div>
-      </form>
-    </div>
-  </div>
-
-  <!-- MODAL 4: User Profile / Employee Identification Roster Selection Modal -->
-  <div id="profileModal" class="modal-overlay" aria-hidden="true" role="dialog">
-    <div class="modal-container" style="max-width: 540px;">
-      <div class="modal-header">
-        <div class="modal-title-group">
-          <span class="category-tag">개인 고유 식별</span>
-          <h3 style="font-size: 1.2rem; font-weight: 700;">👤 사번 기반 임직원 고유 식별 등록</h3>
-        </div>
-        <button class="modal-close-btn" data-close-modal="profileModal" title="닫기">✕</button>
-      </div>
-
-      <form id="profileForm" class="modal-body">
-        <div style="background-color: var(--primary-50); padding: 12px 16px; border-radius: var(--radius-md); font-size: 0.85rem; color: var(--text-main);">
-          💡 개인별 투표 식별을 위해 본인의 <strong>사번(직원 고유번호)</strong>과 성명, 부서를 정확히 입력하거나 내부망 명단에서 선택하세요.
-        </div>
-
-        <div>
-          <label style="font-size:0.85rem; font-weight:700; display:block; margin-bottom:4px;">내부망 명단 자동 선택 (사번/성명/부서)</label>
-          <select id="rosterSelect" class="filter-select" style="width:100%; padding:10px 14px; border-radius:var(--radius-md); border:1px solid var(--border-color); background:var(--bg-main);" onchange="onRosterSelectChange(this)">
-            <!-- Injected by script.js -->
-          </select>
-        </div>
-
-        <div style="border-top:1px dashed var(--border-color); padding-top:12px; display:grid; grid-template-columns: 1fr 1fr; gap:12px;">
-          <div>
-            <label for="inputUserEmpId" style="font-size:0.85rem; font-weight:700; display:block; margin-bottom:4px;">사번 (고유 식별 번호) <span style="color:var(--accent-rose)">*</span></label>
-            <input type="text" id="inputUserEmpId" class="search-input" style="border-radius:var(--radius-md);" placeholder="예: 20240101" required>
-          </div>
-          <div>
-            <label for="inputUserName" style="font-size:0.85rem; font-weight:700; display:block; margin-bottom:4px;">성명 / 직급 <span style="color:var(--accent-rose)">*</span></label>
-            <input type="text" id="inputUserName" class="search-input" style="border-radius:var(--radius-md);" placeholder="예: 김OO 대리" required>
-          </div>
-        </div>
-
-        <div>
-          <label for="inputUserDept" style="font-size:0.85rem; font-weight:700; display:block; margin-bottom:4px;">소속 부서 <span style="color:var(--accent-rose)">*</span></label>
-          <input type="text" id="inputUserDept" class="search-input" style="border-radius:var(--radius-md);" placeholder="예: 디지털감사팀" required>
-        </div>
-
-        <div style="display:flex; justify-content:space-between; align-items:center; margin-top:12px;">
-          <button type="button" id="resetAllDataBtn" style="background:none; border:none; color:var(--accent-rose); font-size:0.8rem; cursor:pointer; text-decoration:underline;">
-            전체 데이터 초기화
+          <button class="btn btn-primary" id="startQuizBtn" style="padding: 6px 18px; font-size: 0.85rem;" onclick="closeModal('courseDetailModal'); openQuizModal();">
+            📝 자가진단 퀴즈 풀기
           </button>
-
-          <div style="display:flex; gap:10px;">
-            <button type="button" class="btn btn-outline" data-close-modal="profileModal">취소</button>
-            <button type="submit" class="btn btn-primary">사번 인증 저장</button>
-          </div>
         </div>
-      </form>
+      </div>
     </div>
   </div>
 
-  <!-- MODAL 5: Quiz Modal -->
+  <!-- MODAL 2: Quiz Modal -->
   <div id="quizModal" class="modal-overlay" aria-hidden="true" role="dialog">
     <div class="modal-container" style="max-width: 680px;">
       <div class="modal-header">
@@ -371,7 +170,7 @@
     </div>
   </div>
 
-  <!-- MODAL 6: Completion Certificate Modal -->
+  <!-- MODAL 3: Completion Certificate Modal -->
   <div id="certificateModal" class="modal-overlay" aria-hidden="true" role="dialog">
     <div class="modal-container" style="max-width: 720px; background: transparent; border: none; box-shadow: none;">
       <div style="display:flex; justify-content:flex-end; margin-bottom:12px;">
@@ -386,8 +185,8 @@
         </div>
 
         <div class="certificate-body">
-          <p>사 번: <strong id="certEmpId" style="color:#2563eb; font-weight:800;">20240101</strong> | 성 명: <strong id="certUserName" class="certificate-user">홍길동</strong></p>
-          <p style="color:#64748b; font-size:0.9rem;">소 속: <span id="certDeptName">사내 디지털감사팀</span></p>
+          <p>성 명: <strong id="certUserName" class="certificate-user">교육 수강생</strong></p>
+          <p style="color:#64748b; font-size:0.9rem;">소 속: <span id="certDeptName">사내 바이브코딩 교육 과정</span></p>
 
           <p style="margin-top: 24px;">
             위 사람은 바이브코딩 사내 교육 포털에서 제공하는<br>
@@ -398,7 +197,7 @@
 
         <div class="certificate-footer">
           <div>
-            <div>발행일자: <span id="certIssueDate">2026. 07. 27</span></div>
+            <div>발행일자: <span id="certIssueDate">2026. 07. 30</span></div>
             <div>발급번호: <span id="certId">VIBE-2026-9812</span></div>
           </div>
 

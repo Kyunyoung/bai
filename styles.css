@@ -734,6 +734,26 @@ body {
   border-color: var(--primary-500);
 }
 
+/* Slide Grid Catalog Cards */
+.slide-card-thumb {
+  background: var(--bg-card);
+  border: 1px solid var(--border-color);
+  border-radius: var(--radius-lg);
+  padding: 16px;
+  transition: all 0.2s ease;
+  box-shadow: var(--shadow-sm);
+}
+
+.slide-card-thumb:hover {
+  transform: translateY(-2px);
+  border-color: var(--primary-500);
+  box-shadow: var(--shadow-md);
+}
+
+.slide-card-thumb.viewed {
+  border-left: 4px solid var(--accent-emerald);
+}
+
 /* Toast Container */
 #toastContainer {
   position: fixed;

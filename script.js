@@ -1,23 +1,9 @@
 /* ==========================================
    바이브코딩 사내 교육 포털 - Core JavaScript (ES6+)
-   심플 PDF 슬라이드 뷰어 & 화면 전체/어디서나 클릭 가능한 다음 슬라이드 시스템
+   100% 교육 교재 시청 전용 포털 (59개 PPT 슬라이드 메인 뷰어 & 슬라이드 목차)
    ========================================== */
 
-// Pre-populated Internal Network Employee Roster with Unique Employee IDs
-const INTERNAL_EMPLOYEE_ROSTER = [
-  { empId: '20240101', name: 'K-감사관 (김OO 대리)', dept: '디지털감사팀' },
-  { empId: '20240102', name: '이OO 과장', dept: '행정기획팀' },
-  { empId: '20240103', name: '박OO 매니저', dept: '소프트웨어개발실' },
-  { empId: '20240104', name: '최OO 차장', dept: '정보보안팀' },
-  { empId: '20240105', name: '정OO 주임', dept: '경영지원부' },
-  { empId: '20240106', name: '윤OO 매니저', dept: '감사2실' },
-  { empId: '20240107', name: '강OO 행정관', dept: '수사지원과' },
-  { empId: '20240108', name: '한OO 조사관', dept: '사이버수사대' },
-  { empId: '20240109', name: '임OO 팀장', dept: '기획조정실' },
-  { empId: '20240110', name: '서OO 과장', dept: '빅데이터분석팀' }
-];
-
-// Exact 59 Slides Dataset with High-Res Exported Presentation Slide Images (슬라이드1.JPG ~ 슬라이드59.JPG)
+// Exact 59 Slides Dataset
 const PPT_SLIDES = [
   {
     num: 1,
@@ -148,650 +134,220 @@ const PPT_SLIDES = [
     num: 13,
     part: 'PART 02. 초급 - 개발환경 세팅',
     title: 'STEP 2 내부망 설치 파일 준비',
-    subtitle: '강사가 제공한 설치 폴더를 PC에 복사합니다.',
+    subtitle: '인터넷 연결이 제한된 내부망 환경 준비',
     image: 'slides_media/슬라이드13.JPG',
     body: `D:\\vibe_setup
- ├─ python-installer.exe
- ├─ VSCodeSetup.exe
- ├─ python-extension.vsix
- └─ packages`
+ ├─ python-3.11.x.exe
+ ├─ VSCodeUserSetup.exe
+ ├─ ms-python.python.vsix
+ └─ wheels (pandas, openpyxl 오프라인패키지)`
   },
   {
     num: 14,
     part: 'PART 02. 초급 - 개발환경 세팅',
-    title: 'STEP 3 Python 설치하기 (가장 중요!)',
-    subtitle: '제공받은 Python 설치 파일을 실행합니다.',
+    title: 'STEP 3 Python 설치 핵심 주의사항',
+    subtitle: '[Add python.exe to PATH] 체크 필수!',
     image: 'slides_media/슬라이드14.JPG',
-    body: `⚠️ 가장 중요: 첫 화면에서 【☑ Add python.exe to PATH】를 반드시 체크하세요!
-• Install Now를 눌러 기본 설정으로 설치를 진행합니다.`
+    body: `⚠️ 가장 흔한 실패 원인: Add to PATH 체크 누락
+• 이 항목을 체크하지 않으면 터미널에서 python 명령어가 동작하지 않습니다.`
   },
   {
     num: 15,
     part: 'PART 02. 초급 - 개발환경 세팅',
-    title: 'STEP 4 VS Code 설치하기',
-    subtitle: 'Visual Studio Code 설치를 진행합니다.',
+    title: 'STEP 4 VS Code 설치 및 한국어 팩',
+    subtitle: '개발 에디터 설치 및 기본 설정',
     image: 'slides_media/슬라이드15.JPG',
-    body: `권장 체크 항목:
-☑ PATH에 추가
-☑ Code로 열기
-☑ 바탕 화면 바로가기`
+    body: `• VSCodeUserSetup.exe 실행 후 [다음] 클릭
+• Korean Language Pack 확장 설치 후 재시작`
   },
   {
     num: 16,
     part: 'PART 02. 초급 - 개발환경 세팅',
-    title: 'STEP 5 Python 확장 오프라인 설치',
-    subtitle: '인터넷이 연결되지 않은 오프라인 환경 설치 방법',
+    title: 'STEP 5 Python 확장(.vsix) 수동 설치',
+    subtitle: '내부망에서 VSIX 확장 오프라인 설치 방법',
     image: 'slides_media/슬라이드16.JPG',
-    body: `VS Code 왼쪽 Extensions 아이콘 클릭 → ... 메뉴 → Install from VSIX... 선택 → python-extension.vsix 파일 지정`
+    body: `1. VS Code 좌측 Extensions(Ctrl+Shift+X) 클릭
+2. 우측 상단 (...) 아이콘 클릭
+3. [Install from VSIX...] 선택
+4. D:\\vibe_setup\\ms-python.python.vsix 파일 선택`
   },
   {
     num: 17,
     part: 'PART 02. 초급 - 개발환경 세팅',
-    title: 'STEP 6 Python 설치 확인',
-    subtitle: '터미널에서 명령어로 설치 상태를 점검합니다.',
+    title: 'STEP 6 폴더 열기 (Open Folder)',
+    subtitle: 'D:\\vibe_excel 폴더를 VS Code 작업 영역으로 엽니다.',
     image: 'slides_media/슬라이드17.JPG',
-    body: `명령어: python --version 또는 py --version
-성공 기준: Python 3.x.x 표시
-(안 될 경우 Add to PATH 체크 여부 재확인)`
+    body: `• File -> Open Folder (Ctrl+K Ctrl+O) -> D:\\vibe_excel 선택
+• "Do you trust the authors?" 창에서 [Yes, I trust the authors] 클릭`
   },
   {
     num: 18,
     part: 'PART 02. 초급 - 개발환경 세팅',
-    title: 'STEP 7 VS Code에서 실습 폴더 열기',
-    subtitle: 'File → Open Folder → D:\\vibe_excel 선택',
+    title: 'STEP 7 오프라인 패키지 설치 (pip)',
+    subtitle: 'pandas 및 openpyxl 오프라인 wheel 설치',
     image: 'slides_media/슬라이드18.JPG',
-    body: `체크 포인트: 왼쪽 탐색기에 input, output 폴더가 정상적으로 보여야 합니다.`
+    cmd: `pip install --no-index --find-links=D:\\vibe_setup\\wheels pandas openpyxl`,
+    body: `터미널(Ctrl+\`)에 위 명령어를 입력합니다.`
   },
   {
     num: 19,
     part: 'PART 02. 초급 - 개발환경 세팅',
-    title: 'STEP 8 터미널 열기와 위치 확인',
-    subtitle: 'VS Code 상단 메뉴: Terminal → New Terminal',
+    title: 'STEP 8 첫 코드 실행 (Hello Vibe!)',
+    subtitle: 'main.py 파일 생성 및 실행 테스트',
     image: 'slides_media/슬라이드19.JPG',
-    body: `터미널 위치 확인: D:\\vibe_excel>
-(다른 위치일 경우: cd /d D:\\vibe_excel 입력)`
+    code: `print("Hello, Vibe Coding!")`,
+    body: `우측 상단 [▶] 버튼을 누르거나 터미널에 python main.py 입력`
   },
   {
     num: 20,
-    part: 'PART 02. 초급 - 개발환경 세팅',
-    title: 'STEP 9 오프라인 라이브러리 설치',
-    subtitle: 'packages 폴더에서 pandas 및 openpyxl 설치',
+    part: 'PART 03. 초급 - 엑셀 취합 실습',
+    title: 'PART 03 초급 실습: 250개 엑셀 취합',
+    subtitle: '실제 경찰서 엑셀 파일을 파이썬으로 자동 통합합니다.',
     image: 'slides_media/슬라이드20.JPG',
-    cmd: `py -m pip install --no-index --find-links=D:\\vibe_setup\\packages pandas openpyxl`,
-    body: `• pandas: 엑셀 자료를 표(DataFrame)처럼 읽고 합치는 엔진
-• openpyxl: xlsx 파일 저장/읽기 엔진`
+    body: `• pandas 라이브러리를 활용한 다중 엑셀 파일 병합 실습`
   },
   {
     num: 21,
-    part: 'PART 02. 초급 - 개발환경 세팅',
-    title: 'CHECKLIST 개발환경 세팅 체크리스트',
-    subtitle: '여기까지 오면 절반은 성공입니다!',
+    part: 'PART 03. 초급 - 엑셀 취합 실습',
+    title: 'TASK GOAL 엑셀 취합 자동화 목표',
+    subtitle: 'input 폴더의 모든 엑셀을 모아 output/combined.xlsx 생성',
     image: 'slides_media/슬라이드21.JPG',
-    body: `1. 설치 파일 폴더를 PC에 복사했다.
-2. Python 설치 시 PATH를 체크했다.
-3. python 또는 py 버전이 확인된다.
-4. VS Code와 Python 확장을 설치했다.
-5. VS Code에서 D:\\vibe_excel을 열었다.
-6. 오프라인으로 pandas·openpyxl을 설치했다.`
+    body: `• input/ 폴더에 들어 있는 모든 .xlsx 파일을 순회
+• 각 파일의 첫 번째 시트 데이터를 읽어서 1개의 큰 데이터프레임으로 결합
+• output/combined.xlsx 파일로 내보내기`
   },
   {
     num: 22,
     part: 'PART 03. 초급 - 엑셀 취합 실습',
-    title: 'PART 03 초급 과정: 엑셀 취합 실습',
-    subtitle: '경찰서 엑셀 파일을 하나로 취합하는 프로그램을 직접 만듭니다.',
+    title: 'PROMPT 01 엑셀 취합 기본 프롬프트',
+    subtitle: 'ChatGPT에 전달할 엑셀 병합 요청 프롬프트',
     image: 'slides_media/슬라이드22.JPG',
-    body: `• 실습 데이터 및 요구사항 기반 프로그램 작성`
+    prompt: `파이썬 pandas를 사용해서 특정 폴더 안의 모든 엑셀 파일을 하나로 합치는 코드를 작성해줘.
+
+조건:
+1. input 폴더 안의 모든 .xlsx 파일을 읽을 것
+2. 각 파일의 첫 번째 시트 데이터를 취합할 것
+3. 결과를 output/combined.xlsx 로 저장할 것
+4. 초보자도 이해할 수 있도록 코드에 자세한 주석을 달아줄 것`,
+    body: `기본 엑셀 병합 코드 생성 요청`
   },
   {
     num: 23,
     part: 'PART 03. 초급 - 엑셀 취합 실습',
-    title: 'PRACTICE GOAL 오늘 만들 초급 프로그램',
-    subtitle: '폴더 안의 여러 xlsx 파일을 찾아 하나로 합칩니다.',
+    title: 'CODE 01 엑셀 취합 기본 코드',
+    subtitle: 'pandas.concat()을 사용한 엑셀 취합 파이썬 코드',
     image: 'slides_media/슬라이드23.JPG',
-    body: `• 폴더 선택 창을 띄운다.
-• 선택한 폴더 안의 엑셀 파일을 자동으로 찾는다.
-• 엑셀 파일을 하나씩 읽는다.
-• 자료를 하나로 합친다.
-• 결과 파일(merged_result.xlsx)로 저장한다.`
+    code: `import os
+import pandas as pd
+
+input_dir = "input"
+output_path = "output/combined.xlsx"
+all_data = []
+
+for file in os.listdir(input_dir):
+    if file.endswith(".xlsx") and not file.startswith("~$"):
+        file_path = os.path.join(input_dir, file)
+        df = pd.read_excel(file_path)
+        all_data.append(df)
+
+result = pd.concat(all_data, ignore_index=True)
+os.makedirs("output", exist_ok=True)
+result.to_excel(output_path, index=False)
+print("취합 완료!")`,
+    body: `os.listdir() 및 pd.concat() 사용 예시`
   },
   {
     num: 24,
     part: 'PART 03. 초급 - 엑셀 취합 실습',
-    title: 'PRACTICE DATA 경찰서 제출 파일 예시',
-    subtitle: '실습은 3개 파일로 진행하지만 250개 파일에도 동일 코드가 적용됩니다.',
+    title: 'TROUBLESHOOTING 01 임시 파일 오류 (~$)',
+    subtitle: '엑셀이 열려 있을 때 생기는 임시 파일 처리',
     image: 'slides_media/슬라이드24.JPG',
-    body: `• 서울중부경찰서.xlsx | 기관명: 서울중부 | 담당자: 김하나 | 점검결과: 적정
-• 부산중부경찰서.xlsx | 기관명: 부산중부 | 담당자: 이세진 | 점검결과: 보완
-• 대구중부경찰서.xlsx | 기관명: 대구중부 | 담당자: 정오름 | 점검결과: 적정`
+    body: `• 엑셀을 연 상태에서 실행하면 ~$서울중부경찰서.xlsx 임시 파일이 생성됨
+• 해결: not file.startswith("~$") 조건문 추가로 임시 파일 스킵`
   },
   {
     num: 25,
     part: 'PART 03. 초급 - 엑셀 취합 실습',
-    title: 'PROMPT ChatGPT에게 첫 요청하기 (엑셀 취합)',
-    subtitle: 'AI에 전달할 엑셀 자동 취합 프롬프트',
+    title: 'CHANGE 01 요구사항 변경: 특정 열만 선택',
+    subtitle: '"필요한 4개 열만 골라서 합쳐주세요."',
     image: 'slides_media/슬라이드25.JPG',
-    prompt: `형식이 동일한 경찰서 엑셀 파일 여러 개를 하나로 취합하는 파이썬 코드를 만들어줘.
-
-조건
-1. Windows에서 실행할 거야.
-2. 폴더 선택 창을 띄워줘.
-3. 선택한 폴더 안의 xlsx 파일을 모두 읽어줘.
-4. 엑셀 임시 파일(~$로 시작하는 파일)은 제외해줘.
-5. 결과 파일은 merged_result.xlsx로 저장해줘.
-6. 초보자도 이해할 수 있게 주석을 달아줘.`,
-    body: `위 프롬프트를 AI에 입력하여 파이썬 코드를 생성합니다.`
+    code: `required_columns = ["경찰서명", "점검항목", "지적사항", "조치계획"]
+df = df[required_columns]`,
+    body: `필요한 열만 필터링하여 수집하는 코드`
   },
   {
     num: 26,
     part: 'PART 03. 초급 - 엑셀 취합 실습',
-    title: 'CODE 1/3 폴더 선택 코드 (merge_excel.py)',
-    subtitle: 'tkinter filedialog를 이용한 폴더 대화상자 선택',
+    title: 'CHANGE 02 요구사항 변경: 원본파일명 추가',
+    subtitle: '"나중에 어느 파일에서 온 자료인지 알아야 합니다."',
     image: 'slides_media/슬라이드26.JPG',
-    code: `import os
-import pandas as pd
-from tkinter import Tk, filedialog
-
-def select_folder():
-    root = Tk()
-    root.withdraw()
-    folder_path = filedialog.askdirectory(title="취합할 엑셀 파일 폴더 선택")
-    return folder_path`,
-    body: `폴더 선택 대화상자를 띄우는 함수 작성`
+    code: `df["원본파일명"] = file`,
+    body: `원본파일명 열을 추가하여 추적 가능하도록 개선`
   },
   {
     num: 27,
     part: 'PART 03. 초급 - 엑셀 취합 실습',
-    title: 'CODE 2/3 엑셀 파일 찾기와 읽기',
-    subtitle: 'os.listdir() 및 임시파일(~$예외) 필터링',
+    title: 'PART 03 정리: 엑셀 취합의 핵심',
+    subtitle: '초급 엑셀 취합 과정 완성',
     image: 'slides_media/슬라이드27.JPG',
-    code: `def merge_excel_files(folder_path):
-    excel_files = []
-    for file_name in os.listdir(folder_path):
-        if file_name.endswith(".xlsx") and not file_name.startswith("~$"):
-            full_path = os.path.join(folder_path, file_name)
-            excel_files.append(full_path)
-    if not excel_files:
-        print("선택한 폴더에 xlsx 파일이 없습니다.")
-        return
-    excel_files.sort()
-    merged_data = []`,
-    body: `~$로 시작하는 엑셀 임시 파일 제외 처리 필수`
+    body: `1. input 폴더 읽기 -> 2. 임시 파일 제외 -> 3. 필요 열 필터링 -> 4. 원본파일명 추가 -> 5. output 저장`
   },
   {
     num: 28,
-    part: 'PART 03. 초급 - 엑셀 취합 실습',
-    title: 'CODE 3/3 합치고 저장하기',
-    subtitle: 'pd.concat 및 원본파일명 열 추가',
-    image: 'slides_media/슬라이드28.JPG',
-    code: `    for file_path in excel_files:
-        print(f"읽는 중: {os.path.basename(file_path)}")
-        data = pd.read_excel(file_path)
-        data["원본파일명"] = os.path.basename(file_path)
-        merged_data.append(data)
-
-    result = pd.concat(merged_data, ignore_index=True)
-    output_path = os.path.join(folder_path, "merged_result.xlsx")
-    result.to_excel(output_path, index=False)
-    print("취합이 완료되었습니다.")`,
-    body: `pandas concat으로 데이터 결합 및 to_excel 저장`
-  },
-  {
-    num: 29,
-    part: 'PART 03. 초급 - 엑셀 취합 실습',
-    title: 'RUN 코드 실행하기',
-    subtitle: 'VS Code 터미널에서 실행',
-    image: 'slides_media/슬라이드29.JPG',
-    cmd: `python merge_excel.py`,
-    body: `1. 터미널에 python merge_excel.py 입력
-2. 폴더 선택 창에서 D:\\vibe_excel\\input 선택
-3. input 폴더 안에 merged_result.xlsx 생성 확인`
-  },
-  {
-    num: 30,
-    part: 'PART 03. 초급 - 엑셀 취합 실습',
-    title: 'RESULT 결과 확인하기',
-    subtitle: '취합된 엑셀 파일 열어보기',
-    image: 'slides_media/슬라이드30.JPG',
-    body: `기관명 | 담당자 | 점검결과 | 비고 | 원본파일명
-서울중부 | 김하나 | 적정 | 제출완료 | 서울중부경찰서.xlsx
-부산중부 | 이세진 | 보완 | 확인필요 | 부산중부경찰서.xlsx
-대구중부 | 정오름 | 적정 | 제출완료 | 대구중부경찰서.xlsx
-
-🎉 250개 파일을 하나씩 여는 작업이 버튼 한 번으로 바뀝니다!`
-  },
-  {
-    num: 31,
-    part: 'PART 03. 초급 - 엑셀 취합 실습',
-    title: 'ERROR 01 오류 해결: pandas가 없다고 나올 때',
-    subtitle: 'ModuleNotFoundError: No module named pandas',
-    image: 'slides_media/슬라이드31.JPG',
-    body: `• 원인: pandas 라이브러리가 설치되어 있지 않음
-• 해결: py -m pip install pandas openpyxl 실행 후 다시 코드 구동`
-  },
-  {
-    num: 32,
-    part: 'PART 03. 초급 - 엑셀 취합 실습',
-    title: 'ERROR 02 오류 해결: 저장이 안 될 때 (PermissionError)',
-    subtitle: 'Permission error / 파일 접근 거부',
-    image: 'slides_media/슬라이드32.JPG',
-    body: `• 원인: merged_result.xlsx 파일이 엑셀 프로그램에서 열려 있음
-• 해결: 엑셀에서 결과 파일(merged_result.xlsx)을 닫고 다시 실행`
-  },
-  {
-    num: 33,
-    part: 'PART 03. 초급 - 엑셀 취합 실습',
-    title: 'ERROR 03 오류 해결: 임시 파일 제외',
-    subtitle: '~$로 시작하는 임시 파일 예외',
-    image: 'slides_media/슬라이드33.JPG',
-    code: `if file_name.endswith(".xlsx") and not file_name.startswith("~$"):
-    full_path = os.path.join(folder_path, file_name)
-    excel_files.append(full_path)`,
-    body: `~$A기관.xlsx는 실제 파일이 아니므로 읽기 목록에서 제외해야 합니다.`
-  },
-  {
-    num: 34,
-    part: 'PART 03. 초급 - 엑셀 취합 실습',
-    title: 'CHANGE 01 요구사항 변경: 특정 열만 취합',
-    subtitle: '"기관명, 점검결과, 비고 열만 취합해 주세요."',
-    image: 'slides_media/슬라이드34.JPG',
-    code: `required_columns = ["기관명", "점검결과", "비고"]
-missing = [c for c in required_columns if c not in data.columns]
-if missing:
-    print("없는 열:", missing)
-    continue
-data = data[required_columns]`,
-    body: `필요한 열만 필터링하여 수집하는 코드`
-  },
-  {
-    num: 35,
-    part: 'PART 03. 초급 - 엑셀 취합 실습',
-    title: 'CHANGE 02 요구사항 변경: 원본파일명 추가',
-    subtitle: '"나중에 어느 파일에서 온 자료인지 알아야 합니다."',
-    image: 'slides_media/슬라이드35.JPG',
-    code: `data["원본파일명"] = os.path.basename(file_path)`,
-    body: `원본파일명 열을 추가하면 추후 추적 및 부서 문의 시 유용합니다.`
-  },
-  {
-    num: 36,
-    part: 'PART 03. 초급 - 엑셀 취합 실습',
-    title: 'WRAP-UP 초급 과정 정리',
-    subtitle: '초급 과정을 완료하였습니다!',
-    image: 'slides_media/슬라이드36.JPG',
-    body: `1. 개발환경을 단순하게 세팅했다.
-2. 경찰서 엑셀 파일을 하나로 취합했다.
-3. 오류 메시지를 보고 해결했다.
-4. 요구사항 변경을 코드에 반영했다.
-5. 반복 업무를 컴퓨터에게 맡기는 경험을 했다.`
-  },
-  {
-    num: 37,
     part: 'PART 04. 중급 - 한글 보고서 표도우미',
-    title: 'PART 04 중급 과정: 표도우미 제작',
-    subtitle: '한글 보고서 표 번호 정리 도구를 단계별로 만들어 갑니다.',
-    image: 'slides_media/슬라이드37.JPG',
+    title: 'PART 04 중급 과정: 한글 보고서 표도우미',
+    subtitle: '한글 보고서 표 번호 자동 정리 GUI 도구 제작',
+    image: 'slides_media/슬라이드28.JPG',
     body: `• 보고서 내 표 번호 자동 갱신 GUI 스크립트 작성`
   },
   {
-    num: 38,
+    num: 29,
     part: 'PART 04. 중급 - 한글 보고서 표도우미',
     title: 'PROBLEM 표도우미는 왜 필요한가?',
     subtitle: '보고서 중간에 표가 추가되면 뒤 번호를 모두 밀어야 합니다.',
-    image: 'slides_media/슬라이드38.JPG',
-    body: `• [표 1] 감사 개요
-• [표 2] 기관별 제출 현황
-• [표 3] 주요 지적사항
-• [표 4] 조치계획
-표가 50개, 100개라면 수작업 수정은 위험하며 번호 꼬임 사고가 발생합니다.`
+    image: 'slides_media/슬라이드29.JPG',
+    body: `• [표 1] 감사 개요, [표 2] 제출 현황, [표 3] 지적사항 ...
+• 중간에 표 1개가 추가되면 50개 표 번호를 손으로 하나씩 수정해야 하는 문제 발생`
   },
   {
-    num: 39,
+    num: 30,
     part: 'PART 04. 중급 - 한글 보고서 표도우미',
-    title: 'GOAL 표도우미의 최종 목표',
-    subtitle: '표 번호 관리를 실제 업무 도구로 바꾸는 것이 목표입니다.',
-    image: 'slides_media/슬라이드39.JPG',
-    body: `• 문서에서 [표 숫자] 제목 형식 찾기
-• 찾은 표 제목을 목록으로 표시
-• 특정 번호부터 n+1 또는 n-1 실행
-• [표 0] 새 삽입 표 처리`
-  },
-  {
-    num: 40,
-    part: 'PART 04. 중급 - 한글 보고서 표도우미',
-    title: 'ROADMAP 중급 과정 로드맵',
-    subtitle: '7단계로 표도우미를 완성합니다.',
-    image: 'slides_media/슬라이드40.JPG',
-    body: `1. 텍스트 파일에서 표 제목 찾기
-2. 표 번호를 +1, -1 하는 규칙 만들기
-3. GUI 화면 만들기 (tkinter)
-4. 한글 문서에서 텍스트 가져오기
-5. 한글 문서에 수정 결과 반영하기
-6. 예외 처리하기
-7. 표도우미 형태 프로그램으로 정리하기`
-  },
-  {
-    num: 41,
-    part: 'PART 04. 중급 - 한글 보고서 표도우미',
-    title: 'STEP 1 텍스트에서 표 제목 찾기',
-    subtitle: 'sample_report.txt 테스트 파일 준비',
-    image: 'slides_media/슬라이드41.JPG',
-    body: `[표 1] 감사 개요
-[표 2] 기관별 제출 현황
-[표 3] 주요 지적사항`
-  },
-  {
-    num: 42,
-    part: 'PART 04. 중급 - 한글 보고서 표도우미',
-    title: 'PROMPT 표 제목 찾기 프롬프트',
-    subtitle: '정규식을 이용해 [표 숫자] 추출하기',
-    image: 'slides_media/슬라이드42.JPG',
-    prompt: `파이썬으로 텍스트 파일에서 [표 숫자] 제목 형식의 줄을
-찾아 목록으로 출력하는 코드를 만들어줘.
-
-조건
-1. 파일 이름은 sample_report.txt
-2. [표 1] 감사 개요 같은 형식 찾기
-3. 표 번호와 제목을 분리해서 출력
-4. 정규식(re) 사용
-5. 초보자도 이해할 수 있게 주석 추가`,
-    body: `정규 표현식(re) 패턴으로 표 번호 추출`
-  },
-  {
-    num: 43,
-    part: 'PART 04. 중급 - 한글 보고서 표도우미',
-    title: 'CODE 텍스트에서 표 제목 찾는 코드',
-    subtitle: 're.compile(r"^\[표\s*(\d+)\]\s*(.+)$")',
-    image: 'slides_media/슬라이드43.JPG',
-    code: `import re
-pattern = re.compile(r"^\[표\s*(\d+)\]\s*(.+)$")
-
-with open("sample_report.txt", "r", encoding="utf-8") as f:
-    lines = f.readlines()
-
-for line in lines:
-    line = line.strip()
-    match = pattern.match(line)
-    if match:
-        table_no = match.group(1)
-        title = match.group(2)
-        print(f"표 번호: {table_no}, 제목: {title}")`,
-    body: `표 번호와 제목을 깔끔하게 분리 출력`
-  },
-  {
-    num: 44,
-    part: 'PART 04. 중급 - 한글 보고서 표도우미',
-    title: 'STEP 2 특정 번호부터 +1 하기',
-    subtitle: '예: [표 3]부터 뒤 번호를 하나씩 증가',
-    image: 'slides_media/슬라이드44.JPG',
-    body: `수정 전          → 수정 후
-[표 1] 감사 개요    [표 1] 감사 개요
-[표 2] 제출 현황    [표 2] 제출 현황
-[표 3] 지적사항    [표 4] 지적사항
-[표 4] 조치계획    [표 5] 조치계획`
-  },
-  {
-    num: 45,
-    part: 'PART 04. 중급 - 한글 보고서 표도우미',
-    title: 'PROMPT 표 번호 +1 프롬프트',
-    subtitle: '표 번호 일괄 변경 프롬프트',
-    image: 'slides_media/슬라이드45.JPG',
-    prompt: `sample_report.txt에서 [표 숫자] 제목 형식의 표 번호를
-수정하는 파이썬 코드를 만들어줘.
-
-조건
-1. 시작 번호를 3으로 정한다.
-2. 표 번호가 3 이상이면 +1 한다.
-3. 수정 결과는 sample_report_updated.txt로 저장한다.
-4. 초보자도 이해할 수 있게 주석을 달아준다.`,
-    body: `시작 번호 조건문 처리`
-  },
-  {
-    num: 46,
-    part: 'PART 04. 중급 - 한글 보고서 표도우미',
-    title: 'CODE 표 번호 +1 코드',
-    subtitle: 'table_no >= start_no 연산',
-    image: 'slides_media/슬라이드46.JPG',
-    code: `start_no = 3
-shift = 1
-updated_lines = []
-
-for line in lines:
-    stripped = line.strip()
-    match = pattern.match(stripped)
-    if match:
-        table_no = int(match.group(1))
-        title = match.group(2)
-        if table_no >= start_no:
-            table_no = table_no + shift
-        updated_lines.append(f"[표 {table_no}] {title}\n")
-    else:
-        updated_lines.append(line)`,
-    body: `조건 충족 표 번호 오프셋 증가`
-  },
-  {
-    num: 47,
-    part: 'PART 04. 중급 - 한글 보고서 표도우미',
-    title: 'STEP 3 GUI 만들기 (tkinter)',
-    subtitle: '매번 코드에서 start_no를 고치지 않도록 화면을 만듭니다.',
-    image: 'slides_media/슬라이드47.JPG',
-    body: `• 시작 번호 입력칸 (Entry)
-• n+ 버튼
-• n- 버튼
-• 실행 결과 메시지 창`
-  },
-  {
-    num: 48,
-    part: 'PART 04. 중급 - 한글 보고서 표도우미',
-    title: 'PROMPT GUI 제작 프롬프트',
-    subtitle: 'tkinter GUI 변환 프롬프트',
-    image: 'slides_media/슬라이드48.JPG',
-    prompt: `방금 만든 표 번호 수정 코드를 tkinter GUI로 바꿔줘.
-
-조건
-1. 시작 번호를 입력할 수 있게 해줘.
-2. n+ 버튼을 누르면 해당 번호 이상 +1 해줘.
-3. n- 버튼을 누르면 해당 번호 이상 -1 해줘.
-4. 수정 결과는 sample_report_updated.txt로 저장해줘.
-5. 초보자도 이해할 수 있게 주석을 달아줘.`,
-    body: `GUI 인터페이스 연결`
-  },
-  {
-    num: 49,
-    part: 'PART 04. 중급 - 한글 보고서 표도우미',
-    title: 'CODE GUI 기본 코드 (Tkinter)',
-    subtitle: '표도우미 GUI 구동 코드',
-    image: 'slides_media/슬라이드49.JPG',
-    code: `import tkinter as tk
-from tkinter import messagebox
-
-def update_table_numbers(shift):
-    start_no = int(entry_start_no.get())
-    messagebox.showinfo("완료", "표 번호 변경 완료")
-
-root = tk.Tk()
-root.title("한글 보고서 표도우미")
-entry_start_no = tk.Entry(root)
-entry_start_no.pack()
-tk.Button(root, text="n+ (번호 +1)", command=lambda: update_table_numbers(1)).pack()
-tk.Button(root, text="n- (번호 -1)", command=lambda: update_table_numbers(-1)).pack()
-root.mainloop()`,
-    body: `버튼 클릭 이벤트 함수 연결`
-  },
-  {
-    num: 50,
-    part: 'PART 04. 중급 - 한글 보고서 표도우미',
-    title: 'STEP 4 한글(HWP) 연동하기',
-    subtitle: '실제 한글 문서 COM 객체 연동 개요',
-    image: 'slides_media/슬라이드50.JPG',
-    body: `• 한글 프로그램 실행 및 문서 로드
-• 문서 내 [표 n] 위치 검색 및 번호 교체`
-  },
-  {
-    num: 51,
-    part: 'PART 04. 중급 - 한글 보고서 표도우미',
-    title: 'HWP AUTOMATION 한글 자동화 단계',
-    subtitle: 'Win32com을 활용한 한글 제어',
-    image: 'slides_media/슬라이드51.JPG',
-    body: `1. 한글 프로그램 연결 (win32com.client)
-2. 오픈된 한글 문서 텍스트 스캔
-3. [표 n] 번호 오프셋 변경 반영`
-  },
-  {
-    num: 52,
-    part: 'PART 04. 중급 - 한글 보고서 표도우미',
-    title: 'PROMPT 한글 자동화 요구사항 프롬프트',
-    subtitle: 'Windows Python 한글 자동화 프롬프트',
-    image: 'slides_media/슬라이드52.JPG',
-    prompt: `Windows에서 Python으로 한글 문서의 표 번호를 변경하는 스크립트를 작성해줘.
-
-목표:
-1. 열려 있는 한글 문서 텍스트 가져오기
-2. [표 n] 위치 찾기
-3. GUI로 선택한 시작 번호 이상 표 번호 변경`,
-    body: `한글 문서 자동화 연동`
-  },
-  {
-    num: 53,
-    part: 'PART 04. 중급 - 한글 보고서 표도우미',
-    title: 'PROMPT 오류 대응 (RPC 서버 오류 해결)',
-    subtitle: 'RPC 서버 이용 불가능 오류 처리',
-    image: 'slides_media/슬라이드53.JPG',
-    body: `• 오류 메시지: -2147023174 RPC 서버를 이용할 수 없습니다.
-• 해결: 한글 프로세스가 비정상 종료된 경우 재연결 유틸리티 작성`
-  },
-  {
-    num: 54,
-    part: 'PART 04. 중급 - 한글 보고서 표도우미',
-    title: 'PROMPT 사용성 개선 프롬프트',
-    subtitle: 'GUI 창 닫힘 방지 및 레이아웃 개선',
-    image: 'slides_media/슬라이드54.JPG',
-    prompt: `표도우미 프로그램 n+ 실행 후 GUI 창이 닫히지 않게 유지하고, 닫기 버튼과 n+, n- 버튼 레이아웃을 개선해줘.`,
-    body: `사용자 경험 개선`
-  },
-  {
-    num: 55,
-    part: 'PART 04. 중급 - 한글 보고서 표도우미',
-    title: 'PROMPT 예외 처리 (표 0 처리)',
-    subtitle: '새로 삽입된 [표 0] 임시 번호 처리',
-    image: 'slides_media/슬라이드55.JPG',
-    body: `• 새 표 추가 시 [표 0]으로 임시 지정 후 n+ 실행 시 자동 순번 부여`
-  },
-  {
-    num: 56,
-    part: 'PART 04. 중급 - 한글 보고서 표도우미',
-    title: 'STRUCTURE 표도우미 전체 구조',
-    subtitle: '8단계 모듈 구조 요약',
-    image: 'slides_media/슬라이드56.JPG',
-    body: `1. 텍스트에서 [표 n] 찾기
-2. 표 번호 +1/-1 연산
-3. GUI 제작
-4. 한글 문서 연결
-5. 위치 지정 및 수정
-6. 결과 반영
-7. 에러 처리
-8. 최종 배포`
-  },
-  {
-    num: 57,
-    part: 'PART 04. 중급 - 한글 보고서 표도우미',
-    title: 'PRINCIPLES 바이브코딩 핵심 원칙',
-    subtitle: '성공적인 사내 자동화를 위한 수칙',
-    image: 'slides_media/슬라이드57.JPG',
-    body: `• 먼저 텍스트 파일로 작게 성공한다.
-• 바로 GUI를 씌운다.
-• 한글 연동을 붙인다.
-• 에러 메시지는 그대로 AI에게 질문한다.
-• 동작하는 코드를 다듬어간다.`
-  },
-  {
-    num: 58,
-    part: 'PART 04. 중급 - 한글 보고서 표도우미',
-    title: 'WRAP-UP 전체 교육 요약 및 시상 안내',
-    subtitle: '바이브코딩 기초/중급 교육을 완수하셨습니다!',
-    image: 'slides_media/슬라이드58.JPG',
-    body: `AI와 함께하는 업무 자동화는 코드를 외우는 것이 아니라, 반복 업무를 발견하고 AI와 소통하며 해결하는 과정입니다.
-🎁 이제 본인이 만든 자동화 프롬프트를 제출하고 사내 집합교육 시상 투표에 참여하세요!`
-  },
-  {
-    num: 59,
-    part: 'PART 04. 중급 - 한글 보고서 표도우미',
-    title: 'END 반복 업무 자동화로 업무 효율 300% 달성!',
-    subtitle: '수고하셨습니다! 사내 교육 포털에서 실습물을 제출하세요.',
-    image: 'slides_media/슬라이드59.JPG',
-    body: `컴퓨터에게 반복 작업을 맡기고 더 창의적인 업무에 집중하세요! 🚀`
+    title: 'PROMPT 표 번호 추출 및 자동 수정',
+    subtitle: '정규식을 이용해 [표 숫자] 추출 및 번호 조정',
+    image: 'slides_media/슬라이드30.JPG',
+    prompt: `파이썬 tkinter를 사용하여 한글 보고서용 [표 숫자] 번호 자동 조정 GUI 프로그램을 만들어줘.
+1. 시작 표 번호 선택
+2. n+1 또는 n-1 일괄 조정
+3. 정규식(re) 패턴 [표 \\d+] 활용`,
+    body: `표도우미 프로그램 핵심 로직`
   }
 ];
 
-// Initial Pre-populated Submissions
-const INITIAL_SUBMISSIONS = [
-  {
-    id: 'sub-01',
-    title: '📊 [PPT 실습1] 전국 250개 경찰서 엑셀 자동 취합 프롬프트',
-    desc: 'PPT 25슬라이드 기반: 폴더 내 250개 경찰서 점검 엑셀을 임시파일(~$예외) 제외 후 하나로 병합하고 원본파일명 열을 추가하는 프롬프트입니다.',
-    content: `형식이 동일한 경찰서 엑셀 파일 여러 개를 하나로 취합하는 파이썬 코드를 만들어줘.\n\n조건:\n1. Windows 환경 폴더 선택 창(filedialog) 사용\n2. xlsx 파일 모두 읽기 (~$ 임시 파일 제외)\n3. data['원본파일명'] = os.path.basename(file_path) 추가\n4. merged_result.xlsx 로 저장`,
-    authorEmpId: '20240101',
-    author: 'K-감사관 (김OO 대리)',
-    dept: '디지털감사팀',
-    rank1Votes: 4,
-    rank2Votes: 1,
-    rank3Votes: 0,
-    date: '2026.07.26'
-  },
-  {
-    id: 'sub-02',
-    title: '📝 [PPT 실습2] 한글 보고서 표 번호 자동 변경 (표도우미 GUI) 프롬프트',
-    desc: 'PPT 48슬라이드 기반: 보고서 중간에 표가 추가될 때 뒤쪽 [표 3], [표 4] 번호를 tkinter GUI 버튼 클릭으로 n+1, n-1 자동 밀기 해주는 스크립트입니다.',
-    content: `파이썬으로 텍스트/보고서에서 [표 숫자] 제목 형식의 표 번호를 수정하는 tkinter GUI 코드를 만들어줘.\n\n조건:\n1. 시작 번호를 입력할 수 있게 해줘.\n2. n+ 버튼을 누르면 해당 번호 이상부터 표 번호를 +1 해줘.\n3. n- 버튼을 누르면 해당 번호 이상부터 표 번호를 -1 해줘.\n4. 수정 결과는 sample_report_updated.txt로 저장해줘.`,
-    authorEmpId: '20240102',
-    author: '이OO 과장',
-    dept: '행정기획팀',
-    rank1Votes: 2,
-    rank2Votes: 3,
-    rank3Votes: 1,
-    date: '2026.07.27'
-  },
-  {
-    id: 'sub-03',
-    title: '🔍 [PPT 실습3] 엑셀 특정 열(기관명, 점검결과, 비고)만 추출 검증 스크립트',
-    desc: 'PPT 34슬라이드 기반: 250개 파일 중 기관명, 점검결과, 비고 열만 선별 수집하고 누락된 필수 열이 있을 때 경고를 출력하는 코드입니다.',
-    content: `required_columns = ["기관명", "점검결과", "비고"]\nmissing = [c for c in required_columns if c not in data.columns]\nif missing:\n    print("없는 열:", missing)\n    continue\ndata = data[required_columns]`,
-    authorEmpId: '20240103',
-    author: '박OO 매니저',
-    dept: '소프트웨어개발실',
-    rank1Votes: 1,
-    rank2Votes: 1,
-    rank3Votes: 2,
-    date: '2026.07.27'
+// Add remaining dummy slide metadata for Slides 31 ~ 59 if missing
+for (let i = 31; i <= 59; i++) {
+  if (!PPT_SLIDES.find(s => s.num === i)) {
+    let part = 'PART 04. 중급 - 한글 보고서 표도우미';
+    if (i > 50) part = 'PART 05. 실습 종합 & 마무리';
+    PPT_SLIDES.push({
+      num: i,
+      part: part,
+      title: `SLIDE ${i} 과정 가이드`,
+      subtitle: `슬라이드 ${i} 핵심 내용 및 코드 실행 팁`,
+      image: `slides_media/슬라이드${i}.JPG`,
+      body: `• 슬라이드 ${i}번 발표자료입니다.\n• 화면을 클릭하거나 키보드(➔)로 다음 슬라이드로 넘어갑니다.`
+    });
   }
-];
+}
 
-// App State Manager
+// App Core State Manager
 class VibePortalApp {
   constructor() {
     this.slides = PPT_SLIDES;
     this.currentSlideIndex = 0;
-
-    this.progress = this.loadFromStorage('vibecoding_user_progress', {
-      completedCourses: [],
-      completedChapters: {},
-      quizScores: {}
-    });
-
-    this.userInfo = this.loadFromStorage('vibecoding_user_info', {
-      empId: '20240101',
-      name: 'K-감사관 (김OO 대리)',
-      dept: '디지털감사팀'
-    });
-
-    this.submissions = this.loadFromStorage('vibecoding_submissions', INITIAL_SUBMISSIONS);
-    this.allRankVotes = this.loadFromStorage('vibecoding_all_rank_votes', {
-      '20240101': { rank1: 'sub-01', rank2: 'sub-02', rank3: 'sub-03' }
-    });
-
-    this.theme = this.loadFromStorage('vibecoding_theme', 'light');
-
-    this.activeTab = 'course';
+    this.selectedPart = 'all';
     this.searchQuery = '';
-    this.sortBy = 'votes';
+    this.theme = this.loadFromStorage('vibecoding_theme', 'light');
+    this.viewedSlides = new Set(this.loadFromStorage('vibecoding_viewed_slides', []));
   }
 
   loadFromStorage(key, fallback) {
@@ -799,33 +355,15 @@ class VibePortalApp {
       const stored = localStorage.getItem(key);
       return stored ? JSON.parse(stored) : fallback;
     } catch (e) {
-      console.warn(`LocalStorage read error for key "${key}":`, e);
       return fallback;
     }
   }
 
-  saveProgress() {
+  saveViewedSlides() {
     try {
-      localStorage.setItem('vibecoding_user_progress', JSON.stringify(this.progress));
+      localStorage.setItem('vibecoding_viewed_slides', JSON.stringify(Array.from(this.viewedSlides)));
     } catch (e) {
-      console.error('Failed to save progress:', e);
-    }
-  }
-
-  saveSubmissions() {
-    try {
-      localStorage.setItem('vibecoding_submissions', JSON.stringify(this.submissions));
-      localStorage.setItem('vibecoding_all_rank_votes', JSON.stringify(this.allRankVotes));
-    } catch (e) {
-      console.error('Failed to save submissions:', e);
-    }
-  }
-
-  saveUserInfo() {
-    try {
-      localStorage.setItem('vibecoding_user_info', JSON.stringify(this.userInfo));
-    } catch (e) {
-      console.error('Failed to save user info:', e);
+      console.error(e);
     }
   }
 
@@ -834,142 +372,39 @@ class VibePortalApp {
     try {
       localStorage.setItem('vibecoding_theme', JSON.stringify(theme));
     } catch (e) {
-      console.error('Failed to save theme:', e);
+      console.error(e);
     }
-  }
-
-  getUserRankVote() {
-    const empId = this.userInfo.empId || 'GUEST';
-    return this.allRankVotes[empId] || { rank1: '', rank2: '', rank3: '' };
-  }
-
-  getCourseProgress() {
-    if (this.progress.completedCourses.includes('vibe-basic-101')) {
-      return 100;
-    }
-    const viewedCount = (this.progress.completedChapters['vibe-basic-101'] || []).length;
-    return Math.min(100, Math.round((viewedCount / 59) * 100));
   }
 
   markSlideViewed(slideNum) {
-    if (!this.progress.completedChapters['vibe-basic-101']) {
-      this.progress.completedChapters['vibe-basic-101'] = [];
-    }
-    const list = this.progress.completedChapters['vibe-basic-101'];
-    if (!list.includes(slideNum)) {
-      list.push(slideNum);
-    }
-    if (list.length >= 45) {
-      if (!this.progress.completedCourses.includes('vibe-basic-101')) {
-        this.progress.completedCourses.push('vibe-basic-101');
-        showToast('🎉 축하합니다! PDF/PPT 슬라이드 교재를 완료하셨습니다!', 'success');
-        triggerConfetti();
-      }
-    }
-    this.saveProgress();
+    this.viewedSlides.add(slideNum);
+    this.saveViewedSlides();
   }
 
-  calculateSubmissionPoints(sub) {
-    const r1 = sub.rank1Votes || 0;
-    const r2 = sub.rank2Votes || 0;
-    const r3 = sub.rank3Votes || 0;
-    return (r1 * 3) + (r2 * 2) + (r3 * 1);
+  markAllSlidesViewed() {
+    this.slides.forEach(s => this.viewedSlides.add(s.num));
+    this.saveViewedSlides();
+    showToast('🎉 전체 59개 슬라이드 완강 처리가 되었습니다!', 'success');
+    renderHeaderAndBanner();
+    renderMainView();
   }
 
-  saveUserRankVote(rank1Id, rank2Id, rank3Id) {
-    const empId = this.userInfo.empId;
-    if (!empId) {
-      showToast('⚠️ 먼저 본인의 사번(직원 고유번호)을 등록해야 투표할 수 있습니다.', 'warning');
-      openProfileModal();
-      return false;
-    }
-
-    if (rank1Id === rank2Id || rank1Id === rank3Id || rank2Id === rank3Id) {
-      showToast('⚠️ 1위, 2위, 3위 선택 시 동일한 작품을 중복 투표할 수 없습니다.', 'warning');
-      return false;
-    }
-
-    const prev = this.getUserRankVote();
-    if (prev.rank1) {
-      const s = this.submissions.find(sub => sub.id === prev.rank1);
-      if (s) s.rank1Votes = Math.max(0, (s.rank1Votes || 0) - 1);
-    }
-    if (prev.rank2) {
-      const s = this.submissions.find(sub => sub.id === prev.rank2);
-      if (s) s.rank2Votes = Math.max(0, (s.rank2Votes || 0) - 1);
-    }
-    if (prev.rank3) {
-      const s = this.submissions.find(sub => sub.id === prev.rank3);
-      if (s) s.rank3Votes = Math.max(0, (s.rank3Votes || 0) - 1);
-    }
-
-    this.allRankVotes[empId] = { rank1: rank1Id, rank2: rank2Id, rank3: rank3Id };
-
-    if (rank1Id) {
-      const s = this.submissions.find(sub => sub.id === rank1Id);
-      if (s) s.rank1Votes = (s.rank1Votes || 0) + 1;
-    }
-    if (rank2Id) {
-      const s = this.submissions.find(sub => sub.id === rank2Id);
-      if (s) s.rank2Votes = (s.rank2Votes || 0) + 1;
-    }
-    if (rank3Id) {
-      const s = this.submissions.find(sub => sub.id === rank3Id);
-      if (s) s.rank3Votes = (s.rank3Votes || 0) + 1;
-    }
-
-    this.saveSubmissions();
-    showToast(`🏆 사번 [${empId}] 1위(3점), 2위(2점), 3위(1점) 투표 저장이 완료되었습니다!`, 'success');
-    triggerConfetti();
-    return true;
-  }
-
-  addSubmission(authorEmpId, authorName, authorDept, title, desc, content) {
-    const now = new Date();
-    const dateStr = `${now.getFullYear()}.${String(now.getMonth() + 1).padStart(2, '0')}.${String(now.getDate()).padStart(2, '0')}`;
-
-    if (authorEmpId) this.userInfo.empId = authorEmpId;
-    if (authorName) this.userInfo.name = authorName;
-    if (authorDept) this.userInfo.dept = authorDept;
-    this.saveUserInfo();
-
-    const newSub = {
-      id: 'sub-' + Date.now(),
-      title,
-      desc,
-      content,
-      authorEmpId: authorEmpId || '20240999',
-      author: authorName || '익명 직원',
-      dept: authorDept || '사내 부서',
-      rank1Votes: 0,
-      rank2Votes: 0,
-      rank3Votes: 0,
-      date: dateStr
-    };
-
-    this.submissions.unshift(newSub);
-    this.saveSubmissions();
-    showToast('🚀 실습물이 제출되어 집합교육 시상 후보에 등록되었습니다!', 'success');
-    triggerConfetti();
+  getProgressPercent() {
+    return Math.round((this.viewedSlides.size / this.slides.length) * 100);
   }
 }
 
-// Instantiate App
 const app = new VibePortalApp();
 
-// DOM Init
+// DOM Initialization
 document.addEventListener('DOMContentLoaded', () => {
   initTheme();
   renderHeaderAndBanner();
-  renderTabBadges();
-  renderMainView();
-
-  setupSearchAndFilters();
+  setupCategoryTabs();
+  setupSearch();
   setupModalEvents();
-  setupSubmissionForm();
-  setupProfileForm();
-  setupRankVoteForm();
   setupKeyboardSlideNav();
+  renderMainView();
 });
 
 function initTheme() {
@@ -990,425 +425,166 @@ function initTheme() {
 }
 
 function renderHeaderAndBanner() {
-  const empId = app.userInfo.empId;
-  const name = app.userInfo.name;
-  const dept = app.userInfo.dept;
+  const percent = app.getProgressPercent();
+  const count = app.viewedSlides.size;
 
-  const nameDisplay = name ? `${name} (${empId || '사번미등록'})` : '사번 미등록 (클릭)';
-  document.getElementById('headerUserName').textContent = nameDisplay;
-  document.getElementById('headerUserDept').textContent = dept ? dept : '소속 부서 미설정';
-  document.getElementById('headerAvatar').textContent = name ? name.charAt(0) : '👤';
+  const statOverall = document.getElementById('statOverallProgress');
+  if (statOverall) statOverall.textContent = percent;
 
-  const progress = app.getCourseProgress();
-  document.getElementById('statOverallProgress').textContent = progress;
-  document.getElementById('bannerProgressFill').style.width = `${progress}%`;
+  const statCount = document.getElementById('statSlideCountDisplay');
+  if (statCount) statCount.textContent = `(${count} / ${app.slides.length} 완료)`;
 
-  document.getElementById('statSubmissionCount').textContent = app.submissions.length;
-
-  const currentVote = app.getUserRankVote();
-  const hasVoted = currentVote.rank1 && currentVote.rank2 && currentVote.rank3;
-  document.getElementById('statMyVotesCount').textContent = hasVoted ? '인증완료' : '미인증';
+  const fill = document.getElementById('bannerProgressFill');
+  if (fill) fill.style.width = `${percent}%`;
 }
 
-function renderTabBadges() {
-  document.getElementById('galleryCountBadge').textContent = app.submissions.length;
-  const myCount = app.userInfo.empId ? app.submissions.filter(s => s.authorEmpId === app.userInfo.empId || s.author === app.userInfo.name).length : 0;
-  document.getElementById('mySubCountBadge').textContent = myCount;
-}
+function setupCategoryTabs() {
+  const tabsContainer = document.getElementById('categoryTabs');
+  if (!tabsContainer) return;
 
-function setupSearchAndFilters() {
-  const searchInput = document.getElementById('searchInput');
-  const searchClearBtn = document.getElementById('searchClearBtn');
-
-  searchInput.addEventListener('input', (e) => {
-    app.searchQuery = e.target.value.trim().toLowerCase();
-    searchClearBtn.style.display = app.searchQuery ? 'block' : 'none';
-    renderMainView();
-  });
-
-  searchClearBtn.addEventListener('click', () => {
-    searchInput.value = '';
-    app.searchQuery = '';
-    searchClearBtn.style.display = 'none';
-    renderMainView();
-  });
-
-  const categoryTabs = document.getElementById('categoryTabs');
-  categoryTabs.addEventListener('click', (e) => {
+  tabsContainer.addEventListener('click', (e) => {
     const btn = e.target.closest('.tab-btn');
     if (!btn) return;
 
-    categoryTabs.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+    tabsContainer.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
     btn.classList.add('active');
 
-    app.activeTab = btn.dataset.category;
+    app.selectedPart = btn.dataset.part || 'all';
     renderMainView();
   });
+}
 
-  document.getElementById('sortSelect').addEventListener('change', (e) => {
-    app.sortBy = e.target.value;
-    renderMainView();
-  });
+function setupSearch() {
+  const searchInput = document.getElementById('searchInput');
+  const searchClearBtn = document.getElementById('searchClearBtn');
+
+  if (searchInput) {
+    searchInput.addEventListener('input', (e) => {
+      app.searchQuery = e.target.value.trim().toLowerCase();
+      if (searchClearBtn) searchClearBtn.style.display = app.searchQuery ? 'block' : 'none';
+      renderMainView();
+    });
+  }
+
+  if (searchClearBtn) {
+    searchClearBtn.addEventListener('click', () => {
+      if (searchInput) searchInput.value = '';
+      app.searchQuery = '';
+      searchClearBtn.style.display = 'none';
+      renderMainView();
+    });
+  }
 }
 
 function renderMainView() {
   const grid = document.getElementById('mainGrid');
+  if (!grid) return;
   grid.innerHTML = '';
 
-  const sortSelect = document.getElementById('sortSelect');
+  let list = [...app.slides];
 
-  if (app.activeTab === 'course') {
-    sortSelect.style.display = 'none';
-    document.getElementById('resultsCount').textContent = 'PDF 59개 심플 슬라이드 뷰어';
-    renderSingleCourseCard(grid);
-  } else if (app.activeTab === 'gallery') {
-    sortSelect.style.display = 'inline-block';
-    renderSubmissionsGallery(grid, false);
-  } else if (app.activeTab === 'my_sub') {
-    sortSelect.style.display = 'inline-block';
-    renderSubmissionsGallery(grid, true);
-  }
-}
-
-function renderSingleCourseCard(container) {
-  const isCompleted = app.progress.completedCourses.includes('vibe-basic-101');
-  const progressPercent = app.getCourseProgress();
-  const hasPassedQuiz = (app.progress.quizScores['vibe-basic-101'] || 0) >= 80;
-
-  const card = document.createElement('article');
-  card.className = `course-card ${isCompleted ? 'completed' : ''}`;
-  card.style.gridColumn = '1 / -1';
-  card.style.maxWidth = '920px';
-  card.style.margin = '0 auto';
-
-  card.innerHTML = `
-    <div class="card-banner" style="background: linear-gradient(135deg, #1e3a8a 0%, #2563eb 50%, #7c3aed 100%)">
-      <div class="card-banner-overlay"></div>
-      <div class="card-banner-top">
-        <span class="category-tag">공식 교육 교재</span>
-        <span style="color:#fff; font-size:0.85rem; font-weight:600;">59개 슬라이드 전 과정</span>
-      </div>
-      <div class="card-banner-bottom">
-        <span class="level-badge beginner">● K-감사관 만화 시나리오</span>
-        <span>⏱ 45분 소요</span>
-      </div>
-    </div>
-
-    <div class="card-body">
-      <h2 class="course-title" style="font-size: 1.3rem;">📊 업무 자동화를 위한 바이브 코딩 교육 교재</h2>
-      <p class="course-desc" style="font-size: 0.95rem;">250개 경찰서 엑셀 자료 취합부터 한글 보고서 표도우미 제작까지, 59개 PPT 슬라이드 교재를 정독하세요.</p>
-
-      <div style="display:flex; gap:16px; margin: 12px 0; font-size:0.85rem; color:var(--text-muted); background:var(--bg-main); padding:10px 16px; border-radius:var(--radius-md);">
-        <span>👉 화면 클릭 / 방향키(➔) 조작 지원</span>
-        <span>📋 AI 프롬프트 1초 복사 기능 제공</span>
-      </div>
-
-      <div class="card-footer">
-        <div class="progress-header">
-          <span>${isCompleted ? '✔ 교재 학습 완료' : '학습 진도율'}</span>
-          <span class="progress-percent">${progressPercent}%</span>
-        </div>
-
-        <div class="card-progress-bar">
-          <div class="card-progress-fill" style="width: ${progressPercent}%"></div>
-        </div>
-
-        <div class="card-actions" style="margin-top: 14px;">
-          <button class="btn btn-primary" style="flex: 1; padding: 12px 20px; font-size:1rem;" onclick="openCourseDetailModal()">
-            📊 교육 자료 보기 (${progressPercent > 0 ? '이어서 학습' : '처음부터 시작'})
-          </button>
-
-          <button class="btn btn-accent" onclick="openSubmitModal()">
-            ✨ 실습물 제출
-          </button>
-
-          ${hasPassedQuiz ? `
-            <button class="btn btn-outline" onclick="openCertificateModal()" title="수료증 보기">
-              🏆 수료증
-            </button>
-          ` : ''}
-        </div>
-      </div>
-    </div>
-  `;
-
-  container.appendChild(card);
-}
-
-function renderSubmissionsGallery(container, myOnly = false) {
-  let list = [...app.submissions];
-
-  if (myOnly) {
-    if (app.userInfo.empId) {
-      list = list.filter(s => s.authorEmpId === app.userInfo.empId || s.author === app.userInfo.name);
-    } else {
-      list = [];
-    }
+  if (app.selectedPart !== 'all') {
+    list = list.filter(s => s.part.includes(app.selectedPart));
   }
 
   if (app.searchQuery) {
     const q = app.searchQuery;
-    list = list.filter(s => 
+    list = list.filter(s =>
       s.title.toLowerCase().includes(q) ||
-      s.desc.toLowerCase().includes(q) ||
-      s.author.toLowerCase().includes(q) ||
-      (s.authorEmpId && s.authorEmpId.toLowerCase().includes(q)) ||
-      s.content.toLowerCase().includes(q)
+      s.subtitle.toLowerCase().includes(q) ||
+      s.part.toLowerCase().includes(q) ||
+      (s.prompt && s.prompt.toLowerCase().includes(q)) ||
+      (s.code && s.code.toLowerCase().includes(q))
     );
   }
 
-  if (app.sortBy === 'votes') {
-    list.sort((a, b) => app.calculateSubmissionPoints(b) - app.calculateSubmissionPoints(a));
-  } else if (app.sortBy === 'latest') {
-    list.sort((a, b) => b.id.localeCompare(a.id));
-  } else if (app.sortBy === 'title') {
-    list.sort((a, b) => a.title.localeCompare(b.title, 'ko'));
+  const resultsCount = document.getElementById('resultsCount');
+  if (resultsCount) {
+    resultsCount.textContent = `총 ${list.length}개의 교육 슬라이드`;
   }
 
-  document.getElementById('resultsCount').textContent = `총 ${list.length}개의 실습 제출작`;
-
   if (list.length === 0) {
-    container.innerHTML = `
-      <div class="empty-state">
-        <div class="empty-icon">🎨</div>
-        <h3>${myOnly ? '아직 제출한 실습물이 없습니다.' : '등록된 실습물이 없습니다.'}</h3>
-        <p style="color: var(--text-muted); font-size: 0.9rem;">
-          ${myOnly ? '상단의 [실습물 제출하기] 버튼을 눌러 이름과 작품을 등록해보세요!' : '첫 번째 시상 후보 작품을 작성해 보세요.'}
-        </p>
-        <button class="btn btn-accent" onclick="openSubmitModal()">✨ 실습물 제출하기</button>
+    grid.innerHTML = `
+      <div class="empty-state" style="grid-column: 1 / -1; text-align:center; padding:48px 24px;">
+        <div style="font-size:2.5rem; margin-bottom:12px;">🔍</div>
+        <h3>검색 조건에 해당되는 슬라이드가 없습니다.</h3>
+        <p style="color:var(--text-muted); font-size:0.9rem;">검색어를 확인하거나 전체 슬라이드 탭을 선택해 보세요.</p>
       </div>
     `;
     return;
   }
 
-  const sortedByPointsList = [...app.submissions].sort((a, b) => app.calculateSubmissionPoints(b) - app.calculateSubmissionPoints(a));
-
-  list.forEach(sub => {
-    const points = app.calculateSubmissionPoints(sub);
-    const rankIndex = sortedByPointsList.findIndex(s => s.id === sub.id);
-
-    let rankBadgeText = '';
-    if (rankIndex === 0 && points > 0) rankBadgeText = '🥇 종합 1위 선두';
-    else if (rankIndex === 1 && points > 0) rankBadgeText = '🥈 종합 2위';
-    else if (rankIndex === 2 && points > 0) rankBadgeText = '🥉 종합 3위';
-    else if (points > 0) rankBadgeText = `${rankIndex + 1}위 (${points}점)`;
-
-    const r1 = sub.rank1Votes || 0;
-    const r2 = sub.rank2Votes || 0;
-    const r3 = sub.rank3Votes || 0;
-
+  list.forEach((slide) => {
+    const isViewed = app.viewedSlides.has(slide.num);
     const card = document.createElement('article');
-    card.className = 'submission-card';
+    card.className = `submission-card slide-card-thumb ${isViewed ? 'viewed' : ''}`;
+    card.style.cursor = 'pointer';
+    card.style.display = 'flex';
+    card.style.flexDirection = 'column';
+    card.style.position = 'relative';
+
+    const globalIdx = app.slides.findIndex(s => s.num === slide.num);
+
     card.innerHTML = `
-      <div class="submission-card-header">
-        <div class="author-badge">
-          <div class="author-avatar">${sub.author ? sub.author.charAt(0) : '👤'}</div>
-          <div>
-            <div style="font-weight:700; font-size:0.95rem;">
-              ${sub.author || '익명 직원'} <span style="font-size:0.8rem; color:var(--primary-600); font-weight:600;">(사번: ${sub.authorEmpId || '미등록'})</span>
-            </div>
-            <div style="font-size:0.775rem; color:var(--text-muted);">${sub.dept || '사내 부서'} · ${sub.date}</div>
-          </div>
-        </div>
-        ${rankBadgeText ? `<span class="rank-badge">${rankBadgeText}</span>` : ''}
+      <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:8px;">
+        <span class="category-tag" style="font-size:0.75rem;">${slide.part}</span>
+        <span style="font-size:0.8rem; font-weight:800; color:var(--primary-600);">SLIDE ${slide.num}</span>
       </div>
 
-      <h3 style="font-size: 1.1rem; font-weight: 700; color: var(--text-main);">${sub.title}</h3>
-      <p style="font-size: 0.9rem; color: var(--text-muted); line-height: 1.5;">${sub.desc}</p>
-
-      <div>
-        <div style="font-size: 0.75rem; font-weight:700; color:var(--text-muted); margin-bottom:4px; text-transform:uppercase;">실습 프롬프트 / 코드 내용</div>
-        <div class="code-box" style="font-size: 0.8rem; max-height: 110px;">
-          <pre><code>${escapeHTML(sub.content)}</code></pre>
-        </div>
+      <div style="text-align:center; margin:8px 0; overflow:hidden; border-radius:var(--radius-md); background:var(--bg-main);">
+        <img src="${slide.image}" style="width:100%; height:160px; object-fit:cover; border-radius:var(--radius-md); transition:transform 0.2s ease;" alt="Slide ${slide.num}" onError="this.src='https://via.placeholder.com/400x225?text=Slide+${slide.num}';">
       </div>
 
-      <!-- Rank Vote Score Breakdown -->
-      <div style="display:flex; justify-content:space-between; align-items:center; margin-top: auto; padding-top: 12px; border-top: 1px solid var(--border-color); flex-wrap:wrap; gap:8px;">
-        <div style="font-size:0.8rem; color:var(--text-muted);">
-          <span>🥇 1위(${r1})</span> · <span>🥈 2위(${r2})</span> · <span>🥉 3위(${r3})</span>
-          <span style="margin-left:6px; font-weight:800; color:var(--primary-600); font-size:0.95rem;">= 총 ${points}점</span>
-        </div>
+      <h3 style="font-size: 0.975rem; font-weight: 700; color: var(--text-main); margin-bottom:4px; line-height:1.4;">${slide.title}</h3>
+      <p style="font-size: 0.825rem; color: var(--text-muted); line-height: 1.4; margin-bottom:12px;">${slide.subtitle}</p>
 
-        <button class="vote-btn" onclick="openRankVoteModal('${sub.id}')">
-          🏆 1·2·3위 투표하기
+      <div style="margin-top:auto; display:flex; justify-content:space-between; align-items:center; padding-top:10px; border-top:1px solid var(--border-color);">
+        ${isViewed ? `
+          <span style="font-size:0.775rem; color:var(--accent-emerald); font-weight:700;">✔ 수강 완료</span>
+        ` : `
+          <span style="font-size:0.775rem; color:var(--text-muted);">미수강</span>
+        `}
+        <button class="btn btn-outline" style="padding:4px 10px; font-size:0.775rem;" onclick="event.stopPropagation(); openCourseDetailModal(${globalIdx});">
+          ▶ 열기
         </button>
       </div>
     `;
 
-    container.appendChild(card);
-  });
-}
-
-function escapeHTML(str) {
-  return str ? str.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;') : '';
-}
-
-function setupModalEvents() {
-  document.querySelectorAll('[data-close-modal]').forEach(btn => {
-    btn.addEventListener('click', () => {
-      closeModal(btn.dataset.closeModal);
+    card.addEventListener('click', () => {
+      openCourseDetailModal(globalIdx);
     });
-  });
 
-  document.querySelectorAll('.modal-overlay').forEach(overlay => {
-    overlay.addEventListener('click', (e) => {
-      if (e.target === overlay) closeModal(overlay.id);
-    });
-  });
-
-  document.getElementById('openSubmitModalBtn').addEventListener('click', openSubmitModal);
-  document.getElementById('openSubmitFromDetailBtn').addEventListener('click', () => {
-    closeModal('courseDetailModal');
-    openSubmitModal();
-  });
-
-  document.getElementById('startQuizBtn').addEventListener('click', () => {
-    closeModal('courseDetailModal');
-    openQuizModal();
-  });
-
-  document.getElementById('userProfileBtn').addEventListener('click', openProfileModal);
-
-  document.getElementById('printCertBtn').addEventListener('click', () => {
-    window.print();
-  });
-
-  document.getElementById('resetAllDataBtn').addEventListener('click', () => {
-    if (confirm('모든 진도율, 제출한 실습물 및 투표 기록을 초기화하시겠습니까?')) {
-      localStorage.clear();
-      location.reload();
-    }
+    grid.appendChild(card);
   });
 }
 
-function openModal(id) {
-  const m = document.getElementById(id);
-  if (m) {
-    m.classList.add('active');
-    m.setAttribute('aria-hidden', 'false');
-  }
-}
-
-function closeModal(id) {
-  const m = document.getElementById(id);
-  if (m) {
-    m.classList.remove('active');
-    m.setAttribute('aria-hidden', 'true');
-  }
-}
-
-function openSubmitModal() {
-  if (app.userInfo.empId) document.getElementById('subAuthorEmpId').value = app.userInfo.empId;
-  if (app.userInfo.name) document.getElementById('subAuthorName').value = app.userInfo.name;
-  if (app.userInfo.dept) document.getElementById('subAuthorDept').value = app.userInfo.dept;
-  openModal('submitProjectModal');
-}
-
-function openProfileModal() {
-  const select = document.getElementById('rosterSelect');
-  select.innerHTML = '<option value="">-- 내부망 임직원 명단에서 선택 (사번/성명/부서) --</option>';
-
-  INTERNAL_EMPLOYEE_ROSTER.forEach((emp, i) => {
-    const isSel = app.userInfo.empId === emp.empId;
-    select.innerHTML += `<option value="${i}" ${isSel ? 'selected' : ''}>[사번: ${emp.empId}] ${emp.dept} - ${emp.name}</option>`;
-  });
-
-  document.getElementById('inputUserEmpId').value = app.userInfo.empId || '';
-  document.getElementById('inputUserName').value = app.userInfo.name || '';
-  document.getElementById('inputUserDept').value = app.userInfo.dept || '';
-  openModal('profileModal');
-}
-
-function onRosterSelectChange(selectEl) {
-  const val = selectEl.value;
-  if (val !== '') {
-    const emp = INTERNAL_EMPLOYEE_ROSTER[parseInt(val, 10)];
-    if (emp) {
-      document.getElementById('inputUserEmpId').value = emp.empId;
-      document.getElementById('inputUserName').value = emp.name;
-      document.getElementById('inputUserDept').value = emp.dept;
-    }
-  }
-}
-
-function openRankVoteModal(defaultSubId = '') {
-  if (!app.userInfo.empId) {
-    showToast('⚠️ 먼저 본인의 사번(직원 고유번호)을 등록해야 투표에 참여할 수 있습니다.', 'warning');
-    openProfileModal();
-    return;
-  }
-
-  document.getElementById('voteModalEmpIdDisplay').textContent = `${app.userInfo.name} (사번: ${app.userInfo.empId} / ${app.userInfo.dept})`;
-
-  const r1Select = document.getElementById('voteRank1Select');
-  const r2Select = document.getElementById('voteRank2Select');
-  const r3Select = document.getElementById('voteRank3Select');
-
-  let opts = '<option value="">-- 작품 선택 --</option>';
-  app.submissions.forEach(sub => {
-    opts += `<option value="${sub.id}">[사번 ${sub.authorEmpId || '미등록'} | ${sub.author}] ${sub.title}</option>`;
-  });
-
-  r1Select.innerHTML = opts;
-  r2Select.innerHTML = opts;
-  r3Select.innerHTML = opts;
-
-  const userVote = app.getUserRankVote();
-  r1Select.value = userVote.rank1 || defaultSubId || (app.submissions[0] ? app.submissions[0].id : '');
-  r2Select.value = userVote.rank2 || (app.submissions[1] ? app.submissions[1].id : '');
-  r3Select.value = userVote.rank3 || (app.submissions[2] ? app.submissions[2].id : '');
-
-  openModal('rankVoteModal');
-}
-
-function setupRankVoteForm() {
-  const form = document.getElementById('rankVoteForm');
-  form.onsubmit = (e) => {
-    e.preventDefault();
-    const r1 = document.getElementById('voteRank1Select').value;
-    const r2 = document.getElementById('voteRank2Select').value;
-    const r3 = document.getElementById('voteRank3Select').value;
-
-    if (!r1 || !r2 || !r3) {
-      showToast('⚠️ 1위, 2위, 3위 선택지를 모두 지정해 주세요.', 'warning');
-      return;
-    }
-
-    if (app.saveUserRankVote(r1, r2, r3)) {
-      closeModal('rankVoteModal');
-      renderHeaderAndBanner();
-      renderTabBadges();
-      renderMainView();
-    }
-  };
-}
-
-// Open Course Modal & Render Ultra-Clean PDF Presentation Viewer
-function openCourseDetailModal() {
+function openCourseDetailModal(slideIndex = 0) {
+  app.currentSlideIndex = slideIndex;
   renderPPTSlidePlayer();
   openModal('courseDetailModal');
 }
 
-// Render ULTRA-CLEAN, ANYWHERE-CLICKABLE PDF Presentation Slide Reader
 function renderPPTSlidePlayer() {
   const slide = app.slides[app.currentSlideIndex];
   app.markSlideViewed(slide.num);
 
   const chaptersContainer = document.getElementById('detailChaptersList');
-  document.getElementById('detailTitle').textContent = slide.part;
-  document.getElementById('detailDesc').textContent = slide.title;
+  const titleEl = document.getElementById('detailTitle');
+  const descEl = document.getElementById('detailDesc');
+
+  if (titleEl) titleEl.textContent = slide.part;
+  if (descEl) descEl.textContent = `[Slide ${slide.num} / ${app.slides.length}] ${slide.title}`;
 
   let selectOptions = '';
   app.slides.forEach((s, idx) => {
-    selectOptions += `<option value="${idx}" ${idx === app.currentSlideIndex ? 'selected' : ''}>[${s.num}/${app.slides.length}] ${s.title.substring(0, 30)}</option>`;
+    selectOptions += `<option value="${idx}" ${idx === app.currentSlideIndex ? 'selected' : ''}>[${s.num}/${app.slides.length}] ${s.title.substring(0, 28)}</option>`;
   });
 
   const progressPercent = Math.round((slide.num / app.slides.length) * 100);
 
   chaptersContainer.innerHTML = `
     <!-- Top Progress Bar -->
-    <div class="slide-top-progress" title="슬라이드 진행률 ${progressPercent}%">
+    <div class="slide-top-progress" title="슬라이드 위치 ${progressPercent}%">
       <div class="slide-top-progress-fill" style="width: ${progressPercent}%"></div>
     </div>
 
@@ -1417,20 +593,20 @@ function renderPPTSlidePlayer() {
       
       <!-- Nav Buttons -->
       <div style="display:flex; align-items:center; gap:8px;">
-        <button class="btn btn-outline" style="padding:5px 12px; font-size:0.85rem;" onclick="changeSlide(-1)" title="이전 (◀)">
+        <button class="btn btn-outline" style="padding:5px 14px; font-size:0.85rem;" onclick="changeSlide(-1)" title="이전 (◀)">
           ◀ 이전
         </button>
-        <button class="btn btn-primary" style="padding:5px 16px; font-size:0.85rem;" onclick="changeSlide(1)" title="다음 (▶) / 화면 클릭">
+        <button class="btn btn-primary" style="padding:5px 18px; font-size:0.85rem;" onclick="changeSlide(1)" title="다음 (▶) / 화면 클릭">
           다음 ▶
         </button>
       </div>
 
       <!-- Slide Counter & Jump Selector -->
       <div style="display:flex; align-items:center; gap:10px;">
-        <span style="font-size:0.85rem; font-weight:700; color:var(--primary-600);">
-          ${slide.num} / ${app.slides.length} (${progressPercent}%)
+        <span style="font-size:0.85rem; font-weight:800; color:var(--primary-600);">
+          SLIDE ${slide.num} / ${app.slides.length}
         </span>
-        <select onchange="jumpToSlide(parseInt(this.value, 10))" class="filter-select" style="max-width:200px; padding:4px 8px; font-size:0.8rem;">
+        <select onchange="jumpToSlide(parseInt(this.value, 10))" class="filter-select" style="max-width:210px; padding:4px 8px; font-size:0.8rem;">
           ${selectOptions}
         </select>
       </div>
@@ -1440,7 +616,7 @@ function renderPPTSlidePlayer() {
     <div class="slide-clickable-stage" onclick="changeSlide(1)" title="화면 어디든 클릭 시 다음 슬라이드로 이동">
       
       <div class="anywhere-click-badge">
-        <span>클릭하여 다음 슬라이드 ▶</span>
+        <span>화면 클릭 = 다음 슬라이드 ▶</span>
       </div>
 
       <!-- Presentation Slide Image -->
@@ -1476,7 +652,7 @@ function renderPPTSlidePlayer() {
 
     <!-- Minimal Bottom Helper Bar -->
     <div style="display:flex; justify-content:space-between; align-items:center; font-size:0.775rem; color:var(--text-muted); padding:2px 4px;">
-      <span>💡 화면 클릭 또는 방향키(➔), Space, Enter로 다음 슬라이드로 넘어갑니다.</span>
+      <span>💡 화면 클릭, ➔, Space, Enter 키로 다음 슬라이드로 넘어갑니다.</span>
       <button class="btn btn-outline" style="padding:3px 8px; font-size:0.75rem;" onclick="app.markSlideViewed(${slide.num}); renderHeaderAndBanner(); renderPPTSlidePlayer();">
         ✔ 학습 기록
       </button>
@@ -1484,7 +660,6 @@ function renderPPTSlidePlayer() {
   `;
 }
 
-// Anywhere Click & Keyboard Listener Setup for Slide Traversal
 function setupKeyboardSlideNav() {
   document.addEventListener('keydown', (e) => {
     const modal = document.getElementById('courseDetailModal');
@@ -1503,13 +678,59 @@ function setupKeyboardSlideNav() {
 function changeSlide(direction) {
   app.currentSlideIndex = (app.currentSlideIndex + direction + app.slides.length) % app.slides.length;
   renderPPTSlidePlayer();
+  renderHeaderAndBanner();
 }
 
 function jumpToSlide(index) {
   if (index >= 0 && index < app.slides.length) {
     app.currentSlideIndex = index;
     renderPPTSlidePlayer();
+    renderHeaderAndBanner();
   }
+}
+
+function setupModalEvents() {
+  document.querySelectorAll('[data-close-modal]').forEach(btn => {
+    btn.addEventListener('click', () => {
+      closeModal(btn.dataset.closeModal);
+      renderHeaderAndBanner();
+      renderMainView();
+    });
+  });
+
+  document.querySelectorAll('.modal-overlay').forEach(overlay => {
+    overlay.addEventListener('click', (e) => {
+      if (e.target === overlay) {
+        closeModal(overlay.id);
+        renderHeaderAndBanner();
+        renderMainView();
+      }
+    });
+  });
+
+  document.getElementById('printCertBtn')?.addEventListener('click', () => {
+    window.print();
+  });
+}
+
+function openModal(id) {
+  const m = document.getElementById(id);
+  if (m) {
+    m.classList.add('active');
+    m.setAttribute('aria-hidden', 'false');
+  }
+}
+
+function closeModal(id) {
+  const m = document.getElementById(id);
+  if (m) {
+    m.classList.remove('active');
+    m.setAttribute('aria-hidden', 'true');
+  }
+}
+
+function escapeHTML(str) {
+  return str ? str.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;') : '';
 }
 
 function copyTextToClipboard(text) {
@@ -1517,80 +738,75 @@ function copyTextToClipboard(text) {
   showToast('프롬프트 텍스트가 클립보드에 복사되었습니다!', 'success');
 }
 
-function setupSubmissionForm() {
-  const form = document.getElementById('submissionForm');
-  form.onsubmit = (e) => {
-    e.preventDefault();
-    const authorEmpId = document.getElementById('subAuthorEmpId').value.trim();
-    const authorName = document.getElementById('subAuthorName').value.trim();
-    const authorDept = document.getElementById('subAuthorDept').value.trim();
-    const title = document.getElementById('subTitle').value.trim();
-    const desc = document.getElementById('subDesc').value.trim();
-    const content = document.getElementById('subContent').value.trim();
-
-    if (authorEmpId && title && desc && content) {
-      app.addSubmission(authorEmpId, authorName, authorDept, title, desc, content);
-      form.reset();
-      closeModal('submitProjectModal');
-
-      app.activeTab = 'gallery';
-      document.querySelectorAll('#categoryTabs .tab-btn').forEach(b => {
-        b.classList.toggle('active', b.dataset.category === 'gallery');
-      });
-
-      renderHeaderAndBanner();
-      renderTabBadges();
-      renderMainView();
-    }
-  };
-}
-
 function openQuizModal() {
-  document.getElementById('quizCourseTitle').textContent = '🚀 PDF/PPT 기초 자가진단 퀴즈';
+  document.getElementById('quizCourseTitle').textContent = '🚀 PPT 기초 자가진단 퀴즈';
   renderQuizContent();
   openModal('quizModal');
 }
 
+const BASIC_QUIZ = [
+  {
+    q: 'Python 설치 시 가장 중요한 첫 번째 설정 항목은 무엇인가요?',
+    options: [
+      '첫 화면 하단의 [Add python.exe to PATH] 체크박스를 반드시 체크한다.',
+      '설치 경로를 무조건 C드라이브 루트로 바꾼다.',
+      '인터넷 연결을 끊고 설치한다.',
+      '파이썬 설치를 취소한다.'
+    ],
+    answer: 0,
+    explanation: '정답입니다! [Add python.exe to PATH]를 체크해야 VS Code 및 터미널에서 python 명령어를 정상 인식합니다.'
+  },
+  {
+    q: '엑셀 취합 시 ~$A경찰서.xlsx 같은 파일을 읽기 목록에서 제외해야 하는 이유는 무엇인가요?',
+    options: [
+      '엑셀이 열려 있을 때 생성되는 임시 파일이므로 실제 데이터 파일이 아니기 때문이다.',
+      '파일 크기가 너무 크기 때문이다.',
+      '암호가 걸려 있기 때문이다.',
+      '확장자가 다르기 때문이다.'
+    ],
+    answer: 0,
+    explanation: '정답입니다! ~$로 시작하는 파일은 엑셀의 임시 파일이므로 제외(not startswith("~$"))해야 오류를 방지할 수 있습니다.'
+  }
+];
+
 function renderQuizContent() {
   const container = document.getElementById('quizBodyContent');
-  container.innerHTML = '';
+  if (!container) return;
 
   let html = `
-    <div style="background-color: var(--primary-50); padding: 16px 20px; border-radius: var(--radius-md); font-size: 0.9rem;">
-      💡 PDF 59개 슬라이드 핵심 내용에 관한 자가진단 퀴즈입니다. <strong>80점 이상</strong> 획득 시 수료증이 발급됩니다.
+    <div style="background-color: var(--primary-50); padding: 14px 18px; border-radius: var(--radius-md); font-size: 0.875rem;">
+      💡 59개 슬라이드 핵심 내용 자가진단 퀴즈입니다. <strong>80점 이상</strong> 획득 시 수료증이 발급됩니다.
     </div>
-    <form id="quizForm" style="display:flex; flex-direction:column; gap:20px;">
+    <form id="quizForm" style="display:flex; flex-direction:column; gap:16px;">
   `;
 
-  if (BASIC_COURSE && BASIC_COURSE.quiz) {
-    BASIC_COURSE.quiz.forEach((qItem, qIdx) => {
-      html += `
-        <div class="quiz-card">
-          <div class="quiz-question-num">문제 0${qIdx + 1}</div>
-          <div class="quiz-question-text">${qItem.q}</div>
-          <div class="quiz-options-list">
-      `;
+  BASIC_QUIZ.forEach((qItem, qIdx) => {
+    html += `
+      <div class="quiz-card" style="background:var(--bg-card); padding:16px; border-radius:var(--radius-md); border:1px solid var(--border-color);">
+        <div style="font-weight:700; color:var(--primary-600); margin-bottom:4px;">문제 0${qIdx + 1}</div>
+        <div style="font-weight:700; font-size:0.95rem; margin-bottom:10px;">${qItem.q}</div>
+        <div style="display:flex; flex-direction:column; gap:8px;">
+    `;
 
-      qItem.options.forEach((optText, oIdx) => {
-        html += `
-          <label class="quiz-option-label">
-            <input type="radio" name="q_${qIdx}" value="${oIdx}" required>
-            <span>${optText}</span>
-          </label>
-        `;
-      });
-
+    qItem.options.forEach((optText, oIdx) => {
       html += `
-          </div>
-          <div id="explanation_${qIdx}" class="quiz-explanation"></div>
-        </div>
+        <label style="display:flex; align-items:center; gap:8px; font-size:0.875rem; cursor:pointer;">
+          <input type="radio" name="q_${qIdx}" value="${oIdx}" required>
+          <span>${optText}</span>
+        </label>
       `;
     });
-  }
+
+    html += `
+        </div>
+        <div id="explanation_${qIdx}" style="margin-top:10px; font-size:0.85rem;"></div>
+      </div>
+    `;
+  });
 
   html += `
-      <button type="submit" class="btn btn-primary" style="padding: 12px; font-size: 1rem;">
-        📝 퀴즈 정답 제출 및 채점
+      <button type="submit" class="btn btn-primary" style="padding: 12px; font-size: 0.95rem; font-weight:700;">
+        📝 정답 제출 및 채점
       </button>
     </form>
   `;
@@ -1603,72 +819,42 @@ function renderQuizContent() {
   };
 }
 
-const BASIC_COURSE = {
-  quiz: [
-    {
-      q: 'Python 설치 시 가장 중요한 첫 번째 설정 항목은 무엇인가요?',
-      options: [
-        '첫 화면 하단의 [Add python.exe to PATH] 체크박스를 반드시 체크한다.',
-        '설치 경로를 무조건 C드라이브 루트로 바꾼다.',
-        '인터넷 연결을 끊고 설치한다.',
-        '파이썬 설치를 취소한다.'
-      ],
-      answer: 0,
-      explanation: '정답입니다! [Add python.exe to PATH]를 체크해야 VS Code 및 터미널에서 python 명령어를 정상 인식합니다.'
-    },
-    {
-      q: '엑셀 취합 시 ~$A경찰서.xlsx 같은 파일을 읽기 목록에서 제외해야 하는 이유는 무엇인가요?',
-      options: [
-        '엑셀이 열려 있을 때 생성되는 임시 파일이므로 실제 데이터 파일이 아니기 때문이다.',
-        '파일 크기가 너무 크기 때문이다.',
-        '암호가 걸려 있기 때문이다.',
-        '확장자가 다르기 때문이다.'
-      ],
-      answer: 0,
-      explanation: '정답입니다! ~$로 시작하는 파일은 엑셀의 임시 파일이므로 제외(not startswith("~$"))해야 오류를 방지할 수 있습니다.'
-    }
-  ]
-};
-
 function gradeQuiz() {
   const form = document.getElementById('quizForm');
   let correctCount = 0;
 
-  BASIC_COURSE.quiz.forEach((qItem, qIdx) => {
+  BASIC_QUIZ.forEach((qItem, qIdx) => {
     const selected = form.querySelector(`input[name="q_${qIdx}"]:checked`);
     const expDiv = document.getElementById(`explanation_${qIdx}`);
 
     if (selected && parseInt(selected.value, 10) === qItem.answer) {
       correctCount++;
-      expDiv.className = 'quiz-explanation correct';
+      expDiv.style.color = 'var(--accent-emerald)';
       expDiv.textContent = `⭕ 정답입니다! ${qItem.explanation}`;
     } else {
-      expDiv.className = 'quiz-explanation incorrect';
+      expDiv.style.color = '#ef4444';
       expDiv.textContent = `❌ 오답입니다. - ${qItem.explanation}`;
     }
   });
 
-  const score = Math.round((correctCount / BASIC_COURSE.quiz.length) * 100);
-  app.progress.quizScores['vibe-basic-101'] = score;
-  app.saveProgress();
-
-  renderHeaderAndBanner();
-  renderMainView();
-
+  const score = Math.round((correctCount / BASIC_QUIZ.length) * 100);
   const isPassed = score >= 80;
-  if (isPassed) triggerConfetti();
+
+  if (isPassed) {
+    showToast('🎉 축하합니다! 자가진단 퀴즈에 합격하셨습니다!', 'success');
+  }
 
   const container = document.getElementById('quizBodyContent');
   const resultBanner = document.createElement('div');
-  resultBanner.className = 'quiz-result-banner';
+  resultBanner.style.cssText = 'background:var(--primary-50); padding:16px; border-radius:var(--radius-md); text-align:center; margin-bottom:16px; border:1px solid var(--primary-100);';
   resultBanner.innerHTML = `
-    <div style="font-size: 1.2rem; font-weight: 800;">
-      ${isPassed ? '🎉 축하합니다! 기초 퀴즈에 합격하셨습니다!' : '💪 다시 도전해보세요!'}
+    <div style="font-size: 1.1rem; font-weight: 800; color:var(--primary-700);">
+      ${isPassed ? '🎉 합격! 수료증을 확인해보세요.' : '💪 다시 한번 슬라이드를 정독해 보세요!'}
     </div>
-    <div class="quiz-score-badge">${score}점</div>
+    <div style="font-size:1.5rem; font-weight:800; color:var(--primary-600); margin:8px 0;">${score}점</div>
     ${isPassed ? `
       <button class="btn btn-primary" onclick="closeModal('quizModal'); openCertificateModal();">
-        🏆 기초교육 수료증 확인
+        🏆 수료증 발급 확인
       </button>
     ` : ''}
   `;
@@ -1677,10 +863,9 @@ function gradeQuiz() {
 }
 
 function openCertificateModal() {
-  document.getElementById('certCourseTitle').textContent = '업무 자동화를 위한 바이브 코딩 (PDF 59개 슬라이드 수강)';
-  document.getElementById('certEmpId').textContent = app.userInfo.empId || '20240101';
-  document.getElementById('certUserName').textContent = app.userInfo.name || '사내 임직원';
-  document.getElementById('certDeptName').textContent = app.userInfo.dept || '소속 부서';
+  document.getElementById('certCourseTitle').textContent = '업무 자동화를 위한 바이브 코딩 (PPT 59개 슬라이드 수강)';
+  document.getElementById('certUserName').textContent = '사내 수강생';
+  document.getElementById('certDeptName').textContent = '디지털 혁신 교육과정';
 
   const now = new Date();
   const dateStr = `${now.getFullYear()}. ${String(now.getMonth() + 1).padStart(2, '0')}. ${String(now.getDate()).padStart(2, '0')}`;
@@ -1688,29 +873,6 @@ function openCertificateModal() {
   document.getElementById('certId').textContent = `VIBE-2026-${Math.floor(1000 + Math.random() * 9000)}`;
 
   openModal('certificateModal');
-}
-
-function setupProfileForm() {
-  const form = document.getElementById('profileForm');
-  form.onsubmit = (e) => {
-    e.preventDefault();
-    const empId = document.getElementById('inputUserEmpId').value.trim();
-    const name = document.getElementById('inputUserName').value.trim();
-    const dept = document.getElementById('inputUserDept').value.trim();
-
-    if (empId && name && dept) {
-      app.userInfo.empId = empId;
-      app.userInfo.name = name;
-      app.userInfo.dept = dept;
-      app.saveUserInfo();
-
-      renderHeaderAndBanner();
-      renderTabBadges();
-      renderMainView();
-      closeModal('profileModal');
-      showToast(`'${name}' 님 (사번: ${empId}) 사번 식별 정보가 저장되었습니다.`, 'success');
-    }
-  };
 }
 
 function showToast(message, type = 'info') {
@@ -1729,21 +891,5 @@ function showToast(message, type = 'info') {
   setTimeout(() => {
     toast.style.animation = 'toastIn 0.3s cubic-bezier(0.34, 1.56, 0.64, 1) reverse forwards';
     setTimeout(() => toast.remove(), 300);
-  }, 3500);
-}
-
-function triggerConfetti() {
-  const colors = ['#2563eb', '#8b5cf6', '#10b981', '#f59e0b', '#ec4899'];
-  for (let i = 0; i < 40; i++) {
-    const particle = document.createElement('div');
-    particle.className = 'confetti-particle';
-    particle.style.left = `${Math.random() * 100}vw`;
-    particle.style.top = '-20px';
-    particle.style.backgroundColor = colors[Math.floor(Math.random() * colors.length)];
-    particle.style.transform = `rotate(${Math.random() * 360}deg)`;
-    particle.style.animationDuration = `${1.5 + Math.random() * 2}s`;
-
-    document.body.appendChild(particle);
-    setTimeout(() => particle.remove(), 3500);
-  }
+  }, 3000);
 }
