@@ -1,0 +1,19 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  html, body { width: 100vw; height: 100vh; overflow: hidden; background: #ffffff; }
+  embed, iframe { width: 100vw; height: 100vh; border: none; }
+</style>
+</head>
+<body>
+  <iframe id="pdfFrame" src="vibe_coding_55_scenario_offline_install_added.pdf#toolbar=0&navpanes=0&scrollbar=0"></iframe>
+  <script>
+    const urlParams = new URLSearchParams(window.location.search);
+    const page = urlParams.get('page') || '1';
+    document.getElementById('pdfFrame').src = `vibe_coding_55_scenario_offline_install_added.pdf#page=${page}&toolbar=0&navpanes=0&scrollbar=0`;
+  </script>
+</body>
+</html>

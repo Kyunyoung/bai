@@ -1,0 +1,83 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <title>PDF Slides DataURL Generator</title>
+  <script src="pdf.min.js"></script>
+</head>
+<body style="font-family:sans-serif; padding:30px; background:#f4f6f9; text-align:center;">
+  <h1 style="color:#1e3a8a;">🚀 PDF 59개 슬라이드 DataURL 추출 중...</h1>
+  <div id="status" style="font-size:1.3rem; font-weight:bold; color:#2563eb; margin:15px 0;">자동 실행 준비 중...</div>
+  <div id="log" style="font-family:monospace; text-align:left; background:#ffffff; padding:15px; border:1px solid #cbd5e1; border-radius:8px; max-height:400px; overflow-y:auto; margin:0 auto; max-width:800px;"></div>
+
+  <script>
+    pdfjsLib.GlobalWorkerOptions.workerSrc = 'pdf.worker.min.js';
+
+    function log(msg) {
+      const logDiv = document.getElementById('log');
+      logDiv.innerHTML += msg + '<br>';
+      logDiv.scrollTop = logDiv.scrollHeight;
+    }
+
+    let isRunning = false;
+    async function startRendering() {
+      if (isRunning) return;
+      isRunning = true;
+
+      try {
+        log('vibe_coding_55_scenario_offline_install_added.pdf 로딩 중...');
+        const response = await fetch('vibe_coding_55_scenario_offline_install_added.pdf');
+        const arrayBuffer = await response.arrayBuffer();
+
+        log('PDF.js 로딩 및 문서 파싱...');
+        const loadingTask = pdfjsLib.getDocument({ data: arrayBuffer });
+        const pdf = await loadingTask.promise;
+        const totalPages = pdf.numPages;
+        log(`총 페이지 수: ${totalPages} 장`);
+
+        const dataUrls = [];
+
+        for (let num = 1; num <= totalPages; num++) {
+          document.getElementById('status').textContent = `PDF 슬라이드 ${num} / ${totalPages} 렌더링 중...`;
+          const page = await pdf.getPage(num);
+          
+          const unscaledViewport = page.getViewport({ scale: 1.0 });
+          const targetWidth = 1280; // Crisp 1280px width for fast loading
+          const scale = targetWidth / unscaledViewport.width;
+          const viewport = page.getViewport({ scale: scale });
+
+          const canvas = document.createElement('canvas');
+          const context = canvas.getContext('2d');
+          canvas.width = viewport.width;
+          canvas.height = viewport.height;
+
+          await page.render({ canvasContext: context, viewport: viewport }).promise;
+
+          const dataUrl = canvas.toDataURL('image/jpeg', 0.85);
+          dataUrls.push(dataUrl);
+
+          log(`✅ PDF 슬라이드 ${num} / ${totalPages} DataURL 생성 완료 (${Math.round(dataUrl.length / 1024)} KB)`);
+        }
+
+        document.getElementById('status').textContent = '🎉 전체 59개 PDF 슬라이드 DataURL 생성 완수! 서버 저장 요청 중...';
+
+        const jsFileContent = 'const PDF_SLIDE_IMAGES = ' + JSON.stringify(dataUrls) + ';';
+
+        await fetch('http://127.0.0.1:7777/save_js', {
+          method: 'POST',
+          headers: { 'Content-Type': 'text/plain' },
+          body: jsFileContent
+        });
+
+        document.getElementById('status').textContent = '🎉 pdf_slides_data.js 저장 완료!';
+        log('✅ pdf_slides_data.js 파일이 성공적으로 저장되었습니다!');
+      } catch (err) {
+        document.getElementById('status').textContent = '❌ 오류 발생: ' + err.message;
+        log('오류 상세: ' + err.stack);
+      }
+    }
+
+    setTimeout(startRendering, 300);
+  </script>
+</body>
+</html>

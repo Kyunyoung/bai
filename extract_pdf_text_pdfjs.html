@@ -1,0 +1,54 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <title>Extract Exact PDF Text 59 Pages</title>
+  <script src="pdf.min.js"></script>
+</head>
+<body style="font-family:monospace; padding:20px;">
+  <h2>PDF Text Extraction (59 Pages)</h2>
+  <pre id="output"></pre>
+
+  <script>
+    pdfjsLib.GlobalWorkerOptions.workerSrc = 'pdf.worker.min.js';
+
+    async function extractAllText() {
+      try {
+        const response = await fetch('vibe_coding_55_scenario_offline_install_added.pdf');
+        const arrayBuffer = await response.arrayBuffer();
+        const pdf = await pdfjsLib.getDocument({ data: arrayBuffer }).promise;
+        const totalPages = pdf.numPages;
+
+        const results = [];
+
+        for (let num = 1; num <= totalPages; num++) {
+          const page = await pdf.getPage(num);
+          const textContent = await page.getTextContent();
+          const items = textContent.items.map(item => item.str.trim()).filter(str => str.length > 0);
+          
+          results.push({
+            num: num,
+            textItems: items,
+            fullText: items.join('\n')
+          });
+        }
+
+        document.getElementById('output').textContent = JSON.stringify(results, null, 2);
+
+        // Upload results to local HTTP server or console
+        console.log(results);
+        
+        await fetch('http://127.0.0.1:8888/save_text', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(results)
+        });
+      } catch (err) {
+        document.getElementById('output').textContent = 'Error: ' + err.message;
+      }
+    }
+
+    document.addEventListener('DOMContentLoaded', extractAllText);
+  </script>
+</body>
+</html>

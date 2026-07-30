@@ -5,7 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>바이브코딩 사내 교육 포털 | PPT 59개 슬라이드 교재</title>
   <meta name="description" content="바이브코딩 사내 교육 포털 - 250개 경찰서 엑셀 취합 및 표도우미 실습 59개 슬라이드 교육 교재 전용 슬라이드 뷰어">
-  <link rel="stylesheet" href="styles.css">
+  <link rel="stylesheet" href="styles.css?v=8">
 </head>
 <body>
 
@@ -19,17 +19,12 @@
         <div class="logo-icon">🚀</div>
         <div>
           <span>VIBE CODING</span>
-          <span class="brand-badge">교육 교재 포털</span>
+          <span class="brand-badge">PDF 원본 뷰어</span>
         </div>
       </a>
 
       <!-- Header Actions -->
       <div class="header-actions">
-        <!-- Self Assessment Quiz Trigger -->
-        <button class="btn btn-outline" style="padding: 8px 14px; font-size: 0.85rem;" onclick="openQuizModal()" title="학습 자가진단 퀴즈">
-          📝 자가진단 퀴즈
-        </button>
-
         <!-- Dark / Light Theme Toggle -->
         <button id="themeToggleBtn" class="theme-toggle-btn" title="다크/라이트 모드 전환" aria-label="테마 전환">
           <span id="themeIcon">🌙</span>
@@ -39,16 +34,16 @@
   </header>
 
   <!-- Main Portal Container -->
-  <div class="app-container" style="max-width: 1000px; padding: 24px 16px;">
+  <div class="app-container" style="max-width: 1040px; padding: 24px 16px;">
 
     <!-- Top Compact Header & Progress Status -->
     <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom: 16px; flex-wrap:wrap; gap:12px;">
       <div>
         <h1 style="font-size: 1.5rem; font-weight: 800; color:var(--text-main); margin-bottom:4px;">
-          📊 업무 자동화를 위한 바이브 코딩 (59개 슬라이드)
+          📊 업무 자동화를 위한 바이브 코딩 (PDF 59개 슬라이드 원본)
         </h1>
         <p style="font-size: 0.875rem; color:var(--text-muted);">
-          화면 어디든 클릭하거나 키보드 방향키(➔)를 이용해 59개 슬라이드 교재를 순서대로 학습하세요.
+          vibe_coding_55_scenario_offline_install_added.pdf 원본 슬라이드 59장을 정독하세요.
         </p>
       </div>
 
@@ -85,66 +80,6 @@
 
   </div>
 
-  <!-- MODAL 1: Quiz Modal -->
-  <div id="quizModal" class="modal-overlay" aria-hidden="true" role="dialog">
-    <div class="modal-container" style="max-width: 680px;">
-      <div class="modal-header">
-        <div class="modal-title-group">
-          <span class="category-tag">자가진단</span>
-          <h3 id="quizCourseTitle" style="font-size: 1.2rem; font-weight: 700;">기초 자가진단 퀴즈</h3>
-        </div>
-        <button class="modal-close-btn" data-close-modal="quizModal" title="닫기">✕</button>
-      </div>
-
-      <div class="modal-body" id="quizBodyContent">
-        <!-- Injected by script.js -->
-      </div>
-    </div>
-  </div>
-
-  <!-- MODAL 2: Completion Certificate Modal -->
-  <div id="certificateModal" class="modal-overlay" aria-hidden="true" role="dialog">
-    <div class="modal-container" style="max-width: 720px; background: transparent; border: none; box-shadow: none;">
-      <div style="display:flex; justify-content:flex-end; margin-bottom:12px;">
-        <button class="btn btn-primary" id="printCertBtn">🖨️ 수료증 인쇄 / PDF 저장</button>
-        <button class="modal-close-btn" data-close-modal="certificateModal" style="margin-left:8px;" title="닫기">✕</button>
-      </div>
-
-      <div class="certificate-frame">
-        <div class="certificate-header">
-          <h2>수 료 증</h2>
-          <div class="certificate-sub">CERTIFICATE OF COMPLETION</div>
-        </div>
-
-        <div class="certificate-body">
-          <p>성 명: <strong id="certUserName" class="certificate-user">교육 수강생</strong></p>
-          <p style="color:#64748b; font-size:0.9rem;">소 속: <span id="certDeptName">사내 바이브코딩 교육 과정</span></p>
-
-          <p style="margin-top: 24px;">
-            위 사람은 바이브코딩 사내 교육 포털에서 제공하는<br>
-            <strong id="certCourseTitle" class="certificate-course">업무 자동화를 위한 바이브 코딩 (PPT 59개 슬라이드 수강)</strong><br>
-            과정을 성공적으로 완료하였으므로 이 수료증을 수여합니다.
-          </p>
-        </div>
-
-        <div class="certificate-footer">
-          <div>
-            <div>발행일자: <span id="certIssueDate">2026. 07. 30</span></div>
-            <div>발급번호: <span id="certId">VIBE-2026-9812</span></div>
-          </div>
-
-          <div style="display:flex; align-items:center; gap:16px;">
-            <div style="text-align:right; font-weight:700;">
-              바이브코딩 사내 교육 포털<br>
-              <span style="font-size:0.8rem; color:#64748b;">인재개발원 운영팀</span>
-            </div>
-            <div class="certificate-seal">교육인</div>
-          </div>
-        </div>
-      </div>
-    </div>
-  </div>
-
-  <script src="script.js"></script>
+  <script src="script.js?v=8"></script>
 </body>
 </html>
