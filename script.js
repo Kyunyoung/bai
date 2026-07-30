@@ -1,6 +1,6 @@
 /* ==========================================
    바이브코딩 사내 교육 포털 - Core JavaScript (ES6+)
-   PDF/PPT 59개 슬라이드 이미지 연동 & 3가지 모드(덱/슬라이드쇼/연속보기) 고품질 UI 뷰어
+   심플 PDF 슬라이드 뷰어 & 화면 전체/어디서나 클릭 가능한 다음 슬라이드 시스템
    ========================================== */
 
 // Pre-populated Internal Network Employee Roster with Unique Employee IDs
@@ -326,7 +326,7 @@ def select_folder():
     code: `    for file_path in excel_files:
         print(f"읽는 중: {os.path.basename(file_path)}")
         data = pd.read_excel(file_path)
-        data["<ctrl42>원본파일명"] = os.path.basename(file_path)
+        data["원본파일명"] = os.path.basename(file_path)
         merged_data.append(data)
 
     result = pd.concat(merged_data, ignore_index=True)
@@ -408,7 +408,7 @@ data = data[required_columns]`,
     title: 'CHANGE 02 요구사항 변경: 원본파일명 추가',
     subtitle: '"나중에 어느 파일에서 온 자료인지 알아야 합니다."',
     image: 'slides_media/슬라이드35.JPG',
-    code: `data["<ctrl42>원본파일명"] = os.path.basename(file_path)`,
+    code: `data["원본파일명"] = os.path.basename(file_path)`,
     body: `원본파일명 열을 추가하면 추후 추적 및 부서 문의 시 유용합니다.`
   },
   {
@@ -721,7 +721,7 @@ root.mainloop()`,
   }
 ];
 
-// Pre-populated Sample Submissions
+// Initial Pre-populated Submissions
 const INITIAL_SUBMISSIONS = [
   {
     id: 'sub-01',
@@ -769,7 +769,6 @@ class VibePortalApp {
   constructor() {
     this.slides = PPT_SLIDES;
     this.currentSlideIndex = 0;
-    this.viewMode = 'deck'; // 'deck' (기본 카드 뷰), 'presentation' (대형 슬라이드 뷰), 'continuous' (59개 전체 연속 뷰)
 
     this.progress = this.loadFromStorage('vibecoding_user_progress', {
       completedCourses: [],
@@ -863,7 +862,7 @@ class VibePortalApp {
     if (list.length >= 45) {
       if (!this.progress.completedCourses.includes('vibe-basic-101')) {
         this.progress.completedCourses.push('vibe-basic-101');
-        showToast('🎉 축하합니다! PDF/PPT 슬라이드 교재를 성공적으로 수강하셨습니다!', 'success');
+        showToast('🎉 축하합니다! PDF/PPT 슬라이드 교재를 완료하셨습니다!', 'success');
         triggerConfetti();
       }
     }
@@ -880,7 +879,7 @@ class VibePortalApp {
   saveUserRankVote(rank1Id, rank2Id, rank3Id) {
     const empId = this.userInfo.empId;
     if (!empId) {
-      showToast('⚠️ 사번(직원 고유번호)이 등록되어야 투표할 수 있습니다.', 'warning');
+      showToast('⚠️ 먼저 본인의 사번(직원 고유번호)을 등록해야 투표할 수 있습니다.', 'warning');
       openProfileModal();
       return false;
     }
@@ -970,6 +969,7 @@ document.addEventListener('DOMContentLoaded', () => {
   setupSubmissionForm();
   setupProfileForm();
   setupRankVoteForm();
+  setupKeyboardSlideNav();
 });
 
 function initTheme() {
@@ -1059,7 +1059,7 @@ function renderMainView() {
 
   if (app.activeTab === 'course') {
     sortSelect.style.display = 'none';
-    document.getElementById('resultsCount').textContent = 'PDF/PPT 59개 슬라이드 정독 교재';
+    document.getElementById('resultsCount').textContent = 'PDF 59개 심플 슬라이드 뷰어';
     renderSingleCourseCard(grid);
   } else if (app.activeTab === 'gallery') {
     sortSelect.style.display = 'inline-block';
@@ -1085,26 +1085,26 @@ function renderSingleCourseCard(container) {
     <div class="card-banner" style="background: linear-gradient(135deg, #1e3a8a 0%, #2563eb 50%, #7c3aed 100%)">
       <div class="card-banner-overlay"></div>
       <div class="card-banner-top">
-        <span class="category-tag">PDF/PPT 슬라이드 뷰어</span>
-        <span style="color:#fff; font-size:0.85rem; font-weight:700;">★ 고화질 슬라이드 59장 수록</span>
+        <span class="category-tag">PDF 뷰어 모드</span>
+        <span style="color:#fff; font-size:0.85rem; font-weight:700;">★ 59장 어디서나 클릭 넘기기 지원</span>
       </div>
       <div class="card-banner-bottom">
-        <span class="level-badge beginner">● K-감사관 만화 시나리오 + 오프라인 세팅</span>
+        <span class="level-badge beginner">● K-감사관 만화 시나리오 원본</span>
         <span>⏱ 45분</span>
       </div>
     </div>
 
     <div class="card-body">
-      <h2 class="course-title" style="font-size: 1.4rem;">📊 [최신 PDF 연동] 업무 자동화를 위한 바이브 코딩 (59개 슬라이드 전체)</h2>
-      <p class="course-desc" style="font-size: 0.95rem;">업데이트된 PDF/PPT 발표자료 원본 슬라이드 59장을 고화질 뷰어로 자유롭게 정독하고 학습하세요. (카드 뷰, 대형 뷰어, 59장 연속 스크롤 뷰 지원)</p>
+      <h2 class="course-title" style="font-size: 1.4rem;">📊 [업데이트 PDF] 업무 자동화를 위한 바이브 코딩 (심플 슬라이드 뷰어)</h2>
+      <p class="course-desc" style="font-size: 0.95rem;">업데이트된 PDF 발표자료 59장을 화면 <strong>어디를 클릭해도 다음 슬라이드로 즉시 이동</strong>하는 심플 슬라이드 뷰어로 정독해보세요.</p>
 
       <div style="background-color: var(--primary-50); padding: 16px 20px; border-radius: var(--radius-md); border-left: 4px solid var(--primary-600); margin: 8px 0;">
-        <h4 style="font-size: 0.95rem; font-weight: 700; color: var(--primary-800); margin-bottom: 6px;">🎁 PDF 슬라이드 교재 읽기 & 1·2·3위 투표 가이드</h4>
-        <ol style="padding-left: 18px; font-size: 0.875rem; color: var(--text-main); display:flex; flex-direction:column; gap:6px;">
-          <li><strong>'📊 PDF/PPT 슬라이드 교재 열기'</strong> 버튼을 눌러 원하는 뷰어 모드로 슬라이드를 정독합니다.</li>
-          <li>Slide 25(엑셀 취합) 및 Slide 48(표도우미) 프롬프트를 복사하여 나만의 <strong>실습물</strong>을 만들어 제출합니다.</li>
-          <li>상단 <strong>'🏆 순위 투표'</strong> 버튼을 클릭하고 사번 인증 후 1위(3점), 2위(2점), 3위(1점) 투표에 참여하세요!</li>
-        </ol>
+        <h4 style="font-size: 0.95rem; font-weight: 700; color: var(--primary-800); margin-bottom: 6px;">💡 어디서나 넘기는 3가지 슬라이드 조작법</h4>
+        <ul style="padding-left: 18px; font-size: 0.875rem; color: var(--text-main); display:flex; flex-direction:column; gap:4px;">
+          <li>👉 <strong>슬라이드 이미지나 화면 어디든 클릭</strong>하면 바로 다음 슬라이드로 넘어갑니다.</li>
+          <li>⌨️ 키보드 <strong>오른쪽 화살표(➔) / 스페이스바 / 엔터키</strong>를 눌러도 다음 슬라이드로 진행됩니다.</li>
+          <li>📌 AI 프롬프트가 필요한 슬라이드에서는 <strong>[📋 1초 복사]</strong> 버튼을 누르고 실습물을 작성하세요.</li>
+        </ul>
       </div>
 
       <div class="card-footer">
@@ -1119,7 +1119,7 @@ function renderSingleCourseCard(container) {
 
         <div class="card-actions">
           <button class="btn btn-primary" style="flex: 1; padding: 12px 20px; font-size:1rem;" onclick="openCourseDetailModal()">
-            📊 PDF/PPT 슬라이드 교재 열기 (${progressPercent > 0 ? '이어서 학습' : '1페이지부터 열기'})
+            📊 PDF 슬라이드 뷰어 열기 (${progressPercent > 0 ? '이어서 넘겨보기' : '1페이지부터 시작'})
           </button>
 
           <button class="btn btn-accent" onclick="openSubmitModal()">
@@ -1388,198 +1388,115 @@ function setupRankVoteForm() {
   };
 }
 
-// Open Course Modal & Render PDF/PPT Slide Reader
+// Open Course Modal & Render Ultra-Clean PDF Presentation Viewer
 function openCourseDetailModal() {
   renderPPTSlidePlayer();
   openModal('courseDetailModal');
 }
 
-// Set Slide View Mode: 'deck' (카드 뷰), 'presentation' (대형 뷰어), 'continuous' (59장 연속 스크롤)
-function setSlideViewMode(mode) {
-  app.viewMode = mode;
-  renderPPTSlidePlayer();
-}
-
-// Render High-Quality Interactive PDF/PPT Presentation Reader
+// Render ULTRA-CLEAN, ANYWHERE-CLICKABLE PDF Presentation Slide Reader
 function renderPPTSlidePlayer() {
   const slide = app.slides[app.currentSlideIndex];
   app.markSlideViewed(slide.num);
 
   const chaptersContainer = document.getElementById('detailChaptersList');
-  document.getElementById('detailTitle').textContent = `📊 [PDF/PPT 발표교재] ${slide.part}`;
+  document.getElementById('detailTitle').textContent = `📊 ${slide.part}`;
   document.getElementById('detailDesc').textContent = `슬라이드 ${slide.num} / ${app.slides.length}: ${slide.title}`;
 
   let selectOptions = '';
   app.slides.forEach((s, idx) => {
-    selectOptions += `<option value="${idx}" ${idx === app.currentSlideIndex ? 'selected' : ''}>[Slide ${s.num}] ${s.title.substring(0, 35)}...</option>`;
+    selectOptions += `<option value="${idx}" ${idx === app.currentSlideIndex ? 'selected' : ''}>[Slide ${s.num}] ${s.title.substring(0, 32)}...</option>`;
   });
 
-  // View Mode Selector Toolbar HTML
-  const viewModeToolbar = `
-    <div style="background:var(--bg-main); border:1px solid var(--border-color); padding:12px 18px; border-radius:var(--radius-lg); display:flex; align-items:center; justify-content:space-between; flex-wrap:wrap; gap:12px;">
-      <!-- Slide Traversal Controls -->
+  // Minimalist, Everywhere-Clickable Presentation Stage
+  chaptersContainer.innerHTML = `
+    <!-- Minimalist Slide Control Top Bar -->
+    <div style="display:flex; align-items:center; justify-content:space-between; background:var(--bg-card); padding:10px 16px; border-radius:var(--radius-lg); border:1px solid var(--border-color); flex-wrap:wrap; gap:10px;">
+      
+      <!-- Nav Buttons -->
       <div style="display:flex; align-items:center; gap:8px;">
-        <button class="btn btn-outline" onclick="changeSlide(-1)" title="이전 슬라이드">
+        <button class="btn btn-outline" style="padding:6px 14px; font-size:0.85rem;" onclick="changeSlide(-1)" title="이전 슬라이드 (◀)">
           ◀ 이전
         </button>
-        <button class="btn btn-primary" onclick="changeSlide(1)" title="언제라도 누를 수 있는 다음 슬라이드">
+        <button class="btn btn-primary" style="padding:6px 18px; font-size:0.85rem;" onclick="changeSlide(1)" title="화면 어디든 클릭 시 다음 슬라이드로 이동!">
           다음 슬라이드 ▶
         </button>
       </div>
 
-      <!-- Quick Jump Selector Dropdown -->
-      <div style="display:flex; align-items:center; gap:8px;">
-        <span style="font-size:0.85rem; font-weight:700; color:var(--text-main);">슬라이드 이동:</span>
-        <select onchange="jumpToSlide(parseInt(this.value, 10))" class="filter-select" style="max-width:240px; padding:6px 12px; font-size:0.85rem;">
+      <!-- Slide Counter & Jump Selector -->
+      <div style="display:flex; align-items:center; gap:12px;">
+        <span style="font-size:0.9rem; font-weight:800; color:var(--primary-600);">
+          SLIDE ${slide.num} / ${app.slides.length}
+        </span>
+        <select onchange="jumpToSlide(parseInt(this.value, 10))" class="filter-select" style="max-width:220px; padding:4px 10px; font-size:0.85rem;">
           ${selectOptions}
         </select>
       </div>
-
-      <!-- View Mode Switches -->
-      <div style="display:flex; align-items:center; gap:6px; background:var(--bg-card); padding:4px; border-radius:var(--radius-md); border:1px solid var(--border-color);">
-        <button class="btn ${app.viewMode === 'deck' ? 'btn-primary' : 'btn-outline'}" style="padding:4px 10px; font-size:0.75rem;" onclick="setSlideViewMode('deck')">
-          📱 카드 뷰
-        </button>
-        <button class="btn ${app.viewMode === 'presentation' ? 'btn-primary' : 'btn-outline'}" style="padding:4px 10px; font-size:0.75rem;" onclick="setSlideViewMode('presentation')">
-          🖼️ 대형 뷰어
-        </button>
-        <button class="btn ${app.viewMode === 'continuous' ? 'btn-primary' : 'btn-outline'}" style="padding:4px 10px; font-size:0.75rem;" onclick="setSlideViewMode('continuous')">
-          📜 59장 연속 스크롤
-        </button>
-      </div>
     </div>
-  `;
 
-  // MODE 1: Continuous All 59 Slides Scroll View (59장 연속 스크롤 뷰)
-  if (app.viewMode === 'continuous') {
-    let allSlidesHTML = '';
-    app.slides.forEach(s => {
-      allSlidesHTML += `
-        <div style="background:var(--bg-card); border:1px solid var(--border-color); border-radius:var(--radius-lg); padding:20px; box-shadow:var(--shadow-sm); margin-bottom:24px;">
-          <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:12px;">
-            <span class="category-tag">${s.part}</span>
-            <span style="font-weight:900; color:var(--primary-600);">SLIDE ${s.num} / 59</span>
-          </div>
-          <h3 style="font-size:1.15rem; font-weight:700; margin-bottom:8px;">${escapeHTML(s.title)}</h3>
-          <div style="text-align:center; margin:12px 0;">
-            <img src="${s.image}" class="slide-comic-img" style="max-height:480px;" alt="Slide ${s.num}" onError="this.style.display='none';">
-          </div>
-          <div style="background:var(--bg-main); padding:14px; border-radius:var(--radius-md); font-size:0.875rem; line-height:1.6; white-space:pre-line;">
-            ${escapeHTML(s.body)}
-          </div>
-          ${s.prompt ? `
-            <div style="margin-top:10px;">
-              <div style="font-size:0.775rem; font-weight:700; color:var(--primary-600); margin-bottom:4px;">📋 AI 프롬프트 (클릭 시 복사)</div>
-              <div class="prompt-copy-box" onclick="copyTextToClipboard(\`${escapeHTML(s.prompt)}\`)">${escapeHTML(s.prompt)}</div>
-            </div>
-          ` : ''}
-          ${s.code ? `
-            <div style="margin-top:10px;">
-              <div style="font-size:0.775rem; font-weight:700; color:var(--text-muted); margin-bottom:4px;">💻 예시 코드</div>
-              <div class="code-box" style="font-size:0.8rem; margin:0;"><pre><code>${escapeHTML(s.code)}</code></pre></div>
-            </div>
-          ` : ''}
-        </div>
-      `;
-    });
-
-    chaptersContainer.innerHTML = viewModeToolbar + `<div style="max-height:600px; overflow-y:auto; padding-right:8px; margin-top:12px;">${allSlidesHTML}</div>`;
-    return;
-  }
-
-  // MODE 2: Presentation Full-width View (대형 슬라이드 뷰어)
-  if (app.viewMode === 'presentation') {
-    chaptersContainer.innerHTML = viewModeToolbar + `
-      <div style="background:#0f172a; border-radius:var(--radius-xl); padding:24px; text-align:center; box-shadow:var(--shadow-lg); margin-top:12px;">
-        <div style="display:flex; justify-content:space-between; align-items:center; color:#94a3b8; font-size:0.85rem; margin-bottom:12px;">
-          <span>${slide.part}</span>
-          <span style="color:#38bdf8; font-weight:900;">SLIDE ${slide.num} / 59</span>
-        </div>
-        <img src="${slide.image}" class="slide-comic-img" style="max-height:580px; width:100%; object-fit:contain; border-radius:var(--radius-md); box-shadow:0 10px 25px rgba(0,0,0,0.5);" alt="Slide ${slide.num}">
-        <div style="color:#ffffff; margin-top:14px; font-size:1.1rem; font-weight:700; text-align:left; background:rgba(255,255,255,0.08); padding:14px 20px; border-radius:var(--radius-md);">
-          ${escapeHTML(slide.title)}
-          <div style="font-size:0.875rem; color:#94a3b8; font-weight:normal; margin-top:4px; white-space:pre-line;">${escapeHTML(slide.body)}</div>
-        </div>
-      </div>
-    `;
-    return;
-  }
-
-  // MODE 3: Default Deck Card View (기본 슬라이드 카드 뷰)
-  chaptersContainer.innerHTML = viewModeToolbar + `
-    <!-- Active PPT Slide Canvas Frame -->
-    <div style="background:var(--bg-card); border:2px solid var(--primary-500); border-radius:var(--radius-xl); padding:28px; box-shadow:var(--shadow-md); display:flex; flex-direction:column; gap:16px; position:relative; min-height: 380px; margin-top:12px;">
+    <!-- ANYWHERE-CLICKABLE SLIDE CANVAS STAGE (Clicking anywhere advances slide) -->
+    <div class="slide-clickable-stage" onclick="changeSlide(1)" title="💡 화면 어디든 클릭하면 다음 슬라이드로 진행됩니다 (클릭 / ➔)">
       
-      <!-- Top Slide Header -->
-      <div style="display:flex; justify-content:space-between; align-items:center; border-bottom:2px dashed var(--border-color); padding-bottom:12px;">
-        <span class="category-tag" style="background:var(--primary-600); color:white; font-size:0.8rem;">
-          ${slide.part}
-        </span>
-        <span style="font-size:1.1rem; font-weight:900; color:var(--primary-700);">
-          SLIDE ${slide.num} / ${app.slides.length}
-        </span>
-      </div>
-
-      <!-- Slide Title & Subtitle -->
-      <div>
-        <div class="comic-badge-banner">📊 PDF/PPT 발표자료 고화질 원본 슬라이드</div>
-        <h2 style="font-size: 1.4rem; font-weight: 800; color: var(--text-main); margin-bottom: 4px; line-height:1.3;">
-          ${escapeHTML(slide.title)}
-        </h2>
-        ${slide.subtitle ? `<p style="font-size: 0.95rem; color: var(--primary-600); font-weight:600;">${escapeHTML(slide.subtitle)}</p>` : ''}
+      <!-- Floating Anywhere Next Indicator Badge -->
+      <div class="anywhere-click-badge">
+        <span>👉 화면 클릭 = 다음 슬라이드 ▶</span>
       </div>
 
       <!-- High-Res Presentation Slide Image -->
-      ${slide.image ? `
-        <div style="text-align:center;">
-          <img src="${slide.image}" class="slide-comic-img" style="max-height:420px; width:100%; border:1px solid var(--border-color);" alt="Slide ${slide.num} 원본 슬라이드" onError="this.style.display='none';">
-        </div>
-      ` : ''}
-
-      <!-- Slide Body Text -->
-      <div style="background:var(--bg-main); padding:18px 20px; border-radius:var(--radius-lg); border:1px solid var(--border-color); font-size:0.925rem; line-height:1.7; color:var(--text-main); white-space:pre-line;">
-        ${escapeHTML(slide.body)}
+      <div style="text-align:center;">
+        <img src="${slide.image}" class="slide-comic-img" style="width:100%; max-height:540px; border-radius:var(--radius-lg); box-shadow:var(--shadow-md);" alt="Slide ${slide.num} presentation" onError="this.style.display='none';">
       </div>
 
-      <!-- AI Prompt Box if Slide contains Prompt -->
+      <!-- Minimal Bullet Notes & Prompts if Present -->
       ${slide.prompt ? `
-        <div style="margin-top: 4px;">
+        <div style="margin-top: 10px;" onclick="event.stopPropagation();">
           <div style="font-size: 0.8rem; font-weight:700; color:var(--primary-600); margin-bottom:6px; display:flex; justify-content:space-between; align-items:center;">
-            <span>📋 슬라이드 ${slide.num} AI 프롬프트 템플릿 (클릭 시 1초 복사)</span>
+            <span>📋 슬라이드 ${slide.num} AI 프롬프트 (클릭 시 1초 복사)</span>
             <button class="btn btn-outline" style="padding:3px 10px; font-size:0.775rem;" onclick="copyTextToClipboard(\`${escapeHTML(slide.prompt)}\`)">복사하기</button>
           </div>
           <div class="prompt-copy-box" onclick="copyTextToClipboard(\`${escapeHTML(slide.prompt)}\`)">${escapeHTML(slide.prompt)}</div>
         </div>
       ` : ''}
 
-      <!-- Command or Code Box if Slide contains Code -->
       ${slide.code ? `
-        <div style="margin-top: 4px;">
-          <div style="font-size: 0.8rem; font-weight:700; color:var(--text-muted); margin-bottom:6px;">💻 슬라이드 ${slide.num} 코드 스니펫</div>
-          <div class="code-box" style="font-size:0.85rem; margin:0;">
-            <pre><code>${escapeHTML(slide.code)}</code></pre>
-          </div>
+        <div style="margin-top: 10px;" onclick="event.stopPropagation();">
+          <div style="font-size: 0.8rem; font-weight:700; color:var(--text-muted); margin-bottom:6px;">💻 코드 예시</div>
+          <div class="code-box" style="font-size:0.8rem; margin:0;"><pre><code>${escapeHTML(slide.code)}</code></pre></div>
         </div>
       ` : ''}
 
       ${slide.cmd ? `
-        <div style="margin-top: 4px;">
+        <div style="margin-top: 10px;" onclick="event.stopPropagation();">
           <div style="font-size: 0.8rem; font-weight:700; color:var(--accent-emerald); margin-bottom:6px;">⚡ 실행 명령어</div>
-          <div class="code-box" style="font-size:0.85rem; background:#047857; color:white;">
-            <code>${escapeHTML(slide.cmd)}</code>
-          </div>
+          <div class="code-box" style="font-size:0.8rem; background:#047857; color:white;"><code>${escapeHTML(slide.cmd)}</code></div>
         </div>
       ` : ''}
+    </div>
 
-      <!-- Bottom Progress Indicator Bar -->
-      <div style="margin-top:auto; padding-top:12px; display:flex; justify-content:space-between; align-items:center; font-size:0.8rem; color:var(--text-muted);">
-        <span>학습한 슬라이드: ${(app.progress.completedChapters['vibe-basic-101'] || []).length} / 59</span>
-        <button class="btn btn-outline" style="padding:6px 12px; font-size:0.8rem;" onclick="app.markSlideViewed(${slide.num}); renderHeaderAndBanner(); renderPPTSlidePlayer();">
-          ✔ 이 슬라이드 출석 체크
-        </button>
-      </div>
+    <!-- Minimal Bottom Helper Bar -->
+    <div style="display:flex; justify-content:space-between; align-items:center; font-size:0.8rem; color:var(--text-muted); padding:4px 8px;">
+      <span>💡 화면 클릭, ➔, Space, Enter 키로 다음 슬라이드로 넘어갑니다.</span>
+      <button class="btn btn-outline" style="padding:4px 10px; font-size:0.775rem;" onclick="app.markSlideViewed(${slide.num}); renderHeaderAndBanner(); renderPPTSlidePlayer();">
+        ✔ 출석 체크
+      </button>
     </div>
   `;
+}
+
+// Anywhere Click & Keyboard Listener Setup for Slide Traversal
+function setupKeyboardSlideNav() {
+  document.addEventListener('keydown', (e) => {
+    const modal = document.getElementById('courseDetailModal');
+    if (!modal || !modal.classList.contains('active')) return;
+
+    if (e.key === 'ArrowRight' || e.key === 'Space' || e.key === 'Enter') {
+      e.preventDefault();
+      changeSlide(1);
+    } else if (e.key === 'ArrowLeft') {
+      e.preventDefault();
+      changeSlide(-1);
+    }
+  });
 }
 
 function changeSlide(direction) {
