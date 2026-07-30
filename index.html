@@ -161,30 +161,30 @@
     <div class="modal-container" style="max-width: 920px;">
       <div class="modal-header">
         <div class="modal-title-group">
-          <span class="category-tag">PPT 발표자료 연동</span>
-          <h3 id="detailTitle" style="font-size: 1.2rem; font-weight: 700;">코스 상세 정보</h3>
+          <span class="category-tag">공식 교육 교재</span>
+          <h3 id="detailTitle" style="font-size: 1.15rem; font-weight: 700;">교육 교재 시청</h3>
         </div>
         <button class="modal-close-btn" data-close-modal="courseDetailModal" title="닫기">✕</button>
       </div>
 
-      <div class="modal-body">
-        <p id="detailDesc" style="color: var(--text-muted); font-size: 0.95rem; line-height: 1.5;"></p>
+      <div class="modal-body" style="padding: 18px 24px;">
+        <p id="detailDesc" style="color: var(--text-muted); font-size: 0.9rem; font-weight:600; margin-bottom: 4px;"></p>
 
         <!-- Chapter Interactive PPT Player -->
-        <div id="detailChaptersList" style="display:flex; flex-direction:column; gap:16px;">
+        <div id="detailChaptersList" style="display:flex; flex-direction:column; gap:12px;">
           <!-- Injected by script.js -->
         </div>
 
-        <div style="display: flex; justify-content: space-between; align-items: center; margin-top: 12px; padding-top: 16px; border-top: 1px solid var(--border-color);">
-          <button class="btn btn-outline" id="detailMasterToggleBtn">
-            <span>✔</span> 전체 완료로 표시
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-top: 8px; padding-top: 14px; border-top: 1px solid var(--border-color);">
+          <button class="btn btn-outline" id="detailMasterToggleBtn" style="padding: 6px 12px; font-size: 0.85rem;">
+            <span>✔</span> 전체 수강 완료
           </button>
           <div style="display: flex; gap: 10px;">
-            <button class="btn btn-accent" id="openSubmitFromDetailBtn">
-              ✨ 내 실습물 제출하기
+            <button class="btn btn-accent" id="openSubmitFromDetailBtn" style="padding: 6px 14px; font-size: 0.85rem;">
+              ✨ 실습물 제출
             </button>
-            <button class="btn btn-primary" id="startQuizBtn">
-              📝 자가진단 퀴즈 풀기
+            <button class="btn btn-primary" id="startQuizBtn" style="padding: 6px 16px; font-size: 0.85rem;">
+              📝 자가진단 퀴즈
             </button>
           </div>
         </div>

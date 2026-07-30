@@ -1085,31 +1085,27 @@ function renderSingleCourseCard(container) {
     <div class="card-banner" style="background: linear-gradient(135deg, #1e3a8a 0%, #2563eb 50%, #7c3aed 100%)">
       <div class="card-banner-overlay"></div>
       <div class="card-banner-top">
-        <span class="category-tag">PDF 뷰어 모드</span>
-        <span style="color:#fff; font-size:0.85rem; font-weight:700;">★ 59장 어디서나 클릭 넘기기 지원</span>
+        <span class="category-tag">공식 교육 교재</span>
+        <span style="color:#fff; font-size:0.85rem; font-weight:600;">59개 슬라이드 전 과정</span>
       </div>
       <div class="card-banner-bottom">
-        <span class="level-badge beginner">● K-감사관 만화 시나리오 원본</span>
-        <span>⏱ 45분</span>
+        <span class="level-badge beginner">● K-감사관 만화 시나리오</span>
+        <span>⏱ 45분 소요</span>
       </div>
     </div>
 
     <div class="card-body">
-      <h2 class="course-title" style="font-size: 1.4rem;">📊 [업데이트 PDF] 업무 자동화를 위한 바이브 코딩 (심플 슬라이드 뷰어)</h2>
-      <p class="course-desc" style="font-size: 0.95rem;">업데이트된 PDF 발표자료 59장을 화면 <strong>어디를 클릭해도 다음 슬라이드로 즉시 이동</strong>하는 심플 슬라이드 뷰어로 정독해보세요.</p>
+      <h2 class="course-title" style="font-size: 1.3rem;">📊 업무 자동화를 위한 바이브 코딩 교육 교재</h2>
+      <p class="course-desc" style="font-size: 0.95rem;">250개 경찰서 엑셀 자료 취합부터 한글 보고서 표도우미 제작까지, 59개 PPT 슬라이드 교재를 정독하세요.</p>
 
-      <div style="background-color: var(--primary-50); padding: 16px 20px; border-radius: var(--radius-md); border-left: 4px solid var(--primary-600); margin: 8px 0;">
-        <h4 style="font-size: 0.95rem; font-weight: 700; color: var(--primary-800); margin-bottom: 6px;">💡 어디서나 넘기는 3가지 슬라이드 조작법</h4>
-        <ul style="padding-left: 18px; font-size: 0.875rem; color: var(--text-main); display:flex; flex-direction:column; gap:4px;">
-          <li>👉 <strong>슬라이드 이미지나 화면 어디든 클릭</strong>하면 바로 다음 슬라이드로 넘어갑니다.</li>
-          <li>⌨️ 키보드 <strong>오른쪽 화살표(➔) / 스페이스바 / 엔터키</strong>를 눌러도 다음 슬라이드로 진행됩니다.</li>
-          <li>📌 AI 프롬프트가 필요한 슬라이드에서는 <strong>[📋 1초 복사]</strong> 버튼을 누르고 실습물을 작성하세요.</li>
-        </ul>
+      <div style="display:flex; gap:16px; margin: 12px 0; font-size:0.85rem; color:var(--text-muted); background:var(--bg-main); padding:10px 16px; border-radius:var(--radius-md);">
+        <span>👉 화면 클릭 / 방향키(➔) 조작 지원</span>
+        <span>📋 AI 프롬프트 1초 복사 기능 제공</span>
       </div>
 
       <div class="card-footer">
         <div class="progress-header">
-          <span>${isCompleted ? '✔ PDF 슬라이드 교재 수강 완료' : '슬라이드 학습 진도율'}</span>
+          <span>${isCompleted ? '✔ 교재 학습 완료' : '학습 진도율'}</span>
           <span class="progress-percent">${progressPercent}%</span>
         </div>
 
@@ -1117,18 +1113,18 @@ function renderSingleCourseCard(container) {
           <div class="card-progress-fill" style="width: ${progressPercent}%"></div>
         </div>
 
-        <div class="card-actions">
+        <div class="card-actions" style="margin-top: 14px;">
           <button class="btn btn-primary" style="flex: 1; padding: 12px 20px; font-size:1rem;" onclick="openCourseDetailModal()">
-            📊 PDF 슬라이드 뷰어 열기 (${progressPercent > 0 ? '이어서 넘겨보기' : '1페이지부터 시작'})
+            📊 교육 자료 보기 (${progressPercent > 0 ? '이어서 학습' : '처음부터 시작'})
           </button>
 
           <button class="btn btn-accent" onclick="openSubmitModal()">
-            ✨ 실습물 제출하기
+            ✨ 실습물 제출
           </button>
 
           ${hasPassedQuiz ? `
-            <button class="btn btn-outline" onclick="openCertificateModal()" title="이수증 보기">
-              🏆 이수증
+            <button class="btn btn-outline" onclick="openCertificateModal()" title="수료증 보기">
+              🏆 수료증
             </button>
           ` : ''}
         </div>
@@ -1400,84 +1396,89 @@ function renderPPTSlidePlayer() {
   app.markSlideViewed(slide.num);
 
   const chaptersContainer = document.getElementById('detailChaptersList');
-  document.getElementById('detailTitle').textContent = `📊 ${slide.part}`;
-  document.getElementById('detailDesc').textContent = `슬라이드 ${slide.num} / ${app.slides.length}: ${slide.title}`;
+  document.getElementById('detailTitle').textContent = slide.part;
+  document.getElementById('detailDesc').textContent = slide.title;
 
   let selectOptions = '';
   app.slides.forEach((s, idx) => {
-    selectOptions += `<option value="${idx}" ${idx === app.currentSlideIndex ? 'selected' : ''}>[Slide ${s.num}] ${s.title.substring(0, 32)}...</option>`;
+    selectOptions += `<option value="${idx}" ${idx === app.currentSlideIndex ? 'selected' : ''}>[${s.num}/${app.slides.length}] ${s.title.substring(0, 30)}</option>`;
   });
 
-  // Minimalist, Everywhere-Clickable Presentation Stage
+  const progressPercent = Math.round((slide.num / app.slides.length) * 100);
+
   chaptersContainer.innerHTML = `
+    <!-- Top Progress Bar -->
+    <div class="slide-top-progress" title="슬라이드 진행률 ${progressPercent}%">
+      <div class="slide-top-progress-fill" style="width: ${progressPercent}%"></div>
+    </div>
+
     <!-- Minimalist Slide Control Top Bar -->
-    <div style="display:flex; align-items:center; justify-content:space-between; background:var(--bg-card); padding:10px 16px; border-radius:var(--radius-lg); border:1px solid var(--border-color); flex-wrap:wrap; gap:10px;">
+    <div style="display:flex; align-items:center; justify-content:space-between; background:var(--bg-card); padding:8px 14px; border-radius:var(--radius-md); border:1px solid var(--border-color); flex-wrap:wrap; gap:10px;">
       
       <!-- Nav Buttons -->
       <div style="display:flex; align-items:center; gap:8px;">
-        <button class="btn btn-outline" style="padding:6px 14px; font-size:0.85rem;" onclick="changeSlide(-1)" title="이전 슬라이드 (◀)">
+        <button class="btn btn-outline" style="padding:5px 12px; font-size:0.85rem;" onclick="changeSlide(-1)" title="이전 (◀)">
           ◀ 이전
         </button>
-        <button class="btn btn-primary" style="padding:6px 18px; font-size:0.85rem;" onclick="changeSlide(1)" title="화면 어디든 클릭 시 다음 슬라이드로 이동!">
-          다음 슬라이드 ▶
+        <button class="btn btn-primary" style="padding:5px 16px; font-size:0.85rem;" onclick="changeSlide(1)" title="다음 (▶) / 화면 클릭">
+          다음 ▶
         </button>
       </div>
 
       <!-- Slide Counter & Jump Selector -->
-      <div style="display:flex; align-items:center; gap:12px;">
-        <span style="font-size:0.9rem; font-weight:800; color:var(--primary-600);">
-          SLIDE ${slide.num} / ${app.slides.length}
+      <div style="display:flex; align-items:center; gap:10px;">
+        <span style="font-size:0.85rem; font-weight:700; color:var(--primary-600);">
+          ${slide.num} / ${app.slides.length} (${progressPercent}%)
         </span>
-        <select onchange="jumpToSlide(parseInt(this.value, 10))" class="filter-select" style="max-width:220px; padding:4px 10px; font-size:0.85rem;">
+        <select onchange="jumpToSlide(parseInt(this.value, 10))" class="filter-select" style="max-width:200px; padding:4px 8px; font-size:0.8rem;">
           ${selectOptions}
         </select>
       </div>
     </div>
 
-    <!-- ANYWHERE-CLICKABLE SLIDE CANVAS STAGE (Clicking anywhere advances slide) -->
-    <div class="slide-clickable-stage" onclick="changeSlide(1)" title="💡 화면 어디든 클릭하면 다음 슬라이드로 진행됩니다 (클릭 / ➔)">
+    <!-- ANYWHERE-CLICKABLE SLIDE CANVAS STAGE -->
+    <div class="slide-clickable-stage" onclick="changeSlide(1)" title="화면 어디든 클릭 시 다음 슬라이드로 이동">
       
-      <!-- Floating Anywhere Next Indicator Badge -->
       <div class="anywhere-click-badge">
-        <span>👉 화면 클릭 = 다음 슬라이드 ▶</span>
+        <span>클릭하여 다음 슬라이드 ▶</span>
       </div>
 
-      <!-- High-Res Presentation Slide Image -->
+      <!-- Presentation Slide Image -->
       <div style="text-align:center;">
-        <img src="${slide.image}" class="slide-comic-img" style="width:100%; max-height:540px; border-radius:var(--radius-lg); box-shadow:var(--shadow-md);" alt="Slide ${slide.num} presentation" onError="this.style.display='none';">
+        <img src="${slide.image}" class="slide-comic-img" alt="Slide ${slide.num} presentation" onError="this.style.display='none';">
       </div>
 
-      <!-- Minimal Bullet Notes & Prompts if Present -->
+      <!-- Minimal Prompts & Codes if Present -->
       ${slide.prompt ? `
-        <div style="margin-top: 10px;" onclick="event.stopPropagation();">
-          <div style="font-size: 0.8rem; font-weight:700; color:var(--primary-600); margin-bottom:6px; display:flex; justify-content:space-between; align-items:center;">
-            <span>📋 슬라이드 ${slide.num} AI 프롬프트 (클릭 시 1초 복사)</span>
-            <button class="btn btn-outline" style="padding:3px 10px; font-size:0.775rem;" onclick="copyTextToClipboard(\`${escapeHTML(slide.prompt)}\`)">복사하기</button>
+        <div style="margin-top: 12px;" onclick="event.stopPropagation();">
+          <div style="font-size: 0.8rem; font-weight:700; color:var(--primary-600); margin-bottom:4px; display:flex; justify-content:space-between; align-items:center;">
+            <span>📋 AI 프롬프트 (클릭 시 1초 복사)</span>
+            <button class="btn btn-outline" style="padding:2px 8px; font-size:0.75rem;" onclick="copyTextToClipboard(\`${escapeHTML(slide.prompt)}\`)">복사하기</button>
           </div>
           <div class="prompt-copy-box" onclick="copyTextToClipboard(\`${escapeHTML(slide.prompt)}\`)">${escapeHTML(slide.prompt)}</div>
         </div>
       ` : ''}
 
       ${slide.code ? `
-        <div style="margin-top: 10px;" onclick="event.stopPropagation();">
-          <div style="font-size: 0.8rem; font-weight:700; color:var(--text-muted); margin-bottom:6px;">💻 코드 예시</div>
+        <div style="margin-top: 12px;" onclick="event.stopPropagation();">
+          <div style="font-size: 0.8rem; font-weight:700; color:var(--text-muted); margin-bottom:4px;">💻 코드 예시</div>
           <div class="code-box" style="font-size:0.8rem; margin:0;"><pre><code>${escapeHTML(slide.code)}</code></pre></div>
         </div>
       ` : ''}
 
       ${slide.cmd ? `
-        <div style="margin-top: 10px;" onclick="event.stopPropagation();">
-          <div style="font-size: 0.8rem; font-weight:700; color:var(--accent-emerald); margin-bottom:6px;">⚡ 실행 명령어</div>
+        <div style="margin-top: 12px;" onclick="event.stopPropagation();">
+          <div style="font-size: 0.8rem; font-weight:700; color:var(--accent-emerald); margin-bottom:4px;">⚡ 실행 명령어</div>
           <div class="code-box" style="font-size:0.8rem; background:#047857; color:white;"><code>${escapeHTML(slide.cmd)}</code></div>
         </div>
       ` : ''}
     </div>
 
     <!-- Minimal Bottom Helper Bar -->
-    <div style="display:flex; justify-content:space-between; align-items:center; font-size:0.8rem; color:var(--text-muted); padding:4px 8px;">
-      <span>💡 화면 클릭, ➔, Space, Enter 키로 다음 슬라이드로 넘어갑니다.</span>
-      <button class="btn btn-outline" style="padding:4px 10px; font-size:0.775rem;" onclick="app.markSlideViewed(${slide.num}); renderHeaderAndBanner(); renderPPTSlidePlayer();">
-        ✔ 출석 체크
+    <div style="display:flex; justify-content:space-between; align-items:center; font-size:0.775rem; color:var(--text-muted); padding:2px 4px;">
+      <span>💡 화면 클릭 또는 방향키(➔), Space, Enter로 다음 슬라이드로 넘어갑니다.</span>
+      <button class="btn btn-outline" style="padding:3px 8px; font-size:0.75rem;" onclick="app.markSlideViewed(${slide.num}); renderHeaderAndBanner(); renderPPTSlidePlayer();">
+        ✔ 학습 기록
       </button>
     </div>
   `;

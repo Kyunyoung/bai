@@ -626,60 +626,78 @@ body {
 .slide-comic-img {
   max-width: 100%;
   height: auto;
-  max-height: 520px;
-  border-radius: var(--radius-lg);
+  max-height: 540px;
+  border-radius: var(--radius-md);
   border: 1px solid var(--border-color);
-  box-shadow: var(--shadow-md);
+  box-shadow: var(--shadow-sm);
   transition: transform 0.2s ease;
+  display: block;
+  margin: 0 auto;
 }
 
 /* ANYWHERE-CLICKABLE SLIDE STAGE STYLING */
 .slide-clickable-stage {
   background: var(--bg-card);
-  border: 2px solid var(--primary-500);
-  border-radius: var(--radius-xl);
-  padding: 20px;
+  border: 1px solid var(--border-color);
+  border-radius: var(--radius-lg);
+  padding: 16px;
   box-shadow: var(--shadow-md);
   position: relative;
   cursor: pointer;
   user-select: none;
   transition: all 0.2s ease;
-  margin-top: 10px;
+  margin-top: 8px;
 }
 
 .slide-clickable-stage:hover {
-  border-color: var(--primary-600);
-  box-shadow: 0 8px 24px rgba(37, 99, 235, 0.15);
+  border-color: var(--primary-500);
+  box-shadow: 0 6px 20px rgba(37, 99, 235, 0.12);
 }
 
 .slide-clickable-stage:active {
-  transform: scale(0.995);
+  transform: scale(0.998);
 }
 
 .anywhere-click-badge {
   position: absolute;
-  top: 14px;
-  right: 14px;
-  background: rgba(37, 99, 235, 0.9);
-  color: white;
-  font-size: 0.775rem;
-  font-weight: 800;
+  top: 12px;
+  right: 12px;
+  background: rgba(15, 23, 42, 0.75);
+  backdrop-filter: blur(4px);
+  color: #ffffff;
+  font-size: 0.75rem;
+  font-weight: 600;
   padding: 4px 12px;
   border-radius: 9999px;
   box-shadow: var(--shadow-sm);
   z-index: 10;
   pointer-events: none;
+  letter-spacing: -0.2px;
+}
+
+.slide-top-progress {
+  height: 4px;
+  background: var(--primary-50);
+  border-radius: 2px;
+  overflow: hidden;
+  margin-bottom: 12px;
+}
+
+.slide-top-progress-fill {
+  height: 100%;
+  background: linear-gradient(90deg, var(--primary-600), var(--accent-purple));
+  transition: width 0.25s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
 .prompt-copy-box {
   background: #0f172a;
   color: #38bdf8;
-  padding: 14px 18px;
+  padding: 12px 16px;
   border-radius: var(--radius-md);
   font-family: monospace;
-  font-size: 0.85rem;
+  font-size: 0.825rem;
   line-height: 1.5;
-  border-left: 4px solid var(--primary-500);
+  border-left: 3px solid var(--primary-500);
   cursor: pointer;
   transition: opacity 0.2s ease;
 }
