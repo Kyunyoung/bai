@@ -31,19 +31,19 @@
 
       <!-- Navigation Tabs -->
       <nav class="main-nav-tabs" id="mainNavTabs">
-        <button class="nav-tab-btn active" data-tab="home" onclick="switchNavTab('home')">
+        <button type="button" class="nav-tab-btn active" data-tab="home" onclick="switchNavTab('home')">
           <span>🏠 메인 홈</span>
         </button>
-        <button class="nav-tab-btn" data-tab="education" onclick="switchNavTab('education')">
+        <button type="button" class="nav-tab-btn" data-tab="education" onclick="switchNavTab('education')">
           <span>📚 교육 포털</span>
         </button>
-        <button class="nav-tab-btn" data-tab="contest" onclick="switchNavTab('contest')">
+        <button type="button" class="nav-tab-btn" data-tab="contest" onclick="switchNavTab('contest')">
           <span>🏆 콘테스트</span>
         </button>
-        <button class="nav-tab-btn" onclick="window.openDirectSubmissionModal()" style="color:#10b981; font-weight:800;">
+        <button type="button" class="nav-tab-btn" onclick="window.openDirectSubmissionModal()" style="color:#10b981; font-weight:800;">
           <span>📱 🎬 동영상 제출</span>
         </button>
-        <button class="nav-tab-btn" data-tab="admin" onclick="switchNavTab('admin')">
+        <button type="button" class="nav-tab-btn" data-tab="admin" onclick="switchNavTab('admin')">
           <span>⚙️ 관리자</span>
         </button>
       </nav>
@@ -51,7 +51,7 @@
       <!-- Header Actions -->
       <div class="header-actions">
         <!-- Direct Quick Submission Launch CTA -->
-        <button onclick="window.openDirectSubmissionModal()" class="btn btn-primary" style="background: linear-gradient(135deg, #10b981 0%, #059669 100%); font-weight:800; border:none; box-shadow: 0 4px 12px rgba(16,185,129,0.3);">
+        <button type="button" onclick="window.openDirectSubmissionModal()" class="btn btn-primary" style="background: linear-gradient(135deg, #10b981 0%, #059669 100%); font-weight:800; border:none; box-shadow: 0 4px 12px rgba(16,185,129,0.3);">
           <span>📱 🎬 동영상 & 작품 제출</span>
         </button>
 
@@ -693,7 +693,7 @@
 
   <!-- FLOATING QUICK VIDEO SUBMISSION BUTTON -->
   <div style="position:fixed; bottom:24px; right:24px; z-index:9990;">
-    <button onclick="openDirectSubmissionModal()" class="btn btn-primary btn-lg" style="box-shadow: 0 10px 25px rgba(37,99,235,0.4); font-size:1rem; padding:14px 22px; border-radius:9999px; background:linear-gradient(135deg, #2563eb 0%, #1d4ed8 100%); display:flex; align-items:center; gap:8px; border:2px solid #ffffff;">
+    <button type="button" onclick="window.openDirectSubmissionModal()" class="btn btn-primary btn-lg" style="box-shadow: 0 10px 25px rgba(37,99,235,0.4); font-size:1rem; padding:14px 22px; border-radius:9999px; background:linear-gradient(135deg, #2563eb 0%, #1d4ed8 100%); display:flex; align-items:center; gap:8px; border:2px solid #ffffff;">
       <span>📱 🎬 동영상 & 작품 제출</span>
     </button>
   </div>
@@ -765,6 +765,6 @@
     </div>
   </div>
 
-  <script src="script.js?v=20260804_NO_SHRINK_ANIMATION_999"></script>
+  <script src="script.js?v=20260804_EXPLICIT_BUTTON_TYPE_100"></script>
 </body>
 </html>
