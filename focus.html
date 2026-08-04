@@ -1,0 +1,165 @@
+<!DOCTYPE html>
+<html lang="ko" data-theme="dark">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>슬라이드 몰입 집중 뷰어 | 바이브코딩 교육 포털</title>
+  <meta name="description" content="59개 바이브코딩 슬라이드 정독 전용 몰입/집중 뷰어 모드">
+  <link rel="stylesheet" href="styles.css?v=9">
+  <style>
+    /* Full Focus Mode Reset */
+    html, body {
+      width: 100vw;
+      height: 100vh;
+      margin: 0;
+      padding: 0;
+      overflow: hidden;
+      background-color: #080c14 !important;
+      color: #f8fafc;
+      user-select: none;
+    }
+  </style>
+</head>
+<body class="zen-focus-body">
+
+  <!-- Toast Notification Container -->
+  <div id="toastContainer" class="toast-container" aria-live="polite"></div>
+
+  <!-- Virtual Laser Pointer Element -->
+  <div id="virtualLaserPointer" class="virtual-laser-pointer"></div>
+
+  <!-- TOP FLOATING AUTO-HIDE HUD TOOLBAR -->
+  <header id="zenHeaderHud" class="zen-hud-top visible">
+    <div class="zen-hud-left">
+      <a href="index.html?tab=home" class="zen-btn-icon" title="통합 포털 메인 홈 (Esc)">
+        <span>🏠</span>
+        <span class="zen-btn-label">메인</span>
+      </a>
+      <a href="index.html?tab=education" class="zen-btn-icon" title="AI 프롬프트 라이브러리 바로가기">
+        <span>💡</span>
+        <span class="zen-btn-label">프롬프트</span>
+      </a>
+      <a href="index.html?tab=contest" class="zen-btn-icon" title="콘테스트 갤러리 및 투표 바로가기">
+        <span>🏆</span>
+        <span class="zen-btn-label">콘테스트</span>
+      </a>
+      <div class="zen-slide-info">
+        <span id="zenPartTag" class="zen-part-tag">PART 01</span>
+        <span id="zenSlideCounter" class="zen-counter">SLIDE 1 / 59</span>
+      </div>
+    </div>
+
+    <!-- Progress Line in HUD -->
+    <div class="zen-progress-wrapper" title="학습 진도율">
+      <div class="zen-progress-track">
+        <div id="zenProgressBar" class="zen-progress-fill" style="width: 1.69%;"></div>
+      </div>
+      <span id="zenProgressText" class="zen-progress-text">2%</span>
+    </div>
+
+    <div class="zen-hud-right">
+      <!-- Quick Slide Jump Select -->
+      <select id="zenSlideSelect" class="zen-select" aria-label="슬라이드 선택" onchange="jumpToSlide(parseInt(this.value, 10))">
+        <!-- Injected via JS -->
+      </select>
+
+      <!-- Laser Pointer Toggle -->
+      <button id="zenLaserBtn" class="zen-btn-toggle" title="레이저 포인터 모드 (단축키: L)" onclick="toggleLaserPointer()">
+        <span class="dot-icon">🔴</span>
+        <span class="zen-btn-label">포인터</span>
+      </button>
+
+      <!-- Autoplay Toggle -->
+      <button id="zenAutoplayBtn" class="zen-btn-toggle" title="슬라이드 자동 재생 (단축키: A)" onclick="toggleAutoplay()">
+        <span id="zenAutoplayIcon">▶</span>
+        <span id="zenAutoplayLabel" class="zen-btn-label">자동재생</span>
+      </button>
+
+      <!-- Thumbnail Drawer Toggle -->
+      <button id="zenThumbBtn" class="zen-btn-toggle" title="전체 슬라이드 썸네일 (단축키: T)" onclick="toggleThumbDrawer()">
+        <span>🖼️</span>
+        <span class="zen-btn-label">목록</span>
+      </button>
+
+      <!-- Fullscreen Toggle -->
+      <button id="zenFullscreenBtn" class="zen-btn-toggle" title="전체화면 전환 (단축키: F)" onclick="toggleFullscreen()">
+        <span id="zenFullscreenIcon">⛶</span>
+        <span class="zen-btn-label">전체화면</span>
+      </button>
+
+      <!-- Shortcuts Help -->
+      <button class="zen-btn-icon" title="단축키 안내 (? 또는 K)" onclick="openModal('helpModal')">
+        <span>❓</span>
+      </button>
+    </div>
+  </header>
+
+  <!-- MAIN STAGE - FULLSCREEN CENTERING -->
+  <main id="zenStage" class="zen-stage" onclick="handleStageClick(event)">
+    
+    <!-- Prev Arrow Button -->
+    <button class="zen-nav-arrow zen-arrow-prev" title="이전 슬라이드 (◀ / Left Arrow)" onclick="event.stopPropagation(); changeSlide(-1);">
+      &#10094;
+    </button>
+
+    <!-- Main Slide Container -->
+    <div id="zenImageWrapper" class="zen-image-wrapper">
+      <img id="zenSlideImg" src="slides_media/slide_1.jpg" alt="PDF Slide 1" class="zen-slide-img">
+    </div>
+
+    <!-- Next Arrow Button -->
+    <button class="zen-nav-arrow zen-arrow-next" title="다음 슬라이드 (▶ / Right Arrow / Space)" onclick="event.stopPropagation(); changeSlide(1);">
+      &#10095;
+    </button>
+
+    <!-- Hint Badge at bottom center of screen -->
+    <div id="zenIdleHint" class="zen-idle-hint">
+      <span>💡 화면 클릭, Space, ➔ 키로 슬라이드를 넘기세요. (마우스 이동 시 컨트롤 바 표시)</span>
+    </div>
+  </main>
+
+  <!-- BOTTOM THUMBNAIL DRAWER (SLIDE-UP GRID) -->
+  <div id="zenThumbDrawer" class="zen-thumb-drawer">
+    <div class="zen-thumb-header">
+      <span class="zen-thumb-title">📚 전체 59개 슬라이드 한눈에 보기 (클릭시 즉시 이동)</span>
+      <button class="zen-thumb-close" onclick="toggleThumbDrawer()">✕ 닫기</button>
+    </div>
+    <div id="zenThumbGrid" class="zen-thumb-grid">
+      <!-- Injected via JS -->
+    </div>
+  </div>
+
+  <!-- SHORTCUTS HELP MODAL -->
+  <div id="helpModal" class="modal-overlay" aria-hidden="true">
+    <div class="modal-card" style="max-width: 520px; background: #0f172a; color: #f8fafc; border-color: #334155;">
+      <div class="modal-header" style="background: #1e293b; border-color: #334155;">
+        <h3 class="modal-title">⌨️ 슬라이드 몰입 뷰어 단축키 안내</h3>
+        <button class="close-btn" style="color:#94a3b8" onclick="closeModal('helpModal')">✕</button>
+      </div>
+      <div class="modal-body" style="padding: 20px;">
+        <ul class="zen-shortcut-list">
+          <li><kbd>➔</kbd> / <kbd>Space</kbd> / <kbd>Enter</kbd> / <kbd>클릭</kbd> <span>다음 슬라이드 이동</span></li>
+          <li><kbd>◀</kbd> <span>이전 슬라이드 이동</span></li>
+          <li><kbd>F</kbd> / <kbd>F11</kbd> <span>전체화면 (Fullscreen) 토글</span></li>
+          <li><kbd>A</kbd> <span>슬라이드 쇼 자동 재생 (3초) 토글</span></li>
+          <li><kbd>L</kbd> <span>가상 레이저 포인터 On / Off</span></li>
+          <li><kbd>T</kbd> <span>썸네일 서랍 열기 / 닫기</span></li>
+          <li><kbd>Home</kbd> / <kbd>End</kbd> <span>첫 슬라이드 / 마지막 슬라이드로 이동</span></li>
+          <li><kbd>Esc</kbd> <span>메인 포털 복귀 / 창 닫기</span></li>
+          <li><kbd>?</kbd> / <kbd>K</kbd> <span>단축키 도움말 열기</span></li>
+        </ul>
+      </div>
+    </div>
+  </div>
+
+  <script src="script.js?v=9"></script>
+  <script>
+    // Initialize Focus Mode directly when viewing focus.html
+    document.addEventListener('DOMContentLoaded', () => {
+      if (typeof initZenFocusMode === 'function') {
+        initZenFocusMode();
+      }
+    });
+  </script>
+</body>
+</html>
