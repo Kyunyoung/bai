@@ -103,8 +103,19 @@ class VibePortalApp {
     // User Votes (Max 3 votes limit)
     this.userVotes = new Set(this.loadFromStorage('vibecoding_user_votes', []));
 
+    // Permanently Deleted Submission IDs
+    this.deletedIds = new Set(this.loadFromStorage('vibecoding_deleted_ids', []));
+
     // Admin Auth State
     this.isAdmin = false;
+  }
+
+  saveDeletedIds() {
+    try {
+      localStorage.setItem('vibecoding_deleted_ids', JSON.stringify(Array.from(this.deletedIds)));
+    } catch (e) {
+      console.error(e);
+    }
   }
 
   loadFromStorage(key, fallback) {
@@ -816,14 +827,20 @@ function handleSubmissionsJSONFileSelect(event) {
 }
 
 function mergeSubmissionsData(newItems) {
-  const existingIds = new Set(app.submissions.map(item => item.id));
-  let addedCount = 0;
+  if (!Array.isArray(newItems)) return;
 
-  newItems.forEach(item => {
+  // Filter out any items that have been explicitly deleted!
+  const validNewItems = newItems.filter(item => item && item.id && !app.deletedIds.has(item.id));
+
+  // Purge any deleted items currently in app.submissions
+  app.submissions = app.submissions.filter(item => !app.deletedIds.has(item.id));
+
+  const existingIds = new Set(app.submissions.map(item => item.id));
+
+  validNewItems.forEach(item => {
     if (!existingIds.has(item.id)) {
       app.submissions.unshift(item);
       existingIds.add(item.id);
-      addedCount++;
     } else {
       const idx = app.submissions.findIndex(s => s.id === item.id);
       if (idx !== -1) app.submissions[idx] = item;
@@ -1536,9 +1553,15 @@ function handleCancelSubmission(submissionId) {
   if (!s) return;
 
   if (confirm(`'${s.title}' 작품 출품을 정말로 취소/삭제하시겠습니까?`)) {
+    // 1. Permanently register submissionId as deleted
+    app.deletedIds.add(submissionId);
+    app.saveDeletedIds();
+
+    // 2. Filter out submission from local list
     app.submissions = app.submissions.filter(item => item.id !== submissionId);
+    app.saveSubmissions();
     
-    // Sync deletion across all devices & central DB instantly!
+    // 3. Sync deletion across all devices & central cloud DB instantly!
     syncSubmissionsToCentralCloudDB();
 
     closeModal('submissionDetailModal');
