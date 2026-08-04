@@ -723,6 +723,80 @@
     </div>
   </div>
 
-  <script src="script.js?v=10"></script>
+  <!-- FLOATING QUICK VIDEO SUBMISSION BUTTON -->
+  <div style="position:fixed; bottom:24px; right:24px; z-index:9990;">
+    <button onclick="openDirectSubmissionModal()" class="btn btn-primary btn-lg" style="box-shadow: 0 10px 25px rgba(37,99,235,0.4); font-size:1rem; padding:14px 22px; border-radius:9999px; background:linear-gradient(135deg, #2563eb 0%, #1d4ed8 100%); display:flex; align-items:center; gap:8px; border:2px solid #ffffff;">
+      <span>📱 🎬 동영상 & 작품 제출</span>
+    </button>
+  </div>
+
+  <!-- DEDICATED DIRECT VIDEO SUBMISSION MODAL -->
+  <div id="directVideoSubmissionModal" class="modal-overlay" aria-hidden="true">
+    <div class="modal-card" style="max-width: 600px;">
+      <div class="modal-header">
+        <h3 class="modal-title" style="font-weight:800; color:var(--primary-600);">📱 🎬 핸드폰 촬영 시연 영상 & 작품 제출</h3>
+        <button class="modal-close-btn" onclick="closeModal('directVideoSubmissionModal')">&times;</button>
+      </div>
+      <div class="modal-body">
+        <form id="directSubmissionForm" onsubmit="handleDirectSubmissionSubmit(event)">
+          
+          <div class="form-group" style="background:var(--primary-50); padding:16px; border-radius:var(--radius-md); border:2px dashed var(--primary-400);">
+            <label class="form-label" style="font-size:1rem; font-weight:800; color:var(--primary-800);">
+              📱 1. 핸드폰 촬영 시연 영상 파일 선택 (클릭/촬영) <span class="required">*</span>
+            </label>
+            <div class="video-upload-dropzone" onclick="document.getElementById('directSubVideoFile').click()" style="background:white; margin-top:8px;">
+              <div class="dropzone-icon">📱🎥</div>
+              <div class="dropzone-text">
+                <strong style="font-size:1.05rem; color:var(--primary-600);">여기를 눌러 핸드폰 시연 영상 선택/촬영</strong>
+                <span>(MP4, MOV, WebM 포맷 자동 지원)</span>
+              </div>
+              <input type="file" id="directSubVideoFile" accept="video/*" style="display:none;" onchange="handleVideoFileSelect(event, 'subVideoPreview', 'directVideoPreviewWrapper')">
+            </div>
+            <button type="button" class="btn btn-outline btn-sm" style="margin-top:8px; width:100%; border-style:dashed;" onclick="loadSampleDemoVideoIntoFormDirect()">
+              🎬 테스트용 샘플 시연 영상 1초 세팅 (클릭)
+            </button>
+            
+            <div id="directVideoPreviewWrapper" style="display:none; margin-top:12px;">
+              <span style="font-size:0.85rem; font-weight:700; color:var(--primary-600);">🎬 선택된 시연 영상 미리보기:</span>
+              <video id="directSubVideoPreview" controls playsinline style="width:100%; max-height:220px; border-radius:var(--radius-md); margin-top:6px; background:#000;"></video>
+            </div>
+          </div>
+
+          <div class="form-grid" style="margin-top:14px;">
+            <div class="form-group">
+              <label class="form-label" for="directSubName">제출자 성명 <span class="required">*</span></label>
+              <input type="text" id="directSubName" class="form-input" placeholder="예: 홍길동" required>
+            </div>
+            <div class="form-group">
+              <label class="form-label" for="directSubDept">소속 부서 <span class="required">*</span></label>
+              <input type="text" id="directSubDept" class="form-input" placeholder="예: 디지털혁신팀" required>
+            </div>
+          </div>
+
+          <div class="form-group">
+            <label class="form-label" for="directSubTitle">작품 제목 <span class="required">*</span></label>
+            <input type="text" id="directSubTitle" class="form-input" placeholder="예: 📊 250개 경찰서 엑셀 1초 서식 검증기" required>
+          </div>
+
+          <div class="form-group">
+            <label class="form-label" for="directSubDesc">작품 설명 & 기획 의도 <span class="required">*</span></label>
+            <textarea id="directSubDesc" class="form-textarea" rows="3" placeholder="작품 기획 의도 및 주요 자동화 기능을 적어주세요." required></textarea>
+          </div>
+
+          <div class="form-group">
+            <label class="form-label" for="directSubPasscode">수정/취소 비밀번호 <span class="required">*</span></label>
+            <input type="password" id="directSubPasscode" class="form-input" placeholder="비밀번호 4자리 (예: 1234)" maxlength="12" required>
+          </div>
+
+          <div class="form-actions" style="margin-top:16px;">
+            <button type="button" class="btn btn-outline" onclick="closeModal('directVideoSubmissionModal')">취소</button>
+            <button type="submit" class="btn btn-primary btn-lg" style="flex:1;">🚀 작품 및 시연 영상 최종 출품하기</button>
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>
+
+  <script src="script.js?v=20260804_99"></script>
 </body>
 </html>

@@ -1125,6 +1125,79 @@ function handleSubmissionSubmit(event) {
   renderHomeTopEntries();
 }
 
+function openDirectSubmissionModal() {
+  openModal('directVideoSubmissionModal');
+}
+
+function loadSampleDemoVideoIntoFormDirect() {
+  showToast('🎬 핸드폰 촬영 시연 샘플 동영상을 생성 중입니다...', 'info');
+  createInteractiveCanvasVideoBlob(videoUrl => {
+    uploadedVideoUrl = videoUrl;
+    const preview = document.getElementById('directSubVideoPreview');
+    const wrapper = document.getElementById('directVideoPreviewWrapper');
+
+    if (preview) preview.src = videoUrl;
+    if (wrapper) wrapper.style.display = 'block';
+
+    if (!document.getElementById('directSubName').value) document.getElementById('directSubName').value = '김경위';
+    if (!document.getElementById('directSubDept').value) document.getElementById('directSubDept').value = '디지털혁신팀';
+    if (!document.getElementById('directSubTitle').value) document.getElementById('directSubTitle').value = '📱 250개 경찰서 엑셀 1초 서식 검증기 (핸드폰 시연)';
+    if (!document.getElementById('directSubDesc').value) document.getElementById('directSubDesc').value = '핸드폰으로 직접 촬영한 250개 경찰서 엑셀 서식 1초 검증 스크립트 실습 시연 영상입니다.';
+    if (!document.getElementById('directSubPasscode').value) document.getElementById('directSubPasscode').value = '1234';
+
+    showToast('🎉 핸드폰 촬영 시연 샘플 영상이 1초만에 세팅되었습니다!', 'success');
+  });
+}
+
+function handleDirectSubmissionSubmit(event) {
+  event.preventDefault();
+
+  const name = document.getElementById('directSubName').value.trim();
+  const dept = document.getElementById('directSubDept').value.trim();
+  const title = document.getElementById('directSubTitle').value.trim();
+  const desc = document.getElementById('directSubDesc').value.trim();
+  const passcode = document.getElementById('directSubPasscode').value.trim();
+
+  if (!name || !dept || !title || !desc || !passcode) {
+    showToast('필수 항목을 입력해주세요.', 'info');
+    return;
+  }
+
+  const newSubId = `sub_${Date.now()}`;
+  const newSub = {
+    id: newSubId,
+    name: name,
+    dept: dept,
+    title: title,
+    desc: desc,
+    url: '#',
+    videoUrl: uploadedVideoUrl || 'https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/ForBiggerBlazes.mp4',
+    videoData: uploadedVideoDataUrl || '',
+    image: 'slides_media/slide_22.jpg',
+    passcode: passcode,
+    votes: 0,
+    ratings: [],
+    date: new Date().toISOString().split('T')[0],
+    status: 'visible'
+  };
+
+  uploadedVideoDataUrl = null;
+  uploadedVideoUrl = null;
+
+  app.submissions.unshift(newSub);
+  app.saveSubmissions();
+  autoPushSubmissionToCloudDB(newSub);
+
+  closeModal('directVideoSubmissionModal');
+  showToast('🎉 바이브코딩 콘테스트에 시연 동영상 및 작품이 최종 출품되었습니다!', 'success');
+  document.getElementById('directSubmissionForm').reset();
+
+  switchNavTab('contest');
+  switchContestSubTab('gallery');
+  renderHomeStats();
+  renderHomeTopEntries();
+}
+
 function openSubmissionDetailModal(submissionId) {
   const s = app.submissions.find(item => item.id === submissionId);
   if (!s) return;
