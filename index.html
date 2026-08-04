@@ -12,6 +12,12 @@
   <!-- Toast Notification Container -->
   <div id="toastContainer" class="toast-container" aria-live="polite"></div>
 
+  <!-- Alert banner if opened via file:/// -->
+  <div id="fileProtocolBanner" style="display:none; background:#fffbeb; border-bottom:2px solid #f59e0b; color:#b45309; padding:10px 16px; font-size:0.85rem; font-weight:700; text-align:center;">
+    ⚠️ 현재 내 컴퓨터 로컬 파일(file://)로 열려 있어 크롬 보안상 핸드폰 자동 동기화가 제한될 수 있습니다. 
+    <a href="http://localhost:3000" target="_blank" style="color:#b45309; text-decoration:underline; margin-left:8px; font-weight:800; background:#fef3c7; padding:2px 8px; border-radius:4px;">👉 http://localhost:3000 웹 주소로 바로 열기 (클릭)</a>
+  </div>
+
   <!-- MAIN NAVIGATION NAVBAR -->
   <header class="site-header sticky-header">
     <div class="header-inner">

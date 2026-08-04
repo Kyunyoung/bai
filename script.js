@@ -160,6 +160,11 @@ const app = new VibePortalApp();
 
 // DOM Initialization
 document.addEventListener('DOMContentLoaded', () => {
+  if (window.location.protocol === 'file:') {
+    const banner = document.getElementById('fileProtocolBanner');
+    if (banner) banner.style.display = 'block';
+  }
+
   initTheme();
   setupUrlParamsNav();
   setupPromptLibrary();
