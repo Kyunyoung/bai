@@ -1085,6 +1085,7 @@ function handleSubmissionSubmit(event) {
   const dept = document.getElementById('subDept').value.trim();
   const title = document.getElementById('subTitle').value.trim();
   const desc = document.getElementById('subDesc').value.trim();
+  const url = document.getElementById('subUrl')?.value.trim() || '#';
   const inputVideoUrl = document.getElementById('subVideoUrl')?.value.trim();
   const videoUrl = inputVideoUrl || uploadedVideoUrl || '';
   const passcode = document.getElementById('subPasscode').value.trim();
