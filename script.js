@@ -1157,10 +1157,12 @@ function handleSubmissionSubmit(event) {
   app.saveSubmissions();
   autoPushSubmissionToCloudDB(newSub);
 
+  alert('🎉 바이브코딩 콘테스트에 작품이 성공적으로 출품되었습니다!\n작품 갤러리로 자동 이동합니다.');
   showToast('🎉 바이브코딩 콘테스트에 작품이 성공적으로 출품되었습니다!', 'success');
   const form = document.getElementById('submissionForm');
   if (form) form.reset();
 
+  switchNavTab('contest');
   switchContestSubTab('gallery');
   renderHomeStats();
   renderHomeTopEntries();
@@ -1262,6 +1264,7 @@ function handleDirectSubmissionSubmit(event) {
   autoPushSubmissionToCloudDB(newSub);
 
   closeModal('directVideoSubmissionModal');
+  alert('🎉 바이브코딩 콘테스트에 시연 동영상 및 작품이 최종 출품되었습니다!\n작품 갤러리로 이동합니다.');
   showToast('🎉 바이브코딩 콘테스트에 시연 동영상 및 작품이 최종 출품되었습니다!', 'success');
   const form = document.getElementById('directSubmissionForm');
   if (form) form.reset();
