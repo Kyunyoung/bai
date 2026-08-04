@@ -1,21 +1,27 @@
 <!DOCTYPE html>
 <html lang="ko" data-theme="light">
+
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>바이브코딩 교육 및 콘테스트 통합 포털</title>
-  <meta name="description" content="바이브코딩 사내 교육 포털 & 콘테스트 통합 웹 사이트. 59개 PDF 원본 슬라이드 집중 뷰어, AI 프롬프트 라이브러리, 콘테스트 작품 제출 및 실시간 투표 관리자 시스템">
+  <meta name="description"
+    content="바이브코딩 사내 교육 포털 & 콘테스트 통합 웹 사이트. 59개 PDF 원본 슬라이드 집중 뷰어, AI 프롬프트 라이브러리, 콘테스트 작품 제출 및 실시간 투표 관리자 시스템">
   <link rel="stylesheet" href="styles.css?v=10">
 </head>
+
 <body>
 
   <!-- Toast Notification Container -->
   <div id="toastContainer" class="toast-container" aria-live="polite"></div>
 
   <!-- Alert banner if opened via file:/// -->
-  <div id="fileProtocolBanner" style="display:none; background:#fffbeb; border-bottom:2px solid #f59e0b; color:#b45309; padding:10px 16px; font-size:0.85rem; font-weight:700; text-align:center;">
-    ⚠️ 현재 내 컴퓨터 로컬 파일(file://)로 열려 있어 크롬 보안상 핸드폰 자동 동기화가 제한될 수 있습니다. 
-    <a href="http://localhost:3000" target="_blank" style="color:#b45309; text-decoration:underline; margin-left:8px; font-weight:800; background:#fef3c7; padding:2px 8px; border-radius:4px;">👉 http://localhost:3000 웹 주소로 바로 열기 (클릭)</a>
+  <div id="fileProtocolBanner"
+    style="display:none; background:#fffbeb; border-bottom:2px solid #f59e0b; color:#b45309; padding:10px 16px; font-size:0.85rem; font-weight:700; text-align:center;">
+    ⚠️ 현재 내 컴퓨터 로컬 파일(file://)로 열려 있어 크롬 보안상 핸드폰 자동 동기화가 제한될 수 있습니다.
+    <a href="http://localhost:3000" target="_blank"
+      style="color:#b45309; text-decoration:underline; margin-left:8px; font-weight:800; background:#fef3c7; padding:2px 8px; border-radius:4px;">👉
+      http://localhost:3000 웹 주소로 바로 열기 (클릭)</a>
   </div>
 
   <!-- MAIN NAVIGATION NAVBAR -->
@@ -40,20 +46,25 @@
         <button type="button" class="nav-tab-btn" data-tab="contest" onclick="switchNavTab('contest')">
           <span>🏆 콘테스트</span>
         </button>
-        <button type="button" class="nav-tab-btn" onclick="window.openDirectSubmissionModal()" style="color:#10b981; font-weight:800;">
-          <span>📱 🎬 동영상 제출</span>
+        <!-- 동영상 제출 안 보이게 -->
+        <!--<button type="button" class="nav-tab-btn" onclick="window.openDirectSubmissionModal()"
+          style="color:#10b981; font-weight:800;">
+          <span>📱 🎬 동영상 제출</span> -->
         </button>
-        <button type="button" class="nav-tab-btn" data-tab="admin" onclick="switchNavTab('admin')">
+        <!-- 관리자 안 보이게 -->
+        <!--<button type="button" class="nav-tab-btn" data-tab="admin" onclick="switchNavTab('admin')">
           <span>⚙️ 관리자</span>
-        </button>
+        </button> -->
       </nav>
 
       <!-- Header Actions -->
       <div class="header-actions">
         <!-- Direct Quick Submission Launch CTA -->
-        <button type="button" onclick="window.openDirectSubmissionModal()" class="btn btn-primary" style="background: linear-gradient(135deg, #10b981 0%, #059669 100%); font-weight:800; border:none; box-shadow: 0 4px 12px rgba(16,185,129,0.3);">
+        <!-- 동영상 & 작품 제출 안보이게 -->
+        <!-- <button type="button" onclick="window.openDirectSubmissionModal()" class="btn btn-primary"
+          style="background: linear-gradient(135deg, #10b981 0%, #059669 100%); font-weight:800; border:none; box-shadow: 0 4px 12px rgba(16,185,129,0.3);">
           <span>📱 🎬 동영상 & 작품 제출</span>
-        </button>
+        </button> -->
 
         <!-- Direct Default Focus Viewer Launch CTA -->
         <a href="focus.html" class="btn btn-outline" title="59개 슬라이드 전용 몰입 집중 뷰어 실행 (기본 모드)">
@@ -75,7 +86,7 @@
          SECTION 1: HOME (메인 홈)
          ========================================== -->
     <section id="sectionHome" class="portal-section active">
-      
+
       <!-- Main Hero Banner -->
       <div class="hero-banner">
         <div class="hero-container">
@@ -88,9 +99,10 @@
             </p>
 
             <div class="hero-cta-group">
-              <button onclick="openDirectSubmissionModal()" class="btn btn-hero-primary" style="background: linear-gradient(135deg, #10b981 0%, #059669 100%); border:none; box-shadow: 0 8px 20px rgba(16,185,129,0.4); font-size:1.1rem; font-weight:800;">
+              <!-- <button onclick="openDirectSubmissionModal()" class="btn btn-hero-primary"
+                style="background: linear-gradient(135deg, #10b981 0%, #059669 100%); border:none; box-shadow: 0 8px 20px rgba(16,185,129,0.4); font-size:1.1rem; font-weight:800;">
                 <span>📱 🎬 동영상 & 작품 제출하기 (1초)</span>
-              </button>
+              </button> -->
               <a href="focus.html" class="btn btn-hero-secondary">
                 <span>🎯 교육용 슬라이드 보기</span>
               </a>
@@ -99,7 +111,8 @@
 
           <!-- Hero Quick Stats Card -->
           <div class="stats-card">
-            <h3 style="font-size: 1.1rem; font-weight: 800; border-bottom:1px solid rgba(255,255,255,0.2); padding-bottom:8px; margin-bottom:12px;">
+            <h3
+              style="font-size: 1.1rem; font-weight: 800; border-bottom:1px solid rgba(255,255,255,0.2); padding-bottom:8px; margin-bottom:12px;">
               📊 포털 현황 대시보드
             </h3>
             <div class="stat-item">
@@ -156,7 +169,8 @@
       <div style="margin-top: 40px;">
         <div class="section-header-title">
           <h2>🔥 실시간 인기 콘테스트 작품 TOP 3</h2>
-          <button class="btn btn-outline" style="font-size:0.85rem;" onclick="switchNavTab('contest')">전체 작품 갤러리 보기 ➔</button>
+          <button class="btn btn-outline" style="font-size:0.85rem;" onclick="switchNavTab('contest')">전체 작품 갤러리 보기
+            ➔</button>
         </div>
         <div id="homeTopEntriesGrid" class="card-grid">
           <!-- Injected via JS -->
@@ -169,7 +183,7 @@
          SECTION 2: EDUCATION PORTAL (교육 포털)
          ========================================== -->
     <section id="sectionEducation" class="portal-section">
-      
+
       <!-- Default Focus Mode Banner Card -->
       <div class="education-focus-hero">
         <div class="edu-focus-info">
@@ -221,7 +235,8 @@
         <div class="section-header-title">
           <div>
             <h2>💡 AI 바이브코딩 프롬프트 라이브러리</h2>
-            <p style="font-size:0.875rem; color:var(--text-muted);">원하는 프롬프트를 클릭 한 번으로 복사하여 ChatGPT / Gemini에 바로 붙여넣으세요.</p>
+            <p style="font-size:0.875rem; color:var(--text-muted);">원하는 프롬프트를 클릭 한 번으로 복사하여 ChatGPT / Gemini에 바로 붙여넣으세요.
+            </p>
           </div>
 
           <!-- Prompt Category Filter -->
@@ -248,7 +263,8 @@
               <strong>vibe_coding_55_scenario_offline_install_added.pdf</strong>
               <span>59개 슬라이드 PDF 교재 원본 파일 (3.4 MB)</span>
             </div>
-            <a href="vibe_coding_55_scenario_offline_install_added.pdf" target="_blank" class="btn btn-outline btn-sm">PDF 다운로드 📥</a>
+            <a href="vibe_coding_55_scenario_offline_install_added.pdf" target="_blank"
+              class="btn btn-outline btn-sm">PDF 다운로드 📥</a>
           </div>
 
           <div class="resource-item">
@@ -277,18 +293,23 @@
          SECTION 3: CONTEST SECTION (콘테스트 영역)
          ========================================== -->
     <section id="sectionContest" class="portal-section">
-      
+
       <!-- Contest Schedule & Deadline Banner -->
-      <div class="contest-schedule-banner" style="background: linear-gradient(135deg, #1e3a8a 0%, #0f172a 100%); border: 1px solid #3b82f6; border-radius: var(--radius-lg); padding: 18px 24px; color: white; margin-bottom: 24px; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 16px; box-shadow: 0 4px 14px rgba(0,0,0,0.15);">
+      <div class="contest-schedule-banner"
+        style="background: linear-gradient(135deg, #1e3a8a 0%, #0f172a 100%); border: 1px solid #3b82f6; border-radius: var(--radius-lg); padding: 18px 24px; color: white; margin-bottom: 24px; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 16px; box-shadow: 0 4px 14px rgba(0,0,0,0.15);">
         <div style="display:flex; flex-direction:column; gap:4px;">
-          <span style="font-size:0.78rem; font-weight:800; color:#38bdf8; letter-spacing:0.05em; text-transform:uppercase;">📅 바이브코딩 콘테스트 일체형 일정</span>
+          <span
+            style="font-size:0.78rem; font-weight:800; color:#38bdf8; letter-spacing:0.05em; text-transform:uppercase;">📅
+            바이브코딩 콘테스트 일체형 일정</span>
           <h3 style="font-size:1.15rem; font-weight:800; color:white; margin:0;">
-            📝 작품 제출: <span style="color:#fde047;">2026년 8월 12일(수) 23:59 마감</span> &nbsp;|&nbsp; 🏆 최종 심사 및 평가: <span style="color:#67e8f9;">2026년 8월 14일(금)</span>
+            📝 작품 제출: <span style="color:#fde047;">2026년 8월 12일(수) 23:59 마감</span> &nbsp;|&nbsp; 🏆 최종 심사 및 평가: <span
+              style="color:#67e8f9;">2026년 8월 14일(금)</span>
           </h3>
         </div>
 
         <div style="display:flex; gap:10px; align-items:center;">
-          <span style="font-size:0.825rem; background:rgba(16,185,129,0.2); color:#34d399; border:1px solid rgba(52,211,153,0.3); padding:6px 14px; border-radius:9999px; font-weight:700;">
+          <span
+            style="font-size:0.825rem; background:rgba(16,185,129,0.2); color:#34d399; border:1px solid rgba(52,211,153,0.3); padding:6px 14px; border-radius:9999px; font-weight:700;">
             ⏳ 제출 진행 중 (~8/12 마감)
           </span>
         </div>
@@ -317,12 +338,13 @@
 
       <!-- SUBTAB 1: GALLERY & VOTING -->
       <div id="subtabGallery" class="contest-subcontent active">
-        
+
         <!-- Filter & Search Bar -->
         <div class="contest-filter-bar">
           <div class="search-box" style="flex:1; min-width:260px;">
             <span class="search-icon">🔍</span>
-            <input type="text" id="contestSearchInput" class="search-input" placeholder="작품명, 제출자, 소속 검색..." oninput="filterContestGallery()">
+            <input type="text" id="contestSearchInput" class="search-input" placeholder="작품명, 제출자, 소속 검색..."
+              oninput="filterContestGallery()">
           </div>
 
           <div style="display:flex; gap:10px; align-items:center;">
@@ -372,7 +394,8 @@
 
             <div class="form-group">
               <label class="form-label" for="subDesc">작품 기획 의도 및 주요 기능 설명 <span class="required">*</span></label>
-              <textarea id="subDesc" class="form-textarea" rows="4" placeholder="작품을 만든 의도, 사용한 AI 프롬프트, 주요 기능 및 단축 효과를 상세히 적어주세요." required></textarea>
+              <textarea id="subDesc" class="form-textarea" rows="4"
+                placeholder="작품을 만든 의도, 사용한 AI 프롬프트, 주요 기능 및 단축 효과를 상세히 적어주세요." required></textarea>
             </div>
 
             <div class="form-group" style="margin-top: 12px;">
@@ -383,21 +406,25 @@
                   <strong>클릭하여 핸드폰 촬영 시연 영상 선택 (또는 드래그 & 드롭)</strong>
                   <span>지원 포맷: MP4, MOV, WebM (동영상 파일 직접 선택)</span>
                 </div>
-                <input type="file" id="subVideoFile" accept="video/*" style="display:none;" onchange="handleVideoFileSelect(event, 'subVideoPreview', 'videoPreviewWrapper')">
+                <input type="file" id="subVideoFile" accept="video/*" style="display:none;"
+                  onchange="handleVideoFileSelect(event, 'subVideoPreview', 'videoPreviewWrapper')">
               </div>
-              <button type="button" class="btn btn-outline btn-sm" style="margin-top:8px; width:100%; border-style:dashed;" onclick="loadSampleDemoVideoIntoForm()">
+              <button type="button" class="btn btn-outline btn-sm"
+                style="margin-top:8px; width:100%; border-style:dashed;" onclick="loadSampleDemoVideoIntoForm()">
                 🎬 테스트용 핸드폰 시연 영상 1초 자동 세팅 (클릭)
               </button>
-              
+
               <div id="videoPreviewWrapper" style="display:none; margin-top:12px;">
                 <span style="font-size:0.85rem; font-weight:700; color:var(--primary-600);">🎬 업로드된 시연 영상 미리보기:</span>
-                <video id="subVideoPreview" controls playsinline style="width:100%; max-height:240px; border-radius:var(--radius-md); margin-top:6px; background:#000;"></video>
+                <video id="subVideoPreview" controls playsinline
+                  style="width:100%; max-height:240px; border-radius:var(--radius-md); margin-top:6px; background:#000;"></video>
               </div>
             </div>
 
             <div class="form-group">
               <label class="form-label" for="subVideoUrl">또는 시연 영상 URL 링크 (YouTube, MP4 링크)</label>
-              <input type="url" id="subVideoUrl" class="form-input" placeholder="예: https://www.youtube.com/watch?v=... 또는 동영상 MP4 링크">
+              <input type="url" id="subVideoUrl" class="form-input"
+                placeholder="예: https://www.youtube.com/watch?v=... 또는 동영상 MP4 링크">
             </div>
 
             <div class="form-group">
@@ -413,19 +440,22 @@
                 <option value="slides_media/slide_9.jpg">⚙️ 환경 세팅 및 파이썬 캡처</option>
                 <option value="custom">✏️ 직접 이미지 URL 입력</option>
               </select>
-              <input type="text" id="subCustomImageUrl" class="form-input" style="display:none; margin-top:8px;" placeholder="https://... 이미지 URL 입력">
+              <input type="text" id="subCustomImageUrl" class="form-input" style="display:none; margin-top:8px;"
+                placeholder="https://... 이미지 URL 입력">
             </div>
 
             <div class="form-group">
               <label class="form-label" for="subPasscode">작품 수정/취소 비밀번호 <span class="required">*</span></label>
-              <input type="password" id="subPasscode" class="form-input" placeholder="본인 확인용 비밀번호 (예: 1234)" maxlength="12" required>
+              <input type="password" id="subPasscode" class="form-input" placeholder="본인 확인용 비밀번호 (예: 1234)"
+                maxlength="12" required>
               <span style="font-size:0.75rem; color:var(--text-muted);">다른 사용자가 내 작품을 무단 수정/삭제하지 못하도록 안전하게 보호합니다.</span>
             </div>
 
             <!-- Submission Form Actions -->
             <div class="form-actions">
               <button type="button" class="btn btn-outline" onclick="switchContestSubTab('gallery')">취소</button>
-              <button type="button" class="btn btn-primary btn-lg" onclick="handleSubmissionSubmit(event)">🚀 작품 최종 출품하기</button>
+              <button type="button" class="btn btn-primary btn-lg" onclick="handleSubmissionSubmit(event)">🚀 작품 최종
+                출품하기</button>
             </div>
           </form>
         </div>
@@ -435,7 +465,7 @@
       <div id="subtabGuide" class="contest-subcontent">
         <div class="guide-card">
           <h2>📌 콘테스트 대회 일정 및 심사 규정</h2>
-          
+
           <div class="guide-steps">
             <div class="guide-step">
               <div class="step-num">1</div>
@@ -478,7 +508,7 @@
          SECTION 4: ADMIN CENTER (관리자 페이지)
          ========================================== -->
     <section id="sectionAdmin" class="portal-section">
-      
+
       <!-- Admin Login Overlay Box (if not logged in) -->
       <div id="adminAuthBox" class="admin-auth-card">
         <div class="admin-auth-inner">
@@ -487,7 +517,8 @@
           <p>제출작 관리, 투표 결과 실시간 집계 및 엑셀 다운로드는 비밀번호 인증이 필요합니다.</p>
 
           <div style="display:flex; gap:10px; margin-top:16px; width:100%; max-width:340px;">
-            <input type="password" id="adminPassInput" class="form-input" placeholder="비밀번호 입력 (기본: admin123)" onkeydown="if(e.key==='Enter') verifyAdminAuth()">
+            <input type="password" id="adminPassInput" class="form-input" placeholder="비밀번호 입력 (기본: admin123)"
+              onkeydown="if(e.key==='Enter') verifyAdminAuth()">
             <button class="btn btn-primary" onclick="verifyAdminAuth()">인증하기</button>
           </div>
         </div>
@@ -512,7 +543,8 @@
         </div>
 
         <!-- GitHub REST API Database Integration Control Card -->
-        <div style="background:var(--bg-card); border:1px solid var(--border-color); border-radius:var(--radius-lg); padding:20px; margin-bottom:24px;">
+        <div
+          style="background:var(--bg-card); border:1px solid var(--border-color); border-radius:var(--radius-lg); padding:20px; margin-bottom:24px;">
           <div style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:12px;">
             <div>
               <h3 style="font-size:1.05rem; font-weight:800; color:var(--text-main); margin-bottom:4px;">
@@ -522,7 +554,8 @@
                 GitHub 리포지토리(`submissions.json`)를 무료 중앙 데이터베이스로 연동하여 제출작이 커밋(Commit) 저장됩니다.
               </p>
             </div>
-            <span id="githubDbStatusBadge" style="font-size:0.8rem; background:rgba(59,130,246,0.15); color:#2563eb; padding:4px 12px; border-radius:9999px; font-weight:700;">
+            <span id="githubDbStatusBadge"
+              style="font-size:0.8rem; background:rgba(59,130,246,0.15); color:#2563eb; padding:4px 12px; border-radius:9999px; font-weight:700;">
               🐙 GitHub DB 연동 시스템 준비
             </span>
           </div>
@@ -537,14 +570,16 @@
               <input type="text" id="ghRepoInput" class="form-input" placeholder="예: bai">
             </div>
             <div class="form-group">
-              <label class="form-label" for="ghTokenInput" style="font-size:0.8rem;">GitHub Personal Access Token (선택)</label>
+              <label class="form-label" for="ghTokenInput" style="font-size:0.8rem;">GitHub Personal Access Token
+                (선택)</label>
               <input type="password" id="ghTokenInput" class="form-input" placeholder="ghp_... (자동 커밋 권한용)">
             </div>
           </div>
 
           <div style="display:flex; gap:10px; margin-top:12px; flex-wrap:wrap;">
             <button class="btn btn-primary btn-sm" onclick="saveGitHubConfig()">💾 GitHub DB 설정 저장</button>
-            <button class="btn btn-outline btn-sm" onclick="fetchGitHubSubmissions(true)">🔄 GitHub DB에서 최신 데이터 읽기</button>
+            <button class="btn btn-outline btn-sm" onclick="fetchGitHubSubmissions(true)">🔄 GitHub DB에서 최신 데이터
+              읽기</button>
           </div>
         </div>
 
@@ -649,7 +684,8 @@
               <option value="slides_media/slide_9.jpg">⚙️ 환경 세팅 및 파이썬 캡처</option>
               <option value="custom">✏️ 직접 이미지 URL 입력</option>
             </select>
-            <input type="text" id="editCustomImageUrl" class="form-input" style="display:none; margin-top:8px;" placeholder="https://... 이미지 URL 입력">
+            <input type="text" id="editCustomImageUrl" class="form-input" style="display:none; margin-top:8px;"
+              placeholder="https://... 이미지 URL 입력">
           </div>
 
           <div class="form-actions" style="margin-top:20px;">
@@ -693,7 +729,8 @@
 
   <!-- FLOATING QUICK VIDEO SUBMISSION BUTTON -->
   <div style="position:fixed; bottom:24px; right:24px; z-index:9990;">
-    <button type="button" onclick="window.openDirectSubmissionModal()" class="btn btn-primary btn-lg" style="box-shadow: 0 10px 25px rgba(37,99,235,0.4); font-size:1rem; padding:14px 22px; border-radius:9999px; background:linear-gradient(135deg, #2563eb 0%, #1d4ed8 100%); display:flex; align-items:center; gap:8px; border:2px solid #ffffff;">
+    <button type="button" onclick="window.openDirectSubmissionModal()" class="btn btn-primary btn-lg"
+      style="box-shadow: 0 10px 25px rgba(37,99,235,0.4); font-size:1rem; padding:14px 22px; border-radius:9999px; background:linear-gradient(135deg, #2563eb 0%, #1d4ed8 100%); display:flex; align-items:center; gap:8px; border:2px solid #ffffff;">
       <span>📱 🎬 동영상 & 작품 제출</span>
     </button>
   </div>
@@ -707,26 +744,31 @@
       </div>
       <div class="modal-body">
         <form id="directSubmissionForm" onsubmit="handleDirectSubmissionSubmit(event)">
-          
-          <div class="form-group" style="background:var(--primary-50); padding:16px; border-radius:var(--radius-md); border:2px dashed var(--primary-400);">
+
+          <div class="form-group"
+            style="background:var(--primary-50); padding:16px; border-radius:var(--radius-md); border:2px dashed var(--primary-400);">
             <label class="form-label" style="font-size:1rem; font-weight:800; color:var(--primary-800);">
               📱 1. 핸드폰 촬영 시연 영상 파일 선택 (클릭/촬영) <span class="required">*</span>
             </label>
-            <div class="video-upload-dropzone" onclick="document.getElementById('directSubVideoFile').click()" style="background:white; margin-top:8px;">
+            <div class="video-upload-dropzone" onclick="document.getElementById('directSubVideoFile').click()"
+              style="background:white; margin-top:8px;">
               <div class="dropzone-icon">📱🎥</div>
               <div class="dropzone-text">
                 <strong style="font-size:1.05rem; color:var(--primary-600);">여기를 눌러 핸드폰 시연 영상 선택/촬영</strong>
                 <span>(MP4, MOV, WebM 포맷 자동 지원)</span>
               </div>
-              <input type="file" id="directSubVideoFile" accept="video/*" style="display:none;" onchange="handleVideoFileSelect(event, 'subVideoPreview', 'directVideoPreviewWrapper')">
+              <input type="file" id="directSubVideoFile" accept="video/*" style="display:none;"
+                onchange="handleVideoFileSelect(event, 'subVideoPreview', 'directVideoPreviewWrapper')">
             </div>
-            <button type="button" class="btn btn-outline btn-sm" style="margin-top:8px; width:100%; border-style:dashed;" onclick="loadSampleDemoVideoIntoFormDirect()">
+            <button type="button" class="btn btn-outline btn-sm"
+              style="margin-top:8px; width:100%; border-style:dashed;" onclick="loadSampleDemoVideoIntoFormDirect()">
               🎬 테스트용 샘플 시연 영상 1초 세팅 (클릭)
             </button>
-            
+
             <div id="directVideoPreviewWrapper" style="display:none; margin-top:12px;">
               <span style="font-size:0.85rem; font-weight:700; color:var(--primary-600);">🎬 선택된 시연 영상 미리보기:</span>
-              <video id="directSubVideoPreview" controls playsinline style="width:100%; max-height:220px; border-radius:var(--radius-md); margin-top:6px; background:#000;"></video>
+              <video id="directSubVideoPreview" controls playsinline
+                style="width:100%; max-height:220px; border-radius:var(--radius-md); margin-top:6px; background:#000;"></video>
             </div>
           </div>
 
@@ -743,22 +785,26 @@
 
           <div class="form-group">
             <label class="form-label" for="directSubTitle">작품 제목 <span class="required">*</span></label>
-            <input type="text" id="directSubTitle" class="form-input" placeholder="예: 📊 250개 경찰서 엑셀 1초 서식 검증기" required>
+            <input type="text" id="directSubTitle" class="form-input" placeholder="예: 📊 250개 경찰서 엑셀 1초 서식 검증기"
+              required>
           </div>
 
           <div class="form-group">
             <label class="form-label" for="directSubDesc">작품 설명 & 기획 의도 <span class="required">*</span></label>
-            <textarea id="directSubDesc" class="form-textarea" rows="3" placeholder="작품 기획 의도 및 주요 자동화 기능을 적어주세요." required></textarea>
+            <textarea id="directSubDesc" class="form-textarea" rows="3" placeholder="작품 기획 의도 및 주요 자동화 기능을 적어주세요."
+              required></textarea>
           </div>
 
           <div class="form-group">
             <label class="form-label" for="directSubPasscode">수정/취소 비밀번호 <span class="required">*</span></label>
-            <input type="password" id="directSubPasscode" class="form-input" placeholder="비밀번호 4자리 (예: 1234)" maxlength="12" required>
+            <input type="password" id="directSubPasscode" class="form-input" placeholder="비밀번호 4자리 (예: 1234)"
+              maxlength="12" required>
           </div>
 
           <div class="form-actions" style="margin-top:16px;">
             <button type="button" class="btn btn-outline" onclick="closeModal('directVideoSubmissionModal')">취소</button>
-            <button type="button" class="btn btn-primary btn-lg" onclick="handleDirectSubmissionSubmit(event)" style="flex:1;">🚀 작품 및 시연 영상 최종 출품하기</button>
+            <button type="button" class="btn btn-primary btn-lg" onclick="handleDirectSubmissionSubmit(event)"
+              style="flex:1;">🚀 작품 및 시연 영상 최종 출품하기</button>
           </div>
         </form>
       </div>
@@ -767,4 +813,5 @@
 
   <script src="script.js?v=20260804_SAME_ORIGIN_MP4_FIX_100"></script>
 </body>
+
 </html>
