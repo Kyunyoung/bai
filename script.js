@@ -1217,7 +1217,14 @@ function openModal(modalId) {
     modal.style.visibility = 'visible';
     modal.style.opacity = '1';
     modal.style.zIndex = '999999';
+    modal.style.transform = 'none';
     modal.setAttribute('aria-hidden', 'false');
+
+    const card = modal.querySelector('.modal-card');
+    if (card) {
+      card.style.transform = 'none';
+      card.style.transition = 'none';
+    }
   }
 }
 
@@ -1228,7 +1235,14 @@ function closeModal(modalId) {
     modal.style.display = 'none';
     modal.style.visibility = 'hidden';
     modal.style.opacity = '0';
+    modal.style.transform = 'none';
     modal.setAttribute('aria-hidden', 'true');
+
+    const card = modal.querySelector('.modal-card');
+    if (card) {
+      card.style.transform = 'none';
+      card.style.transition = 'none';
+    }
   }
 }
 
