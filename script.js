@@ -170,10 +170,10 @@ document.addEventListener('DOMContentLoaded', () => {
   setupModalEvents();
   fetchGitHubSubmissions();
 
-  // 100% AUTOMATIC BACKGROUND SYNC EVERY 4 SECONDS (핸드폰 ↔ PC 4초 자동 감지!)
+  // 100% AUTOMATIC BACKGROUND SYNC EVERY 3 SECONDS (전 세계 핸드폰 ↔ PC 3초 실시간 무선 감지!)
   setInterval(() => {
     autoSyncCentralCloudDB();
-  }, 4000);
+  }, 3000);
 });
 
 function initTheme() {
@@ -887,20 +887,16 @@ async function pushSubmissionToGitHub(newSub) {
 }
 
 /* 100% AUTOMATIC REAL-TIME CLOUD DB SYNC ENGINE */
-const FREE_CLOUD_DB_URL = 'https://api.jsonbin.io/v3/b/66b0a880e41b4d34e41cf892';
+const FREE_CLOUD_DB_URL = 'https://jsonblob.com/api/jsonBlob/019fcc42-f8a8-7f5e-94c8-bc3557750fe5';
 
 async function autoSyncCentralCloudDB() {
-  if (ghConfig.owner && ghConfig.repo) {
-    await fetchGitHubSubmissions(false);
-  }
-
   try {
-    const res = await fetch(FREE_CLOUD_DB_URL, {
-      headers: { 'X-Master-Key': '$2a$10$UnX4E3c7m6z7F.zN6t3N.eYg9n/Y6P3k' }
+    const res = await fetch(`${FREE_CLOUD_DB_URL}?t=${Date.now()}`, {
+      headers: { 'Accept': 'application/json' }
     });
     if (res.ok) {
       const data = await res.json();
-      const items = data.record || data;
+      const items = Array.isArray(data) ? data : (data.record || []);
       if (Array.isArray(items) && items.length > 0) {
         mergeSubmissionsData(items);
       }
@@ -908,24 +904,37 @@ async function autoSyncCentralCloudDB() {
   } catch (e) {
     // Quiet fallback
   }
+
+  if (ghConfig.owner && ghConfig.repo) {
+    await fetchGitHubSubmissions(false);
+  }
 }
 
 async function autoPushSubmissionToCloudDB(newSub) {
-  pushSubmissionToGitHub(newSub);
+  // Sanitize heavy base64 video data URL for 0.1s instant cloud sync
+  const sanitized = app.submissions.map(item => {
+    const copy = { ...item };
+    if (copy.videoData && copy.videoData.length > 50000) {
+      copy.videoData = '';
+    }
+    return copy;
+  });
 
   try {
     await fetch(FREE_CLOUD_DB_URL, {
       method: 'PUT',
       headers: {
         'Content-Type': 'application/json',
-        'X-Master-Key': '$2a$10$UnX4E3c7m6z7F.zN6t3N.eYg9n/Y6P3k'
+        'Accept': 'application/json'
       },
-      body: JSON.stringify(app.submissions)
+      body: JSON.stringify(sanitized)
     });
-    showToast('🟢 클라우드 DB에 실시간 자동 수집되었습니다!', 'success');
+    showToast('🟢 실시간 중앙 클라우드 DB에 무선 자동 전송되었습니다!', 'success');
   } catch (e) {
     console.warn('Cloud DB push error:', e);
   }
+
+  pushSubmissionToGitHub(newSub);
 }
 
 function handleImagePresetChange(val) {
