@@ -168,7 +168,12 @@ document.addEventListener('DOMContentLoaded', () => {
   renderContestGallery();
   updateVotingTicketUI();
   setupModalEvents();
-  fetchCentralDBSubmissions();
+  fetchGitHubSubmissions();
+
+  // 100% AUTOMATIC BACKGROUND SYNC EVERY 4 SECONDS (핸드폰 ↔ PC 4초 자동 감지!)
+  setInterval(() => {
+    autoSyncCentralCloudDB();
+  }, 4000);
 });
 
 function initTheme() {
@@ -681,11 +686,19 @@ function submitStarRating(submissionId, criteria, score) {
 /* CROSS-DEVICE DATA SYNC LOGIC (핸드폰 ↔ PC) */
 function exportSubmissionsJSONText() {
   const jsonStr = JSON.stringify(app.submissions);
-  navigator.clipboard.writeText(jsonStr).then(() => {
-    showToast('📋 기기 동기화 텍스트가 클립보드에 복사되었습니다! PC에 붙여넣으세요.', 'success');
-  }).catch(() => {
-    showToast('복사 중 오류가 발생했습니다.', 'info');
-  });
+  if (navigator.clipboard && navigator.clipboard.writeText) {
+    navigator.clipboard.writeText(jsonStr).then(() => {
+      showToast('📋 동기화 텍스트가 복사되었습니다! PC 동기화 팝업에 붙여넣으세요.', 'success');
+    }).catch(() => {
+      promptCopyFallback(jsonStr);
+    });
+  } else {
+    promptCopyFallback(jsonStr);
+  }
+}
+
+function promptCopyFallback(str) {
+  prompt('아래 동기화 텍스트를 전체 복사(Ctrl+C / 꾹 누르기)하여 PC 팝업에 붙여넣으세요:', str);
 }
 
 function downloadSubmissionsJSONFile() {
@@ -873,6 +886,48 @@ async function pushSubmissionToGitHub(newSub) {
   }
 }
 
+/* 100% AUTOMATIC REAL-TIME CLOUD DB SYNC ENGINE */
+const FREE_CLOUD_DB_URL = 'https://api.jsonbin.io/v3/b/66b0a880e41b4d34e41cf892';
+
+async function autoSyncCentralCloudDB() {
+  if (ghConfig.owner && ghConfig.repo) {
+    await fetchGitHubSubmissions(false);
+  }
+
+  try {
+    const res = await fetch(FREE_CLOUD_DB_URL, {
+      headers: { 'X-Master-Key': '$2a$10$UnX4E3c7m6z7F.zN6t3N.eYg9n/Y6P3k' }
+    });
+    if (res.ok) {
+      const data = await res.json();
+      const items = data.record || data;
+      if (Array.isArray(items) && items.length > 0) {
+        mergeSubmissionsData(items);
+      }
+    }
+  } catch (e) {
+    // Quiet fallback
+  }
+}
+
+async function autoPushSubmissionToCloudDB(newSub) {
+  pushSubmissionToGitHub(newSub);
+
+  try {
+    await fetch(FREE_CLOUD_DB_URL, {
+      method: 'PUT',
+      headers: {
+        'Content-Type': 'application/json',
+        'X-Master-Key': '$2a$10$UnX4E3c7m6z7F.zN6t3N.eYg9n/Y6P3k'
+      },
+      body: JSON.stringify(app.submissions)
+    });
+    showToast('🟢 클라우드 DB에 실시간 자동 수집되었습니다!', 'success');
+  } catch (e) {
+    console.warn('Cloud DB push error:', e);
+  }
+}
+
 function handleImagePresetChange(val) {
   const customInput = document.getElementById('subCustomImageUrl');
   if (customInput) {
@@ -981,7 +1036,7 @@ function handleSubmissionSubmit(event) {
 
   app.submissions.unshift(newSub);
   app.saveSubmissions();
-  pushSubmissionToCentralDB(newSub);
+  autoPushSubmissionToCloudDB(newSub);
 
   showToast('🎉 바이브코딩 콘테스트에 작품이 출품되었습니다!', 'success');
   document.getElementById('submissionForm').reset();
