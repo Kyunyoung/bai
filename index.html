@@ -40,6 +40,9 @@
         <button class="nav-tab-btn" data-tab="contest" onclick="switchNavTab('contest')">
           <span>🏆 콘테스트</span>
         </button>
+        <button class="nav-tab-btn" onclick="openDirectSubmissionModal()" style="color:#10b981; font-weight:800;">
+          <span>📱 🎬 동영상 제출</span>
+        </button>
         <button class="nav-tab-btn" data-tab="admin" onclick="switchNavTab('admin')">
           <span>⚙️ 관리자</span>
         </button>
@@ -47,8 +50,13 @@
 
       <!-- Header Actions -->
       <div class="header-actions">
+        <!-- Direct Quick Submission Launch CTA -->
+        <button onclick="openDirectSubmissionModal()" class="btn btn-primary" style="background: linear-gradient(135deg, #10b981 0%, #059669 100%); font-weight:800; border:none; box-shadow: 0 4px 12px rgba(16,185,129,0.3);">
+          <span>📱 🎬 동영상 & 작품 제출</span>
+        </button>
+
         <!-- Direct Default Focus Viewer Launch CTA -->
-        <a href="focus.html" class="btn btn-primary btn-focus-cta" title="59개 슬라이드 전용 몰입 집중 뷰어 실행 (기본 모드)">
+        <a href="focus.html" class="btn btn-outline" title="59개 슬라이드 전용 몰입 집중 뷰어 실행 (기본 모드)">
           <span>🎯 교육자료 집중 보기</span>
         </a>
 
@@ -80,12 +88,12 @@
             </p>
 
             <div class="hero-cta-group">
-              <a href="focus.html" class="btn btn-hero-primary">
-                <span>🎯 교육용 슬라이드 보기 (집중 모드)</span>
-              </a>
-              <button class="btn btn-hero-secondary" onclick="switchNavTab('contest'); switchContestSubTab('submit');">
-                <span>🏆 콘테스트 작품 제출하기</span>
+              <button onclick="openDirectSubmissionModal()" class="btn btn-hero-primary" style="background: linear-gradient(135deg, #10b981 0%, #059669 100%); border:none; box-shadow: 0 8px 20px rgba(16,185,129,0.4); font-size:1.1rem; font-weight:800;">
+                <span>📱 🎬 동영상 & 작품 제출하기 (1초)</span>
               </button>
+              <a href="focus.html" class="btn btn-hero-secondary">
+                <span>🎯 교육용 슬라이드 보기</span>
+              </a>
             </div>
           </div>
 
@@ -757,6 +765,6 @@
     </div>
   </div>
 
-  <script src="script.js?v=20260804_FLOAT_BTN_FIX_100"></script>
+  <script src="script.js?v=20260804_ALL_SECTIONS_SUBMIT_100"></script>
 </body>
 </html>
