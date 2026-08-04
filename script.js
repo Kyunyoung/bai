@@ -1392,11 +1392,6 @@ function openSubmissionDetailModal(submissionId) {
             </video>
           </div>
         ` : `
-              <source src="${s.videoUrl}" type="video/quicktime">
-              이 브라우저는 동영상 재생을 지원하지 않습니다. 위 [다운로드] 버튼을 이용해주세요.
-            </video>
-          </div>
-        ` : `
           <img src="${s.image}" style="width:100%; max-height:360px; object-fit:cover; border-radius:var(--radius-md);" alt="${s.title}">
         `}
         
