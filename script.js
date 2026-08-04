@@ -706,23 +706,28 @@ function createInteractiveCanvasVideoBlob(callback) {
 }
 
 function loadSampleDemoVideoIntoForm() {
-  showToast('🎬 핸드폰 촬영 시연 샘플 동영상을 생성 중입니다...', 'info');
-  createInteractiveCanvasVideoBlob(videoUrl => {
-    uploadedVideoDataUrl = videoUrl;
-    const preview = document.getElementById('subVideoPreview');
-    const wrapper = document.getElementById('videoPreviewWrapper');
+  const sampleVideoUrl = 'https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/ForBiggerBlazes.mp4';
+  uploadedVideoUrl = sampleVideoUrl;
 
-    if (preview) preview.src = videoUrl;
-    if (wrapper) wrapper.style.display = 'block';
+  const preview = document.getElementById('subVideoPreview');
+  const wrapper = document.getElementById('videoPreviewWrapper');
 
-    if (!document.getElementById('subName').value) document.getElementById('subName').value = '김경위';
-    if (!document.getElementById('subDept').value) document.getElementById('subDept').value = '디지털혁신팀';
-    if (!document.getElementById('subTitle').value) document.getElementById('subTitle').value = '📱 250개 경찰서 엑셀 1초 서식 검증기 (핸드폰 시연)';
-    if (!document.getElementById('subDesc').value) document.getElementById('subDesc').value = '핸드폰으로 직접 촬영한 250개 경찰서 엑셀 서식 1초 검증 스크립트 실습 시연 영상입니다.';
-    if (!document.getElementById('subPasscode').value) document.getElementById('subPasscode').value = '1234';
+  if (preview) preview.src = sampleVideoUrl;
+  if (wrapper) wrapper.style.display = 'block';
 
-    showToast('🎉 핸드폰 촬영 시연 샘플 영상이 1초만에 세팅되었습니다!', 'success');
-  });
+  const nameEl = document.getElementById('subName');
+  const deptEl = document.getElementById('subDept');
+  const titleEl = document.getElementById('subTitle');
+  const descEl = document.getElementById('subDesc');
+  const passEl = document.getElementById('subPasscode');
+
+  if (nameEl) nameEl.value = '김경위';
+  if (deptEl) deptEl.value = '디지털혁신팀';
+  if (titleEl) titleEl.value = '📊 250개 경찰서 엑셀 1초 서식 검증기 (시연)';
+  if (descEl) descEl.value = '전국 250개 경찰서 서식 오류를 1초만에 자동 검증하는 파이썬 취합 도구 시연 영상입니다.';
+  if (passEl) passEl.value = '1234';
+
+  showToast('🎉 시연 동영상 및 기본 출품 정보가 1초만에 자동 세팅되었습니다!', 'success');
 }
 
 function submitStarRating(submissionId, criteria, score) {
@@ -1174,23 +1179,28 @@ function openDirectSubmissionModal() {
 }
 
 function loadSampleDemoVideoIntoFormDirect() {
-  showToast('🎬 핸드폰 촬영 시연 샘플 동영상을 생성 중입니다...', 'info');
-  createInteractiveCanvasVideoBlob(videoUrl => {
-    uploadedVideoUrl = videoUrl;
-    const preview = document.getElementById('directSubVideoPreview');
-    const wrapper = document.getElementById('directVideoPreviewWrapper');
+  const sampleVideoUrl = 'https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/ForBiggerBlazes.mp4';
+  uploadedVideoUrl = sampleVideoUrl;
 
-    if (preview) preview.src = videoUrl;
-    if (wrapper) wrapper.style.display = 'block';
+  const preview = document.getElementById('directSubVideoPreview');
+  const wrapper = document.getElementById('directVideoPreviewWrapper');
 
-    if (!document.getElementById('directSubName').value) document.getElementById('directSubName').value = '김경위';
-    if (!document.getElementById('directSubDept').value) document.getElementById('directSubDept').value = '디지털혁신팀';
-    if (!document.getElementById('directSubTitle').value) document.getElementById('directSubTitle').value = '📱 250개 경찰서 엑셀 1초 서식 검증기 (핸드폰 시연)';
-    if (!document.getElementById('directSubDesc').value) document.getElementById('directSubDesc').value = '핸드폰으로 직접 촬영한 250개 경찰서 엑셀 서식 1초 검증 스크립트 실습 시연 영상입니다.';
-    if (!document.getElementById('directSubPasscode').value) document.getElementById('directSubPasscode').value = '1234';
+  if (preview) preview.src = sampleVideoUrl;
+  if (wrapper) wrapper.style.display = 'block';
 
-    showToast('🎉 핸드폰 촬영 시연 샘플 영상이 1초만에 세팅되었습니다!', 'success');
-  });
+  const nameEl = document.getElementById('directSubName');
+  const deptEl = document.getElementById('directSubDept');
+  const titleEl = document.getElementById('directSubTitle');
+  const descEl = document.getElementById('directSubDesc');
+  const passEl = document.getElementById('directSubPasscode');
+
+  if (nameEl) nameEl.value = '김경위';
+  if (deptEl) deptEl.value = '디지털혁신팀';
+  if (titleEl) titleEl.value = '📱 250개 경찰서 엑셀 1초 서식 검증기 (시연)';
+  if (descEl) descEl.value = '전국 250개 경찰서 서식 오류를 1초만에 자동 검증하는 파이썬 취합 도구 시연 영상입니다.';
+  if (passEl) passEl.value = '1234';
+
+  showToast('🎉 시연 동영상 및 기본 출품 정보가 1초만에 자동 세팅되었습니다!', 'success');
 }
 
 function handleDirectSubmissionSubmit(event) {
