@@ -677,6 +677,92 @@ function submitStarRating(submissionId, criteria, score) {
   showToast(`⭐ 시연 영상 평가 (${criteria}: ${score}점)를 반영했습니다!`, 'success');
 }
 
+/* CROSS-DEVICE DATA SYNC LOGIC (핸드폰 ↔ PC) */
+function exportSubmissionsJSONText() {
+  const jsonStr = JSON.stringify(app.submissions);
+  navigator.clipboard.writeText(jsonStr).then(() => {
+    showToast('📋 기기 동기화 텍스트가 클립보드에 복사되었습니다! PC에 붙여넣으세요.', 'success');
+  }).catch(() => {
+    showToast('복사 중 오류가 발생했습니다.', 'info');
+  });
+}
+
+function downloadSubmissionsJSONFile() {
+  const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(app.submissions, null, 2));
+  const downloadAnchor = document.createElement('a');
+  downloadAnchor.setAttribute("href", dataStr);
+  downloadAnchor.setAttribute("download", `vibecoding_submissions_${new Date().toISOString().split('T')[0]}.json`);
+  document.body.appendChild(downloadAnchor);
+  downloadAnchor.click();
+  downloadAnchor.remove();
+  showToast('💾 제출작 JSON 동기화 파일이 다운로드되었습니다.', 'success');
+}
+
+function importSubmissionsJSONText() {
+  const input = document.getElementById('syncImportInput')?.value.trim();
+  if (!input) {
+    showToast('동기화할 텍스트 데이터를 입력해주세요.', 'info');
+    return;
+  }
+
+  try {
+    const imported = JSON.parse(input);
+    if (!Array.isArray(imported)) {
+      showToast('⚠️ 올바른 제출작 데이터 형식이 아닙니다.', 'info');
+      return;
+    }
+
+    mergeSubmissionsData(imported);
+    closeModal('syncDataModal');
+    document.getElementById('syncImportInput').value = '';
+    showToast('🚀 핸드폰 제출작이 PC 갤러리로 성공적으로 동기화되었습니다!', 'success');
+  } catch (e) {
+    showToast('⚠️ JSON 데이터 파싱 실패. 올바른 텍스트를 입력해주세요.', 'info');
+  }
+}
+
+function handleSubmissionsJSONFileSelect(event) {
+  const file = event.target.files[0];
+  if (!file) return;
+
+  const reader = new FileReader();
+  reader.onload = function(e) {
+    try {
+      const imported = JSON.parse(e.target.result);
+      if (Array.isArray(imported)) {
+        mergeSubmissionsData(imported);
+        closeModal('syncDataModal');
+        showToast('📂 JSON 파일 제출작 데이터가 동기화되었습니다!', 'success');
+      }
+    } catch (err) {
+      showToast('⚠️ 올바른 JSON 파일이 아닙니다.', 'info');
+    }
+  };
+  reader.readAsText(file);
+}
+
+function mergeSubmissionsData(newItems) {
+  const existingIds = new Set(app.submissions.map(item => item.id));
+  let addedCount = 0;
+
+  newItems.forEach(item => {
+    if (!existingIds.has(item.id)) {
+      app.submissions.unshift(item);
+      existingIds.add(item.id);
+      addedCount++;
+    } else {
+      const idx = app.submissions.findIndex(s => s.id === item.id);
+      if (idx !== -1) app.submissions[idx] = item;
+    }
+  });
+
+  app.saveSubmissions();
+  renderContestGallery();
+  renderHomeStats();
+  renderHomeTopEntries();
+  if (app.isAdmin) renderAdminDashboard();
+}
+
 function handleImagePresetChange(val) {
   const customInput = document.getElementById('subCustomImageUrl');
   if (customInput) {
