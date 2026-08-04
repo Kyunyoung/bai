@@ -40,7 +40,7 @@
         <button class="nav-tab-btn" data-tab="contest" onclick="switchNavTab('contest')">
           <span>🏆 콘테스트</span>
         </button>
-        <button class="nav-tab-btn" onclick="openDirectSubmissionModal()" style="color:#10b981; font-weight:800;">
+        <button class="nav-tab-btn" onclick="window.openDirectSubmissionModal()" style="color:#10b981; font-weight:800;">
           <span>📱 🎬 동영상 제출</span>
         </button>
         <button class="nav-tab-btn" data-tab="admin" onclick="switchNavTab('admin')">
@@ -51,7 +51,7 @@
       <!-- Header Actions -->
       <div class="header-actions">
         <!-- Direct Quick Submission Launch CTA -->
-        <button onclick="openDirectSubmissionModal()" class="btn btn-primary" style="background: linear-gradient(135deg, #10b981 0%, #059669 100%); font-weight:800; border:none; box-shadow: 0 4px 12px rgba(16,185,129,0.3);">
+        <button onclick="window.openDirectSubmissionModal()" class="btn btn-primary" style="background: linear-gradient(135deg, #10b981 0%, #059669 100%); font-weight:800; border:none; box-shadow: 0 4px 12px rgba(16,185,129,0.3);">
           <span>📱 🎬 동영상 & 작품 제출</span>
         </button>
 
@@ -765,6 +765,6 @@
     </div>
   </div>
 
-  <script src="script.js?v=20260804_CLOSE_MODAL_FIX_100"></script>
+  <script src="script.js?v=20260804_EXPLICIT_WINDOW_EVENT_99999"></script>
 </body>
 </html>

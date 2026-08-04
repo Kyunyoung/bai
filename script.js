@@ -2091,6 +2091,19 @@ function setupModalEvents() {
   });
 }
 
+// Explicitly expose global action functions to window for 100% inline onclick compatibility
+window.openModal = openModal;
+window.closeModal = closeModal;
+window.openDirectSubmissionModal = openDirectSubmissionModal;
+window.handleSubmissionSubmit = handleSubmissionSubmit;
+window.handleDirectSubmissionSubmit = handleDirectSubmissionSubmit;
+window.loadSampleDemoVideoIntoForm = loadSampleDemoVideoIntoForm;
+window.loadSampleDemoVideoIntoFormDirect = loadSampleDemoVideoIntoFormDirect;
+window.handleVideoFileSelect = handleVideoFileSelect;
+window.openSubmissionDetailModal = openSubmissionDetailModal;
+window.switchNavTab = switchNavTab;
+window.switchContestSubTab = switchContestSubTab;
+
 function openModal(id) {
   const m = document.getElementById(id);
   if (m) {
