@@ -1079,25 +1079,58 @@ function handleVerifyPasscodeSubmit(event) {
 }
 
 function handleSubmissionSubmit(event) {
-  event.preventDefault();
+  if (event) event.preventDefault();
 
-  const name = document.getElementById('subName').value.trim();
-  const dept = document.getElementById('subDept').value.trim();
-  const title = document.getElementById('subTitle').value.trim();
-  const desc = document.getElementById('subDesc').value.trim();
-  const url = document.getElementById('subUrl')?.value.trim() || '#';
-  const inputVideoUrl = document.getElementById('subVideoUrl')?.value.trim();
-  const videoUrl = inputVideoUrl || uploadedVideoUrl || '';
-  const passcode = document.getElementById('subPasscode').value.trim();
-  
-  const preset = document.getElementById('subImagePreset').value;
-  const customImg = document.getElementById('subCustomImageUrl').value.trim();
-  const image = preset === 'custom' ? (customImg || 'slides_media/slide_22.jpg') : preset;
+  const nameInput = document.getElementById('subName');
+  const deptInput = document.getElementById('subDept');
+  const titleInput = document.getElementById('subTitle');
+  const descInput = document.getElementById('subDesc');
+  const passInput = document.getElementById('subPasscode');
 
-  if (!name || !dept || !title || !desc || !passcode) {
-    showToast('필수 항목 및 비밀번호를 모두 입력해주세요.', 'info');
+  const name = nameInput ? nameInput.value.trim() : '';
+  const dept = deptInput ? deptInput.value.trim() : '';
+  const title = titleInput ? titleInput.value.trim() : '';
+  const desc = descInput ? descInput.value.trim() : '';
+  const passcode = passInput ? passInput.value.trim() : '';
+
+  // Reset borders
+  [nameInput, deptInput, titleInput, descInput, passInput].forEach(el => {
+    if (el) el.style.borderColor = '';
+  });
+
+  if (!name) {
+    if (nameInput) { nameInput.style.borderColor = '#ef4444'; nameInput.focus(); }
+    showToast('⚠️ 제출자 성명을 입력해주세요.', 'info');
     return;
   }
+  if (!dept) {
+    if (deptInput) { deptInput.style.borderColor = '#ef4444'; deptInput.focus(); }
+    showToast('⚠️ 소속 부서를 입력해주세요.', 'info');
+    return;
+  }
+  if (!title) {
+    if (titleInput) { titleInput.style.borderColor = '#ef4444'; titleInput.focus(); }
+    showToast('⚠️ 작품 제목을 입력해주세요.', 'info');
+    return;
+  }
+  if (!desc) {
+    if (descInput) { descInput.style.borderColor = '#ef4444'; descInput.focus(); }
+    showToast('⚠️ 작품 기획 의도 및 설명을 입력해주세요.', 'info');
+    return;
+  }
+  if (!passcode) {
+    if (passInput) { passInput.style.borderColor = '#ef4444'; passInput.focus(); }
+    showToast('⚠️ 작품 수정/취소용 비밀번호 4자리를 입력해주세요.', 'info');
+    return;
+  }
+
+  const url = document.getElementById('subUrl')?.value.trim() || '#';
+  const inputVideoUrl = document.getElementById('subVideoUrl')?.value.trim();
+  const videoUrl = inputVideoUrl || uploadedVideoUrl || 'https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/ForBiggerBlazes.mp4';
+
+  const preset = document.getElementById('subImagePreset')?.value || 'slides_media/slide_22.jpg';
+  const customImg = document.getElementById('subCustomImageUrl')?.value.trim();
+  const image = preset === 'custom' ? (customImg || 'slides_media/slide_22.jpg') : preset;
 
   const newSubId = `sub_${Date.now()}`;
   const newSub = {
@@ -1106,8 +1139,8 @@ function handleSubmissionSubmit(event) {
     dept: dept,
     title: title,
     desc: desc,
-    url: url || '#',
-    videoUrl: videoUrl || '',
+    url: url,
+    videoUrl: videoUrl,
     videoData: uploadedVideoDataUrl || '',
     image: image,
     passcode: passcode,
@@ -1124,12 +1157,14 @@ function handleSubmissionSubmit(event) {
   app.saveSubmissions();
   autoPushSubmissionToCloudDB(newSub);
 
-  showToast('🎉 바이브코딩 콘테스트에 작품이 출품되었습니다!', 'success');
-  document.getElementById('submissionForm').reset();
+  showToast('🎉 바이브코딩 콘테스트에 작품이 성공적으로 출품되었습니다!', 'success');
+  const form = document.getElementById('submissionForm');
+  if (form) form.reset();
 
   switchContestSubTab('gallery');
   renderHomeStats();
   renderHomeTopEntries();
+  renderContestGallery();
 }
 
 function openDirectSubmissionModal() {
@@ -1157,16 +1192,47 @@ function loadSampleDemoVideoIntoFormDirect() {
 }
 
 function handleDirectSubmissionSubmit(event) {
-  event.preventDefault();
+  if (event) event.preventDefault();
 
-  const name = document.getElementById('directSubName').value.trim();
-  const dept = document.getElementById('directSubDept').value.trim();
-  const title = document.getElementById('directSubTitle').value.trim();
-  const desc = document.getElementById('directSubDesc').value.trim();
-  const passcode = document.getElementById('directSubPasscode').value.trim();
+  const nameInput = document.getElementById('directSubName');
+  const deptInput = document.getElementById('directSubDept');
+  const titleInput = document.getElementById('directSubTitle');
+  const descInput = document.getElementById('directSubDesc');
+  const passInput = document.getElementById('directSubPasscode');
 
-  if (!name || !dept || !title || !desc || !passcode) {
-    showToast('필수 항목을 입력해주세요.', 'info');
+  const name = nameInput ? nameInput.value.trim() : '';
+  const dept = deptInput ? deptInput.value.trim() : '';
+  const title = titleInput ? titleInput.value.trim() : '';
+  const desc = descInput ? descInput.value.trim() : '';
+  const passcode = passInput ? passInput.value.trim() : '';
+
+  [nameInput, deptInput, titleInput, descInput, passInput].forEach(el => {
+    if (el) el.style.borderColor = '';
+  });
+
+  if (!name) {
+    if (nameInput) { nameInput.style.borderColor = '#ef4444'; nameInput.focus(); }
+    showToast('⚠️ 제출자 성명을 입력해주세요.', 'info');
+    return;
+  }
+  if (!dept) {
+    if (deptInput) { deptInput.style.borderColor = '#ef4444'; deptInput.focus(); }
+    showToast('⚠️ 소속 부서를 입력해주세요.', 'info');
+    return;
+  }
+  if (!title) {
+    if (titleInput) { titleInput.style.borderColor = '#ef4444'; titleInput.focus(); }
+    showToast('⚠️ 작품 제목을 입력해주세요.', 'info');
+    return;
+  }
+  if (!desc) {
+    if (descInput) { descInput.style.borderColor = '#ef4444'; descInput.focus(); }
+    showToast('⚠️ 작품 기획 의도 및 설명을 입력해주세요.', 'info');
+    return;
+  }
+  if (!passcode) {
+    if (passInput) { passInput.style.borderColor = '#ef4444'; passInput.focus(); }
+    showToast('⚠️ 작품 수정/취소용 비밀번호 4자리를 입력해주세요.', 'info');
     return;
   }
 
@@ -1197,12 +1263,14 @@ function handleDirectSubmissionSubmit(event) {
 
   closeModal('directVideoSubmissionModal');
   showToast('🎉 바이브코딩 콘테스트에 시연 동영상 및 작품이 최종 출품되었습니다!', 'success');
-  document.getElementById('directSubmissionForm').reset();
+  const form = document.getElementById('directSubmissionForm');
+  if (form) form.reset();
 
   switchNavTab('contest');
   switchContestSubTab('gallery');
   renderHomeStats();
   renderHomeTopEntries();
+  renderContestGallery();
 }
 
 function openSubmissionDetailModal(submissionId) {
