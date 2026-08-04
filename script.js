@@ -334,6 +334,9 @@ function renderHomeTopEntries() {
               <button class="btn btn-outline" style="padding:5px 10px; font-size:0.75rem;" onclick="event.stopPropagation(); promptPasscodeVerification('${s.id}', 'edit');" title="작품 내용 수정">
                 ✏️ 수정
               </button>
+              <button class="btn btn-outline" style="padding:5px 10px; font-size:0.75rem; color:#ef4444;" onclick="event.stopPropagation(); promptPasscodeVerification('${s.id}', 'cancel');" title="출품 삭제/취소">
+                🗑️ 취소
+              </button>
               <button class="vote-heart-btn ${isVoted ? 'voted' : ''}" onclick="event.stopPropagation(); handleVote('${s.id}');">
                 ${isVoted ? '✔ 투표 완료' : '❤️ 투표하기'}
               </button>
@@ -488,6 +491,9 @@ function renderContestGallery() {
             <div style="display:flex; gap:6px; align-items:center;">
               <button class="btn btn-outline" style="padding:5px 10px; font-size:0.75rem;" onclick="event.stopPropagation(); promptPasscodeVerification('${s.id}', 'edit');" title="작품 내용 수정">
                 ✏️ 수정
+              </button>
+              <button class="btn btn-outline" style="padding:5px 10px; font-size:0.75rem; color:#ef4444;" onclick="event.stopPropagation(); promptPasscodeVerification('${s.id}', 'cancel');" title="출품 삭제/취소">
+                🗑️ 취소
               </button>
               <button class="vote-heart-btn ${isVoted ? 'voted' : ''}" onclick="event.stopPropagation(); handleVote('${s.id}');">
                 ${isVoted ? '✔ 투표 완료' : '❤️ 투표하기'}
