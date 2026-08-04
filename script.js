@@ -829,11 +829,27 @@ function handleSubmissionsJSONFileSelect(event) {
 function mergeSubmissionsData(newItems) {
   if (!Array.isArray(newItems)) return;
 
-  // 1. Filter remote items against deletedIds
   const validRemoteItems = newItems.filter(item => item && item.id && !app.deletedIds.has(item.id));
 
-  // 2. Authoritative synchronization: Replace app.submissions with the updated remote list!
-  app.submissions = validRemoteItems;
+  const mergedMap = new Map();
+
+  // 1. Keep valid non-deleted local submissions so fresh uploads are never erased!
+  (app.submissions || []).forEach(item => {
+    if (item && item.id && !app.deletedIds.has(item.id)) {
+      mergedMap.set(item.id, item);
+    }
+  });
+
+  // 2. Merge valid remote items from cloud DB
+  validRemoteItems.forEach(item => {
+    if (item && item.id && !app.deletedIds.has(item.id)) {
+      mergedMap.set(item.id, item);
+    }
+  });
+
+  app.submissions = Array.from(mergedMap.values()).sort((a, b) => {
+    return new Date(b.date || 0) - new Date(a.date || 0);
+  });
 
   app.saveSubmissions();
   renderContestGallery();
@@ -1093,7 +1109,7 @@ function handleVerifyPasscodeSubmit(event) {
   }
 }
 
-function handleSubmissionSubmit(event) {
+async function handleSubmissionSubmit(event) {
   if (event) {
     if (typeof event.preventDefault === 'function') event.preventDefault();
     if (typeof event.stopPropagation === 'function') event.stopPropagation();
@@ -1173,7 +1189,7 @@ function handleSubmissionSubmit(event) {
 
     app.submissions.unshift(newSub);
     app.saveSubmissions();
-    autoPushSubmissionToCloudDB(newSub);
+    await autoPushSubmissionToCloudDB(newSub);
 
     alert(`🎉 '${title}' 작품이 성공적으로 출품되었습니다!\n작품 갤러리로 이동합니다.`);
     const form = document.getElementById('submissionForm');
@@ -1222,7 +1238,7 @@ function loadSampleDemoVideoIntoFormDirect() {
   showToast('🎉 시연 동영상 및 기본 출품 정보가 1초만에 자동 세팅되었습니다!', 'success');
 }
 
-function handleDirectSubmissionSubmit(event) {
+async function handleDirectSubmissionSubmit(event) {
   if (event) {
     if (typeof event.preventDefault === 'function') event.preventDefault();
     if (typeof event.stopPropagation === 'function') event.stopPropagation();
@@ -1294,7 +1310,7 @@ function handleDirectSubmissionSubmit(event) {
 
     app.submissions.unshift(newSub);
     app.saveSubmissions();
-    autoPushSubmissionToCloudDB(newSub);
+    await autoPushSubmissionToCloudDB(newSub);
 
     closeModal('directVideoSubmissionModal');
     alert(`🎉 '${title}' 시연 동영상 및 작품이 성공적으로 출품되었습니다!\n작품 갤러리로 이동합니다.`);
