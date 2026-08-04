@@ -829,23 +829,11 @@ function handleSubmissionsJSONFileSelect(event) {
 function mergeSubmissionsData(newItems) {
   if (!Array.isArray(newItems)) return;
 
-  // Filter out any items that have been explicitly deleted!
-  const validNewItems = newItems.filter(item => item && item.id && !app.deletedIds.has(item.id));
+  // 1. Filter remote items against deletedIds
+  const validRemoteItems = newItems.filter(item => item && item.id && !app.deletedIds.has(item.id));
 
-  // Purge any deleted items currently in app.submissions
-  app.submissions = app.submissions.filter(item => !app.deletedIds.has(item.id));
-
-  const existingIds = new Set(app.submissions.map(item => item.id));
-
-  validNewItems.forEach(item => {
-    if (!existingIds.has(item.id)) {
-      app.submissions.unshift(item);
-      existingIds.add(item.id);
-    } else {
-      const idx = app.submissions.findIndex(s => s.id === item.id);
-      if (idx !== -1) app.submissions[idx] = item;
-    }
-  });
+  // 2. Authoritative synchronization: Replace app.submissions with the updated remote list!
+  app.submissions = validRemoteItems;
 
   app.saveSubmissions();
   renderContestGallery();
