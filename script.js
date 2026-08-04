@@ -320,7 +320,7 @@ function renderHomeTopEntries() {
   topThree.forEach((s, idx) => {
     const isVoted = app.userVotes.has(s.id);
     const hasVideo = s.videoUrl || s.videoData;
-    const resolvedVideoSrc = (s.videoUrl && !s.videoUrl.startsWith('blob:')) ? s.videoUrl : (s.videoData || 'https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/ForBiggerBlazes.mp4');
+    const resolvedVideoSrc = getPlayableVideoUrl(s);
     html += `
       <div class="contest-card">
         <div class="contest-thumb-wrapper" onclick="openSubmissionDetailModal('${s.id}')">
@@ -479,7 +479,7 @@ function renderContestGallery() {
   list.forEach((s, idx) => {
     const isVoted = app.userVotes.has(s.id);
     const hasVideo = s.videoUrl || s.videoData;
-    const resolvedVideoSrc = (s.videoUrl && !s.videoUrl.startsWith('blob:')) ? s.videoUrl : (s.videoData || 'https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/ForBiggerBlazes.mp4');
+    const resolvedVideoSrc = getPlayableVideoUrl(s);
     html += `
       <div class="contest-card">
         <div class="contest-thumb-wrapper" onclick="openSubmissionDetailModal('${s.id}')">
@@ -1331,6 +1331,23 @@ function handleDirectSubmissionSubmit(event) {
   return false;
 }
 
+function getPlayableVideoUrl(s) {
+  if (!s) return 'https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/ForBiggerBlazes.mp4';
+  
+  if (s.videoUrl && typeof s.videoUrl === 'string' && s.videoUrl.trim().length > 0) {
+    const trimmed = s.videoUrl.trim();
+    if (trimmed.startsWith('http') && !trimmed.startsWith('blob:')) {
+      return trimmed;
+    }
+  }
+
+  if (s.videoData && typeof s.videoData === 'string' && s.videoData.startsWith('data:video/')) {
+    return s.videoData;
+  }
+
+  return 'https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/ForBiggerBlazes.mp4';
+}
+
 function openSubmissionDetailModal(submissionId) {
   const s = app.submissions.find(item => item.id === submissionId);
   if (!s) return;
@@ -1341,6 +1358,8 @@ function openSubmissionDetailModal(submissionId) {
   const modalBody = document.getElementById('modalSubBody');
   if (modalBody) {
     const isVoted = app.userVotes.has(s.id);
+    const videoSrc = getPlayableVideoUrl(s);
+
     modalBody.innerHTML = `
       <div style="display:flex; flex-direction:column; gap:16px;">
         
@@ -1350,14 +1369,19 @@ function openSubmissionDetailModal(submissionId) {
             <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:10px; flex-wrap:wrap; gap:8px;">
               <span style="font-size:0.9rem; font-weight:800; color:#38bdf8;">📱 🎬 핸드폰 촬영 시연 영상 플레이어</span>
               <div style="display:flex; gap:6px;">
-                <a href="${(s.videoUrl && !s.videoUrl.startsWith('blob:')) ? s.videoUrl : (s.videoData || 'https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/ForBiggerBlazes.mp4')}" download="demo_video" target="_blank" class="btn btn-primary btn-sm" style="font-size:0.75rem; padding:4px 10px;">
+                <a href="${videoSrc}" download="demo_video" target="_blank" class="btn btn-primary btn-sm" style="font-size:0.75rem; padding:4px 10px;">
                   📥 영상 다운로드 / 외부 보기
                 </a>
               </div>
             </div>
-            <video controls playsinline preload="metadata" src="${(s.videoUrl && !s.videoUrl.startsWith('blob:')) ? s.videoUrl : (s.videoData || 'https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/ForBiggerBlazes.mp4')}" style="width:100%; max-height:360px; border-radius:8px; background:#000; outline:none;">
-              <source src="${(s.videoUrl && !s.videoUrl.startsWith('blob:')) ? s.videoUrl : 'https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/ForBiggerBlazes.mp4'}" type="video/mp4">
-              <source src="${s.videoUrl}" type="video/webm">
+            <video controls playsinline preload="metadata" src="${videoSrc}" style="width:100%; max-height:360px; border-radius:8px; background:#000; outline:none;">
+              <source src="${videoSrc}" type="video/mp4">
+              <source src="${videoSrc}" type="video/webm">
+              <source src="${videoSrc}" type="video/quicktime">
+              이 브라우저는 동영상 재생을 지원하지 않습니다. 위 [다운로드] 버튼을 이용해주세요.
+            </video>
+          </div>
+        ` : `
               <source src="${s.videoUrl}" type="video/quicktime">
               이 브라우저는 동영상 재생을 지원하지 않습니다. 위 [다운로드] 버튼을 이용해주세요.
             </video>
