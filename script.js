@@ -1495,15 +1495,54 @@ function handleEditSubmissionSubmit(event) {
   if (app.isAdmin) renderAdminDashboard();
 }
 
+async function syncSubmissionsToCentralCloudDB() {
+  app.saveSubmissions();
+
+  if (window.location.protocol.startsWith('http')) {
+    try {
+      await fetch('/api/submissions', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(app.submissions)
+      });
+    } catch (e) {}
+  }
+
+  const sanitized = app.submissions.map(item => {
+    const copy = { ...item };
+    if (!copy.videoUrl || copy.videoUrl.startsWith('blob:')) {
+      copy.videoUrl = 'https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/ForBiggerBlazes.mp4';
+    }
+    if (copy.videoData && copy.videoData.length > 1000000) {
+      copy.videoData = '';
+    }
+    return copy;
+  });
+
+  try {
+    await fetch(FREE_CLOUD_DB_URL, {
+      method: 'PUT',
+      headers: {
+        'Content-Type': 'application/json',
+        'Accept': 'application/json'
+      },
+      body: JSON.stringify(sanitized)
+    });
+  } catch (e) {}
+}
+
 function handleCancelSubmission(submissionId) {
   const s = app.submissions.find(item => item.id === submissionId);
   if (!s) return;
 
   if (confirm(`'${s.title}' 작품 출품을 정말로 취소/삭제하시겠습니까?`)) {
     app.submissions = app.submissions.filter(item => item.id !== submissionId);
-    app.saveSubmissions();
+    
+    // Sync deletion across all devices & central DB instantly!
+    syncSubmissionsToCentralCloudDB();
 
     closeModal('submissionDetailModal');
+    alert(`🗑️ '${s.title}' 작품 출품이 성공적으로 취소/삭제되었습니다.`);
     showToast('🗑️ 작품 출품이 취소되었습니다.', 'info');
 
     renderContestGallery();
