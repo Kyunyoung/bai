@@ -1217,6 +1217,9 @@ function openDirectSubmissionModal() {
   if (modalEl) {
     modalEl.classList.add('active');
     modalEl.style.display = 'flex';
+    modalEl.style.visibility = 'visible';
+    modalEl.style.opacity = '1';
+    modalEl.style.zIndex = '999999';
   }
 }
 
