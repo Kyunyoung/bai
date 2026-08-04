@@ -95,7 +95,7 @@ class VibePortalApp {
     
     // Contest Submissions
     this.submissions = this.loadFromStorage('vibecoding_contest_submissions', null);
-    if (!this.submissions || this.submissions.length === 0) {
+    if (this.submissions === null) {
       this.submissions = SEED_SUBMISSIONS;
       this.saveSubmissions();
     }
@@ -973,7 +973,7 @@ async function autoSyncCentralCloudDB() {
       const res = await fetch('/api/submissions');
       if (res.ok) {
         const items = await res.json();
-        if (Array.isArray(items) && items.length > 0) {
+        if (Array.isArray(items)) {
           mergeSubmissionsData(items);
         }
       }
@@ -988,7 +988,7 @@ async function autoSyncCentralCloudDB() {
     if (res.ok) {
       const data = await res.json();
       const items = Array.isArray(data) ? data : (data.record || []);
-      if (Array.isArray(items) && items.length > 0) {
+      if (Array.isArray(items)) {
         mergeSubmissionsData(items);
       }
     }
