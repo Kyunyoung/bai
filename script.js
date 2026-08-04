@@ -168,6 +168,7 @@ document.addEventListener('DOMContentLoaded', () => {
   renderContestGallery();
   updateVotingTicketUI();
   setupModalEvents();
+  fetchCentralDBSubmissions();
 });
 
 function initTheme() {
@@ -763,6 +764,115 @@ function mergeSubmissionsData(newItems) {
   if (app.isAdmin) renderAdminDashboard();
 }
 
+/* GITHUB REST API CENTRAL DATABASE LOGIC */
+let ghConfig = {
+  owner: localStorage.getItem('vibecoding_gh_owner') || 'Kyunyoung',
+  repo: localStorage.getItem('vibecoding_gh_repo') || 'bai',
+  token: localStorage.getItem('vibecoding_gh_token') || '',
+  path: 'data/submissions.json'
+};
+
+function saveGitHubConfig() {
+  const owner = document.getElementById('ghOwnerInput')?.value.trim();
+  const repo = document.getElementById('ghRepoInput')?.value.trim();
+  const token = document.getElementById('ghTokenInput')?.value.trim();
+
+  if (owner) {
+    ghConfig.owner = owner;
+    localStorage.setItem('vibecoding_gh_owner', owner);
+  }
+  if (repo) {
+    ghConfig.repo = repo;
+    localStorage.setItem('vibecoding_gh_repo', repo);
+  }
+  if (token) {
+    ghConfig.token = token;
+    localStorage.setItem('vibecoding_gh_token', token);
+  }
+
+  showToast('💾 GitHub REST API 중앙 DB 설정이 저장되었습니다!', 'success');
+  fetchGitHubSubmissions(true);
+}
+
+function loadGitHubConfigUI() {
+  const ownerEl = document.getElementById('ghOwnerInput');
+  const repoEl = document.getElementById('ghRepoInput');
+  const tokenEl = document.getElementById('ghTokenInput');
+
+  if (ownerEl) ownerEl.value = ghConfig.owner;
+  if (repoEl) repoEl.value = ghConfig.repo;
+  if (tokenEl) tokenEl.value = ghConfig.token;
+}
+
+async function fetchGitHubSubmissions(showToastNotice = false) {
+  if (!ghConfig.owner || !ghConfig.repo) return;
+
+  const rawUrl = `https://raw.githubusercontent.com/${ghConfig.owner}/${ghConfig.repo}/main/${ghConfig.path}?t=${Date.now()}`;
+
+  try {
+    const res = await fetch(rawUrl);
+    if (res.ok) {
+      const data = await res.json();
+      if (Array.isArray(data)) {
+        mergeSubmissionsData(data);
+        const badge = document.getElementById('githubDbStatusBadge');
+        if (badge) {
+          badge.textContent = `🐙 GitHub DB 실시간 연동 중 (${data.length}개 커밋 동기화)`;
+          badge.style.background = 'rgba(16, 185, 129, 0.15)';
+          badge.style.color = '#059669';
+        }
+        if (showToastNotice) showToast(`🐙 GitHub에서 ${data.length}개의 최신 제출작을 동기화했습니다!`, 'success');
+      }
+    } else {
+      if (showToastNotice) showToast('GitHub 리포지토리의 submissions.json 연동 대기 중입니다.', 'info');
+    }
+  } catch (err) {
+    console.warn('GitHub API fetch error:', err);
+    if (showToastNotice) showToast('⚠️ GitHub DB 읽기 실패. 소유자/리포지토리명을 확인하세요.', 'info');
+  }
+}
+
+async function pushSubmissionToGitHub(newSub) {
+  if (!ghConfig.owner || !ghConfig.repo || !ghConfig.token) {
+    console.log('GitHub Token/Repo not fully set for auto-commit.');
+    return;
+  }
+
+  const apiUrl = `https://api.github.com/repos/${ghConfig.owner}/${ghConfig.repo}/contents/${ghConfig.path}`;
+
+  try {
+    let sha = '';
+    const getRes = await fetch(apiUrl, {
+      headers: { 'Authorization': `token ${ghConfig.token}` }
+    });
+    if (getRes.ok) {
+      const existing = await getRes.json();
+      sha = existing.sha;
+    }
+
+    const contentBase64 = btoa(unescape(encodeURIComponent(JSON.stringify(app.submissions, null, 2))));
+
+    const putRes = await fetch(apiUrl, {
+      method: 'PUT',
+      headers: {
+        'Authorization': `token ${ghConfig.token}`,
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify({
+        message: `feat: Add contest submission '${newSub.title}' by ${newSub.name}`,
+        content: contentBase64,
+        sha: sha || undefined
+      })
+    });
+
+    if (putRes.ok) {
+      showToast('🐙 GitHub 중앙 DB에 Commit 등록이 완료되었습니다!', 'success');
+    }
+  } catch (e) {
+    console.warn('GitHub API push error:', e);
+  }
+}
+
 function handleImagePresetChange(val) {
   const customInput = document.getElementById('subCustomImageUrl');
   if (customInput) {
@@ -871,6 +981,7 @@ function handleSubmissionSubmit(event) {
 
   app.submissions.unshift(newSub);
   app.saveSubmissions();
+  pushSubmissionToCentralDB(newSub);
 
   showToast('🎉 바이브코딩 콘테스트에 작품이 출품되었습니다!', 'success');
   document.getElementById('submissionForm').reset();
