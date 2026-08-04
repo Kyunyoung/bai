@@ -1189,7 +1189,7 @@ async function handleSubmissionSubmit(event) {
 
     app.submissions.unshift(newSub);
     app.saveSubmissions();
-    await autoPushSubmissionToCloudDB(newSub);
+    autoPushSubmissionToCloudDB(newSub);
 
     alert(`🎉 '${title}' 작품이 성공적으로 출품되었습니다!\n작품 갤러리로 이동합니다.`);
     const form = document.getElementById('submissionForm');
@@ -1238,7 +1238,7 @@ function loadSampleDemoVideoIntoFormDirect() {
   showToast('🎉 시연 동영상 및 기본 출품 정보가 1초만에 자동 세팅되었습니다!', 'success');
 }
 
-async function handleDirectSubmissionSubmit(event) {
+function handleDirectSubmissionSubmit(event) {
   if (event) {
     if (typeof event.preventDefault === 'function') event.preventDefault();
     if (typeof event.stopPropagation === 'function') event.stopPropagation();
@@ -1310,7 +1310,7 @@ async function handleDirectSubmissionSubmit(event) {
 
     app.submissions.unshift(newSub);
     app.saveSubmissions();
-    await autoPushSubmissionToCloudDB(newSub);
+    autoPushSubmissionToCloudDB(newSub);
 
     closeModal('directVideoSubmissionModal');
     alert(`🎉 '${title}' 시연 동영상 및 작품이 성공적으로 출품되었습니다!\n작품 갤러리로 이동합니다.`);
