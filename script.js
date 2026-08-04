@@ -890,6 +890,20 @@ async function pushSubmissionToGitHub(newSub) {
 const FREE_CLOUD_DB_URL = 'https://jsonblob.com/api/jsonBlob/019fcc42-f8a8-7f5e-94c8-bc3557750fe5';
 
 async function autoSyncCentralCloudDB() {
+  // 1. If running under HTTP/HTTPS server (e.g. node server.js), check local server API first!
+  if (window.location.protocol.startsWith('http')) {
+    try {
+      const res = await fetch('/api/submissions');
+      if (res.ok) {
+        const items = await res.json();
+        if (Array.isArray(items) && items.length > 0) {
+          mergeSubmissionsData(items);
+        }
+      }
+    } catch (e) {}
+  }
+
+  // 2. Global CORS Cloud DB
   try {
     const res = await fetch(`${FREE_CLOUD_DB_URL}?t=${Date.now()}`, {
       headers: { 'Accept': 'application/json' }
@@ -901,9 +915,7 @@ async function autoSyncCentralCloudDB() {
         mergeSubmissionsData(items);
       }
     }
-  } catch (e) {
-    // Quiet fallback
-  }
+  } catch (e) {}
 
   if (ghConfig.owner && ghConfig.repo) {
     await fetchGitHubSubmissions(false);
@@ -911,7 +923,19 @@ async function autoSyncCentralCloudDB() {
 }
 
 async function autoPushSubmissionToCloudDB(newSub) {
-  // Sanitize heavy base64 video data URL for 0.1s instant cloud sync
+  // 1. If running under HTTP/HTTPS server, push to local server API first!
+  if (window.location.protocol.startsWith('http')) {
+    try {
+      await fetch('/api/submissions', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(app.submissions)
+      });
+      showToast('🟢 서버 중앙 DB에 실시간 등록되었습니다!', 'success');
+    } catch (e) {}
+  }
+
+  // 2. Push to Global Cloud DB
   const sanitized = app.submissions.map(item => {
     const copy = { ...item };
     if (copy.videoData && copy.videoData.length > 50000) {
@@ -929,10 +953,8 @@ async function autoPushSubmissionToCloudDB(newSub) {
       },
       body: JSON.stringify(sanitized)
     });
-    showToast('🟢 실시간 중앙 클라우드 DB에 무선 자동 전송되었습니다!', 'success');
-  } catch (e) {
-    console.warn('Cloud DB push error:', e);
-  }
+    showToast('🟢 중앙 클라우드 DB에 실시간 무선 등록되었습니다!', 'success');
+  } catch (e) {}
 
   pushSubmissionToGitHub(newSub);
 }
