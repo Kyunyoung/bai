@@ -300,10 +300,16 @@ function renderHomeTopEntries() {
   let html = '';
   topThree.forEach((s, idx) => {
     const isVoted = app.userVotes.has(s.id);
+    const hasVideo = s.videoUrl || s.videoData;
     html += `
       <div class="contest-card">
         <div class="contest-thumb-wrapper" onclick="openSubmissionDetailModal('${s.id}')">
-          <img src="${s.image}" class="contest-thumb-img" alt="${s.title}">
+          ${hasVideo ? `
+            <video src="${s.videoUrl || s.videoData}" class="contest-thumb-img" autoplay loop muted playsinline style="object-fit:cover; pointer-events:none;"></video>
+            <div class="video-badge">📱 🎬 시연 영상</div>
+          ` : `
+            <img src="${s.image}" class="contest-thumb-img" alt="${s.title}">
+          `}
           <div class="contest-rank-badge">👑 TOP ${idx + 1}위</div>
         </div>
         <div class="contest-card-body">
@@ -449,10 +455,16 @@ function renderContestGallery() {
   let html = '';
   list.forEach((s, idx) => {
     const isVoted = app.userVotes.has(s.id);
+    const hasVideo = s.videoUrl || s.videoData;
     html += `
       <div class="contest-card">
         <div class="contest-thumb-wrapper" onclick="openSubmissionDetailModal('${s.id}')">
-          <img src="${s.image}" class="contest-thumb-img" alt="${s.title}">
+          ${hasVideo ? `
+            <video src="${s.videoUrl || s.videoData}" class="contest-thumb-img" autoplay loop muted playsinline style="object-fit:cover; pointer-events:none;"></video>
+            <div class="video-badge">📱 🎬 시연 영상</div>
+          ` : `
+            <img src="${s.image}" class="contest-thumb-img" alt="${s.title}">
+          `}
           <div class="contest-rank-badge">🏆 ${idx + 1}위 (${s.votes}표)</div>
         </div>
         <div class="contest-card-body">
@@ -518,23 +530,50 @@ function handleVote(submissionId) {
 }
 
 let uploadedVideoDataUrl = null;
+let uploadedVideoUrl = null;
 
 function handleVideoFileSelect(event, previewId, wrapperId) {
   const file = event.target.files[0];
   if (!file) return;
 
+  const preview = document.getElementById(previewId);
+  const wrapper = document.getElementById(wrapperId);
+
+  // 1. Instant local preview via ObjectURL (0 MB memory overhead)
+  const localObjectUrl = URL.createObjectURL(file);
+  uploadedVideoUrl = localObjectUrl;
+  if (preview) preview.src = localObjectUrl;
+  if (wrapper) wrapper.style.display = 'block';
+
+  showToast('📱 핸드폰 시연 영상을 서버로 전송 중입니다...', 'info');
+
+  // 2. Direct binary stream upload if running over HTTP
+  if (window.location.protocol.startsWith('http')) {
+    fetch('/api/upload-video', {
+      method: 'POST',
+      headers: { 'Content-Type': file.type || 'video/mp4' },
+      body: file
+    })
+    .then(res => res.json())
+    .then(data => {
+      if (data.videoUrl) {
+        uploadedVideoUrl = data.videoUrl;
+        showToast('✅ 핸드폰 시연 영상이 서버에 성공적으로 저장되었습니다!', 'success');
+      }
+    })
+    .catch(err => {
+      console.warn('Stream upload fallback:', err);
+    });
+  }
+
+  // Also read base64 for fallback
   const reader = new FileReader();
   reader.onload = function(e) {
     uploadedVideoDataUrl = e.target.result;
-    const preview = document.getElementById(previewId);
-    const wrapper = document.getElementById(wrapperId);
-
-    if (preview) preview.src = uploadedVideoDataUrl;
-    if (wrapper) wrapper.style.display = 'block';
-
-    showToast('📱 핸드폰 촬영 시연 영상이 로드되었습니다!', 'success');
   };
-  reader.readAsDataURL(file);
+  try {
+    reader.readAsDataURL(file);
+  } catch (e) {}
 }
 
 function createInteractiveCanvasVideoBlob(callback) {
@@ -1032,8 +1071,8 @@ function handleSubmissionSubmit(event) {
   const dept = document.getElementById('subDept').value.trim();
   const title = document.getElementById('subTitle').value.trim();
   const desc = document.getElementById('subDesc').value.trim();
-  const url = document.getElementById('subUrl').value.trim();
-  const videoUrl = document.getElementById('subVideoUrl')?.value.trim();
+  const inputVideoUrl = document.getElementById('subVideoUrl')?.value.trim();
+  const videoUrl = inputVideoUrl || uploadedVideoUrl || '';
   const passcode = document.getElementById('subPasscode').value.trim();
   
   const preset = document.getElementById('subImagePreset').value;
@@ -1064,6 +1103,7 @@ function handleSubmissionSubmit(event) {
   };
 
   uploadedVideoDataUrl = null;
+  uploadedVideoUrl = null;
 
   app.submissions.unshift(newSub);
   app.saveSubmissions();
@@ -1093,11 +1133,20 @@ function openSubmissionDetailModal(submissionId) {
         <!-- Video Player if Video Uploaded -->
         ${(s.videoData || s.videoUrl) ? `
           <div style="background:#0f172a; padding:16px; border-radius:var(--radius-md); border:1px solid #1e293b;">
-            <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:8px;">
+            <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:10px; flex-wrap:wrap; gap:8px;">
               <span style="font-size:0.9rem; font-weight:800; color:#38bdf8;">📱 🎬 핸드폰 촬영 시연 영상 플레이어</span>
-              <span style="font-size:0.75rem; background:#0284c7; color:white; padding:2px 8px; border-radius:9999px;">HD 시연</span>
+              <div style="display:flex; gap:6px;">
+                <a href="${s.videoUrl || s.videoData}" download="demo_video" target="_blank" class="btn btn-primary btn-sm" style="font-size:0.75rem; padding:4px 10px;">
+                  📥 영상 다운로드 / 외부 보기
+                </a>
+              </div>
             </div>
-            <video controls playsinline src="${s.videoData || s.videoUrl}" style="width:100%; max-height:340px; border-radius:8px; background:#000; outline:none;"></video>
+            <video controls playsinline preload="metadata" src="${s.videoUrl || s.videoData}" style="width:100%; max-height:360px; border-radius:8px; background:#000; outline:none;">
+              <source src="${s.videoUrl}" type="video/mp4">
+              <source src="${s.videoUrl}" type="video/webm">
+              <source src="${s.videoUrl}" type="video/quicktime">
+              이 브라우저는 동영상 재생을 지원하지 않습니다. 위 [다운로드] 버튼을 이용해주세요.
+            </video>
           </div>
         ` : `
           <img src="${s.image}" style="width:100%; max-height:360px; object-fit:cover; border-radius:var(--radius-md);" alt="${s.title}">
