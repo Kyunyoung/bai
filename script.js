@@ -1209,18 +1209,56 @@ async function handleSubmissionSubmit(event) {
   return false;
 }
 
+function openModal(modalId) {
+  const modal = document.getElementById(modalId);
+  if (modal) {
+    modal.classList.add('active');
+    modal.style.display = 'flex';
+    modal.style.visibility = 'visible';
+    modal.style.opacity = '1';
+    modal.style.zIndex = '999999';
+    modal.setAttribute('aria-hidden', 'false');
+  }
+}
+
+function closeModal(modalId) {
+  const modal = document.getElementById(modalId);
+  if (modal) {
+    modal.classList.remove('active');
+    modal.style.display = 'none';
+    modal.style.visibility = 'hidden';
+    modal.style.opacity = '0';
+    modal.setAttribute('aria-hidden', 'true');
+  }
+}
+
+// Global modal backdrop & ESC key listeners for instant closing
+document.addEventListener('click', function(e) {
+  if (e.target && e.target.classList && e.target.classList.contains('modal-overlay')) {
+    e.target.classList.remove('active');
+    e.target.style.display = 'none';
+    e.target.style.visibility = 'hidden';
+    e.target.style.opacity = '0';
+    e.target.setAttribute('aria-hidden', 'true');
+  }
+});
+
+document.addEventListener('keydown', function(e) {
+  if (e.key === 'Escape') {
+    document.querySelectorAll('.modal-overlay').forEach(modal => {
+      modal.classList.remove('active');
+      modal.style.display = 'none';
+      modal.style.visibility = 'hidden';
+      modal.style.opacity = '0';
+      modal.setAttribute('aria-hidden', 'true');
+    });
+  }
+});
+
 function openDirectSubmissionModal() {
   switchNavTab('contest');
   switchContestSubTab('submit');
   openModal('directVideoSubmissionModal');
-  const modalEl = document.getElementById('directVideoSubmissionModal');
-  if (modalEl) {
-    modalEl.classList.add('active');
-    modalEl.style.display = 'flex';
-    modalEl.style.visibility = 'visible';
-    modalEl.style.opacity = '1';
-    modalEl.style.zIndex = '999999';
-  }
 }
 
 function loadSampleDemoVideoIntoFormDirect() {
