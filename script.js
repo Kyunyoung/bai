@@ -1210,7 +1210,14 @@ async function handleSubmissionSubmit(event) {
 }
 
 function openDirectSubmissionModal() {
+  switchNavTab('contest');
+  switchContestSubTab('submit');
   openModal('directVideoSubmissionModal');
+  const modalEl = document.getElementById('directVideoSubmissionModal');
+  if (modalEl) {
+    modalEl.classList.add('active');
+    modalEl.style.display = 'flex';
+  }
 }
 
 function loadSampleDemoVideoIntoFormDirect() {
