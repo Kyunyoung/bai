@@ -8,6 +8,8 @@
   <meta name="description"
     content="바이브코딩 사내 교육 포털 & 콘테스트 통합 웹 사이트. 59개 PDF 원본 슬라이드 집중 뷰어, AI 프롬프트 라이브러리, 콘테스트 작품 제출 및 실시간 투표 관리자 시스템">
   <link rel="stylesheet" href="styles.css?v=10">
+  <!-- SheetJS Excel Parser Library -->
+  <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
 </head>
 
 <body>
@@ -59,16 +61,27 @@
 
       <!-- Header Actions -->
       <div class="header-actions">
-        <!-- Direct Quick Submission Launch CTA -->
-        <!-- 동영상 & 작품 제출 안보이게 -->
-        <!-- <button type="button" onclick="window.openDirectSubmissionModal()" class="btn btn-primary"
+        <!-- Simplified Artwork Registration Button -->
+        <button type="button" onclick="openSimpleSubmissionModal()" class="btn btn-primary"
           style="background: linear-gradient(135deg, #10b981 0%, #059669 100%); font-weight:800; border:none; box-shadow: 0 4px 12px rgba(16,185,129,0.3);">
-          <span>📱 🎬 동영상 & 작품 제출</span>
-        </button> -->
+          <span>➕ 작품 등록</span>
+        </button>
+
+        <!-- Excel Voter Registration Admin Button -->
+        <button type="button" onclick="openVoterAdminModal()" class="btn btn-outline"
+          style="border-color: #6366f1; color: #6366f1; font-weight: 700;">
+          <span>📁 투표자 엑셀 등록</span>
+        </button>
+
+        <!-- Voter Login Button / Indicator -->
+        <button type="button" id="voterHeaderBtn" onclick="handleVoterHeaderClick()" class="btn btn-primary"
+          style="background: linear-gradient(135deg, #4f46e5 0%, #3730a3 100%); font-weight: 800; border: none;">
+          <span>👤 투표자 로그인</span>
+        </button>
 
         <!-- Direct Default Focus Viewer Launch CTA -->
         <a href="focus.html" class="btn btn-outline" title="59개 슬라이드 전용 몰입 집중 뷰어 실행 (기본 모드)">
-          <span>🎯 교육자료 집중 보기</span>
+          <span>🎯 교육자료</span>
         </a>
 
         <!-- Dark / Light Theme Toggle -->
@@ -805,6 +818,161 @@
             <button type="button" class="btn btn-outline" onclick="closeModal('directVideoSubmissionModal')">취소</button>
             <button type="button" class="btn btn-primary btn-lg" onclick="handleDirectSubmissionSubmit(event)"
               style="flex:1;">🚀 작품 및 시연 영상 최종 출품하기</button>
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>
+
+  <!-- 1. VOTER LOGIN MODAL -->
+  <div id="voterLoginModal" class="modal-overlay" aria-hidden="true">
+    <div class="modal-card" style="max-width: 480px;">
+      <div class="modal-header">
+        <h3 class="modal-title" style="font-weight:800; color:var(--primary-600);">👤 투표자 로그인</h3>
+        <button class="modal-close-btn" onclick="closeModal('voterLoginModal')">&times;</button>
+      </div>
+      <div class="modal-body" style="padding: 24px;">
+        <p style="font-size: 0.875rem; color: var(--text-muted); margin-bottom: 18px; line-height: 1.5;">
+          사전 등록된 투표자 성명을 검색하여 선택한 후, 비밀번호(생년월일)를 입력하세요.
+        </p>
+
+        <form id="voterLoginForm" onsubmit="handleVoterLoginSubmit(event)">
+          <!-- Name Search & Select -->
+          <div class="form-group" style="position:relative;">
+            <label class="form-label" for="voterSearchInput">🔍 성명 검색 / 선택 <span class="required">*</span></label>
+            <input type="text" id="voterSearchInput" class="form-input" placeholder="성명 입력 (예: 홍길동)..."
+              oninput="handleVoterSearchInput(this.value)" autocomplete="off" required>
+            <div id="voterSearchResults" class="voter-search-dropdown" style="display:none;"></div>
+
+            <div style="margin-top: 8px;">
+              <span style="font-size:0.75rem; color:var(--text-muted);">또는 목록에서 선택:</span>
+              <select id="voterSelect" class="filter-select" style="width:100%; margin-top:4px;" onchange="handleVoterSelectChange(this)">
+                <option value="">-- 미리 등록된 투표자 선택 --</option>
+              </select>
+            </div>
+          </div>
+
+          <!-- Password (Date of Birth) -->
+          <div class="form-group" style="margin-top: 16px;">
+            <label class="form-label" for="voterBirthInput">🔒 비밀번호 (생년월일) <span class="required">*</span></label>
+            <input type="password" id="voterBirthInput" class="form-input" placeholder="생년월일 입력 (예: 900101 또는 19900101)" required>
+            <span style="font-size:0.75rem; color:var(--text-muted); margin-top:4px; display:block;">
+              ※ 미리 엑셀로 등록된 본인의 생년월일을 입력해 주세요.
+            </span>
+          </div>
+
+          <!-- Error Alert Container -->
+          <div id="voterLoginError" class="alert-box danger" style="display:none; margin-top:14px; color:#ef4444; font-size:0.85rem; font-weight:700;"></div>
+
+          <div class="form-actions" style="margin-top: 20px;">
+            <button type="button" class="btn btn-outline" onclick="closeModal('voterLoginModal')">취소</button>
+            <button type="submit" class="btn btn-primary" style="flex:1;">🔓 로그인하여 투표 참여</button>
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>
+
+  <!-- 2. VOTER EXCEL ADMIN MODAL -->
+  <div id="voterAdminModal" class="modal-overlay" aria-hidden="true">
+    <div class="modal-card" style="max-width: 680px;">
+      <div class="modal-header">
+        <h3 class="modal-title" style="font-weight:800; color:var(--primary-600);">📁 투표자 엑셀 사전 등록 & 관리자</h3>
+        <button class="modal-close-btn" onclick="closeModal('voterAdminModal')">&times;</button>
+      </div>
+      <div class="modal-body" style="padding: 24px;">
+        <p style="font-size: 0.875rem; color: var(--text-muted); margin-bottom: 16px;">
+          성명, 소속, 생년월일이 담긴 엑셀 파일(.xlsx, .xls, .csv)을 등록하여 투표 가능 명단을 작성합니다.
+        </p>
+
+        <!-- Dropzone & Actions -->
+        <div class="excel-upload-container" style="background: var(--bg-tertiary); border: 2px dashed var(--primary-400); border-radius: var(--radius-lg); padding: 20px; text-align: center;">
+          <div style="font-size: 2rem; margin-bottom: 8px;">📊 📁</div>
+          <strong style="font-size: 1rem; color: var(--text-heading); display: block;">엑셀 파일 업로드 (성명 / 소속 / 생년월일)</strong>
+          <span style="font-size: 0.8rem; color: var(--text-muted); display: block; margin-top: 4px;">.xlsx, .xls, .csv 파일 자동 지원</span>
+
+          <input type="file" id="voterExcelFileInput" accept=".xlsx,.xls,.csv" style="display:none;" onchange="handleVoterExcelFileSelect(event)">
+
+          <div style="display:flex; justify-content:center; gap:10px; margin-top: 14px; flex-wrap:wrap;">
+            <button type="button" class="btn btn-primary" onclick="document.getElementById('voterExcelFileInput').click()">
+              📂 엑셀 파일 선택하기
+            </button>
+            <button type="button" class="btn btn-outline" onclick="downloadSampleVoterExcel()">
+              📄 샘플 엑셀 서식 다운로드
+            </button>
+          </div>
+        </div>
+
+        <!-- Registered Summary Badge & Table -->
+        <div style="margin-top: 24px;">
+          <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom: 12px; flex-wrap:wrap; gap:10px;">
+            <h4 style="font-weight:800; font-size:1rem; margin:0;">📋 등록된 투표자 명단 (<span id="voterCountBadge">0명</span>)</h4>
+            <button type="button" class="btn btn-outline btn-sm" onclick="clearAllVotersList()" style="color:#ef4444; border-color:#fca5a5;">
+              🗑️ 명단 전체 초기화
+            </button>
+          </div>
+
+          <div id="voterListTableWrapper" style="max-height: 260px; overflow-y: auto; border: 1px solid var(--border-color); border-radius: var(--radius-md);">
+            <table class="voter-table" style="width:100%; border-collapse:collapse; font-size:0.85rem; text-align:left;">
+              <thead>
+                <tr style="background:var(--bg-tertiary); border-bottom:1px solid var(--border-color);">
+                  <th style="padding:10px 12px;">No.</th>
+                  <th style="padding:10px 12px;">성명</th>
+                  <th style="padding:10px 12px;">소속</th>
+                  <th style="padding:10px 12px;">생년월일</th>
+                  <th style="padding:10px 12px;">투표 여부</th>
+                </tr>
+              </thead>
+              <tbody id="voterTableBody">
+                <tr><td colspan="5" style="text-align:center; padding:20px; color:var(--text-muted);">등록된 투표자가 없습니다. 엑셀 파일을 업로드하세요.</td></tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+
+      </div>
+    </div>
+  </div>
+
+  <!-- 3. SIMPLIFIED SUBMISSION MODAL -->
+  <div id="simpleSubmissionModal" class="modal-overlay" aria-hidden="true">
+    <div class="modal-card" style="max-width: 520px;">
+      <div class="modal-header">
+        <h3 class="modal-title" style="font-weight:800; color:var(--primary-600);">📝 작품 등록 (제목 & 간단 설명)</h3>
+        <button class="modal-close-btn" onclick="closeModal('simpleSubmissionModal')">&times;</button>
+      </div>
+      <div class="modal-body" style="padding: 24px;">
+        <p style="font-size: 0.875rem; color: var(--text-muted); margin-bottom: 16px; line-height: 1.5;">
+          사내 게시판을 통해 상세히 홍보된 작품의 <strong>제목</strong>과 <strong>간단한 설명</strong>만 등록합니다.
+        </p>
+
+        <form id="simpleSubmissionForm" onsubmit="handleSimpleSubmissionSubmit(event)">
+          <div class="form-group">
+            <label class="form-label" for="simpleSubTitle">작품 제목 <span class="required">*</span></label>
+            <input type="text" id="simpleSubTitle" class="form-input" placeholder="예: 250개 경찰서 엑셀 1초 서식 검증기" required>
+          </div>
+
+          <div class="form-group" style="margin-top: 14px;">
+            <label class="form-label" for="simpleSubDesc">간단한 설명 <span class="required">*</span></label>
+            <textarea id="simpleSubDesc" class="form-textarea" rows="4" placeholder="작품에 대한 간단한 요약 및 핵심 기능 설명을 입력하세요." required></textarea>
+          </div>
+
+          <div class="form-grid" style="margin-top: 14px;">
+            <div class="form-group">
+              <label class="form-label" for="simpleSubName">출품자 성명</label>
+              <input type="text" id="simpleSubName" class="form-input" placeholder="예: 홍길동">
+            </div>
+            <div class="form-group">
+              <label class="form-label" for="simpleSubDept">소속 부서</label>
+              <input type="text" id="simpleSubDept" class="form-input" placeholder="예: 디지털혁신팀">
+            </div>
+          </div>
+
+          <div class="form-actions" style="margin-top: 20px;">
+            <button type="button" class="btn btn-outline" onclick="closeModal('simpleSubmissionModal')">취소</button>
+            <button type="submit" class="btn btn-primary" style="flex:1; background: linear-gradient(135deg, #10b981 0%, #059669 100%); font-weight:800;">
+              ✨ 작품 등록 완료
+            </button>
           </div>
         </form>
       </div>

@@ -2201,4 +2201,49 @@ body {
   transform: scale(1.15);
 }
 
+/* Voter Autocomplete Dropdown & Table Styles */
+.voter-search-dropdown {
+  position: absolute;
+  top: 100%;
+  left: 0;
+  right: 0;
+  background: var(--bg-card);
+  border: 1px solid var(--border-color);
+  border-radius: var(--radius-md);
+  box-shadow: var(--shadow-lg);
+  max-height: 180px;
+  overflow-y: auto;
+  z-index: 1050;
+  margin-top: 4px;
+}
+
+.voter-search-item {
+  padding: 10px 14px;
+  font-size: 0.875rem;
+  cursor: pointer;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  border-bottom: 1px solid var(--border-color);
+  transition: background 0.15s ease;
+}
+
+.voter-search-item:last-child {
+  border-bottom: none;
+}
+
+.voter-search-item:hover {
+  background: var(--primary-50);
+  color: var(--primary-700);
+}
+
+.voter-table tr:nth-child(even) {
+  background: rgba(0, 0, 0, 0.02);
+}
+
+.voter-table td {
+  border-bottom: 1px solid var(--border-color);
+}
+
+
 

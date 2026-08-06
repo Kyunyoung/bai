@@ -85,6 +85,14 @@ const AI_PROMPTS = [
   }
 ];
 
+// Seed Initial Voters Dataset
+const SEED_VOTERS = [
+  { id: 'voter_1', name: '김경위', dept: '디지털혁신팀', birthdate: '19900101', votedSubmissionId: null },
+  { id: 'voter_2', name: '이형사', dept: '사이버범죄수사대', birthdate: '19850515', votedSubmissionId: null },
+  { id: 'voter_3', name: '박수사관', dept: '종합조정관실', birthdate: '19921120', votedSubmissionId: null },
+  { id: 'voter_4', name: '홍길동', dept: '생활안전과', birthdate: '19880808', votedSubmissionId: null }
+];
+
 // App Core State Manager
 class VibePortalApp {
   constructor() {
@@ -100,7 +108,17 @@ class VibePortalApp {
       this.saveSubmissions();
     }
 
-    // User Votes (Max 3 votes limit)
+    // Registered Voters List
+    this.voters = this.loadFromStorage('vibecoding_registered_voters', null);
+    if (this.voters === null || !Array.isArray(this.voters)) {
+      this.voters = SEED_VOTERS;
+      this.saveVoters();
+    }
+
+    // Current Logged In Voter
+    this.currentVoter = this.loadFromStorage('vibecoding_current_voter', null);
+
+    // User Votes
     this.userVotes = new Set(this.loadFromStorage('vibecoding_user_votes', []));
 
     // Permanently Deleted Submission IDs
@@ -108,6 +126,33 @@ class VibePortalApp {
 
     // Admin Auth State
     this.isAdmin = false;
+  }
+
+  saveVoters() {
+    try {
+      localStorage.setItem('vibecoding_registered_voters', JSON.stringify(this.voters));
+      if (window.location.protocol.startsWith('http')) {
+        fetch('/api/voters', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(this.voters)
+        }).catch(e => console.warn('Voters sync fallback:', e));
+      }
+    } catch (e) {
+      console.error(e);
+    }
+  }
+
+  saveCurrentVoter() {
+    try {
+      if (this.currentVoter) {
+        localStorage.setItem('vibecoding_current_voter', JSON.stringify(this.currentVoter));
+      } else {
+        localStorage.removeItem('vibecoding_current_voter');
+      }
+    } catch (e) {
+      console.error(e);
+    }
   }
 
   saveDeletedIds() {
@@ -186,10 +231,13 @@ document.addEventListener('DOMContentLoaded', () => {
   renderHomeTopEntries();
   renderContestGallery();
   updateVotingTicketUI();
+  updateVoterHeaderUI();
+  renderVoterTable();
   setupModalEvents();
   fetchGitHubSubmissions();
+  fetchVotersFromServer();
 
-  // 100% AUTOMATIC BACKGROUND SYNC EVERY 3 SECONDS (전 세계 핸드폰 ↔ PC 3초 실시간 무선 감지!)
+  // 100% AUTOMATIC BACKGROUND SYNC EVERY 3 SECONDS
   setInterval(() => {
     autoSyncCentralCloudDB();
   }, 3000);
@@ -477,7 +525,7 @@ function renderContestGallery() {
 
   let html = '';
   list.forEach((s, idx) => {
-    const isVoted = app.userVotes.has(s.id);
+    const isVoted = app.currentVoter && app.currentVoter.votedSubmissionId === s.id;
     const hasVideo = s.videoUrl || s.videoData;
     const resolvedVideoSrc = getPlayableVideoUrl(s);
     html += `
@@ -526,31 +574,40 @@ function filterContestGallery() {
 }
 
 function handleVote(submissionId) {
+  // Check if voter is logged in
+  if (!app.currentVoter) {
+    showToast('⚠️ 투표를 위해 먼저 성명 검색 및 생년월일 비밀번호로 로그인해 주세요!', 'info');
+    openVoterLoginModal();
+    return;
+  }
+
   const sub = app.submissions.find(s => s.id === submissionId);
   if (!sub) return;
 
-  if (app.userVotes.has(submissionId)) {
+  const voter = app.voters.find(v => v.name.trim() === app.currentVoter.name.trim() && normalizeBirthdate(v.birthdate) === normalizeBirthdate(app.currentVoter.birthdate)) || app.currentVoter;
+
+  if (voter.votedSubmissionId === submissionId) {
     // Cancel Vote
-    app.userVotes.delete(submissionId);
+    voter.votedSubmissionId = null;
     sub.votes = Math.max(0, sub.votes - 1);
-    app.saveUserVotes();
-    app.saveSubmissions();
     showToast(`'${sub.title}' 투표를 취소했습니다.`, 'info');
   } else {
-    // Check ticket limit (1 person max 3 votes)
-    if (app.userVotes.size >= 3) {
-      showToast('⚠️ 1인당 최대 3표까지만 투표 가능합니다.', 'info');
-      return;
+    // If already voted for another submission, cancel previous vote first
+    if (voter.votedSubmissionId) {
+      const prevSub = app.submissions.find(s => s.id === voter.votedSubmissionId);
+      if (prevSub) prevSub.votes = Math.max(0, prevSub.votes - 1);
     }
-
-    app.userVotes.add(submissionId);
+    voter.votedSubmissionId = submissionId;
     sub.votes += 1;
-    app.saveUserVotes();
-    app.saveSubmissions();
-    showToast(`🎉 '${sub.title}'에 투표하셨습니다!`, 'success');
+    showToast(`🎉 '${sub.title}' 작품에 투표하셨습니다!`, 'success');
   }
 
-  updateVotingTicketUI();
+  app.currentVoter = voter;
+  app.saveCurrentVoter();
+  app.saveVoters();
+  app.saveSubmissions();
+
+  updateVoterHeaderUI();
   renderContestGallery();
   renderHomeStats();
   renderHomeTopEntries();
@@ -2117,6 +2174,19 @@ window.handleVideoFileSelect = handleVideoFileSelect;
 window.openSubmissionDetailModal = openSubmissionDetailModal;
 window.switchNavTab = switchNavTab;
 window.switchContestSubTab = switchContestSubTab;
+window.openVoterLoginModal = openVoterLoginModal;
+window.openVoterAdminModal = openVoterAdminModal;
+window.openSimpleSubmissionModal = openSimpleSubmissionModal;
+window.handleVoterHeaderClick = handleVoterHeaderClick;
+window.handleVoterSearchInput = handleVoterSearchInput;
+window.handleVoterSelectChange = handleVoterSelectChange;
+window.selectVoterFromSearch = selectVoterFromSearch;
+window.handleVoterLoginSubmit = handleVoterLoginSubmit;
+window.logoutVoter = logoutVoter;
+window.handleVoterExcelFileSelect = handleVoterExcelFileSelect;
+window.downloadSampleVoterExcel = downloadSampleVoterExcel;
+window.clearAllVotersList = clearAllVotersList;
+window.handleSimpleSubmissionSubmit = handleSimpleSubmissionSubmit;
 
 function openModal(id) {
   const m = document.getElementById(id);
@@ -2151,6 +2221,404 @@ function showToast(message, type = 'info') {
     toast.style.animation = 'toastIn 0.3s cubic-bezier(0.34, 1.56, 0.64, 1) reverse forwards';
     setTimeout(() => toast.remove(), 300);
   }, 3000);
+}
+
+/* ==========================================
+   VOTER MANAGEMENT & EXCEL IMPORT LOGIC
+   ========================================== */
+
+function fetchVotersFromServer() {
+  if (!window.location.protocol.startsWith('http')) return;
+  fetch('/api/voters')
+    .then(res => res.json())
+    .then(data => {
+      if (Array.isArray(data) && data.length > 0) {
+        app.voters = data;
+        app.saveVoters();
+        renderVoterTable();
+        populateVoterSelect();
+      }
+    })
+    .catch(err => console.warn('Fetch voters failed:', err));
+}
+
+function updateVoterHeaderUI() {
+  const btn = document.getElementById('voterHeaderBtn');
+  const ticketDisplay = document.getElementById('userTicketDisplay');
+
+  if (app.currentVoter) {
+    if (btn) {
+      btn.innerHTML = `<span>👤 [${app.currentVoter.dept}] ${app.currentVoter.name} 님 (로그아웃)</span>`;
+      btn.style.background = 'linear-gradient(135deg, #059669 0%, #047857 100%)';
+    }
+    if (ticketDisplay) {
+      const voted = app.currentVoter.votedSubmissionId;
+      ticketDisplay.innerHTML = voted 
+        ? `<span style="color:#34d399; font-weight:800;">✔ 투표 완료됨</span>` 
+        : `<span style="color:#34d399; font-weight:800;">🎟️ 투표 가능 (1표 권한)</span>`;
+    }
+  } else {
+    if (btn) {
+      btn.innerHTML = `<span>👤 투표자 로그인</span>`;
+      btn.style.background = 'linear-gradient(135deg, #4f46e5 0%, #3730a3 100%)';
+    }
+    if (ticketDisplay) {
+      ticketDisplay.innerHTML = `<span style="color:#fbbf24; font-weight:800;">🔓 로그인 후 투표 가능</span>`;
+    }
+  }
+}
+
+function handleVoterHeaderClick() {
+  if (app.currentVoter) {
+    if (confirm(`'${app.currentVoter.name} (${app.currentVoter.dept})' 님, 로그아웃 하시겠습니까?`)) {
+      logoutVoter();
+    }
+  } else {
+    openVoterLoginModal();
+  }
+}
+
+function openVoterLoginModal() {
+  const searchInput = document.getElementById('voterSearchInput');
+  const birthInput = document.getElementById('voterBirthInput');
+  const errBox = document.getElementById('voterLoginError');
+  const dropdown = document.getElementById('voterSearchResults');
+
+  if (searchInput) searchInput.value = '';
+  if (birthInput) birthInput.value = '';
+  if (errBox) { errBox.style.display = 'none'; errBox.textContent = ''; }
+  if (dropdown) dropdown.style.display = 'none';
+
+  populateVoterSelect();
+  openModal('voterLoginModal');
+}
+
+function populateVoterSelect() {
+  const select = document.getElementById('voterSelect');
+  if (!select) return;
+
+  let html = '<option value="">-- 미리 등록된 투표자 선택 --</option>';
+  app.voters.forEach(v => {
+    html += `<option value="${v.name}">${v.name} (${v.dept})</option>`;
+  });
+  select.innerHTML = html;
+}
+
+function handleVoterSearchInput(query) {
+  const dropdown = document.getElementById('voterSearchResults');
+  if (!dropdown) return;
+
+  const q = query.trim().toLowerCase();
+  if (!q) {
+    dropdown.style.display = 'none';
+    return;
+  }
+
+  const matches = app.voters.filter(v => 
+    v.name.toLowerCase().includes(q) || v.dept.toLowerCase().includes(q)
+  );
+
+  if (matches.length === 0) {
+    dropdown.innerHTML = `<div class="voter-search-item" style="color:var(--text-muted);">검색 결과가 없습니다.</div>`;
+    dropdown.style.display = 'block';
+    return;
+  }
+
+  let html = '';
+  matches.forEach(v => {
+    html += `
+      <div class="voter-search-item" onclick="selectVoterFromSearch('${v.name}', '${v.dept}')">
+        <strong>${v.name}</strong>
+        <span style="font-size:0.75rem; color:var(--text-muted);">${v.dept}</span>
+      </div>
+    `;
+  });
+  dropdown.innerHTML = html;
+  dropdown.style.display = 'block';
+}
+
+function selectVoterFromSearch(name, dept) {
+  const input = document.getElementById('voterSearchInput');
+  const dropdown = document.getElementById('voterSearchResults');
+  if (input) input.value = name;
+  if (dropdown) dropdown.style.display = 'none';
+
+  const birthInput = document.getElementById('voterBirthInput');
+  if (birthInput) birthInput.focus();
+}
+
+function handleVoterSelectChange(selectElem) {
+  const selectedName = selectElem.value;
+  if (selectedName) {
+    selectVoterFromSearch(selectedName, '');
+  }
+}
+
+function normalizeBirthdate(val) {
+  if (!val) return '';
+  return String(val).replace(/[^0-9]/g, '');
+}
+
+function handleVoterLoginSubmit(event) {
+  event.preventDefault();
+  const searchName = (document.getElementById('voterSearchInput')?.value || '').trim();
+  const rawBirth = (document.getElementById('voterBirthInput')?.value || '').trim();
+  const errBox = document.getElementById('voterLoginError');
+
+  if (!searchName || !rawBirth) {
+    if (errBox) {
+      errBox.textContent = '성명과 비밀번호(생년월일)를 모두 입력해주세요.';
+      errBox.style.display = 'block';
+    }
+    return;
+  }
+
+  const normalizedInputBirth = normalizeBirthdate(rawBirth);
+
+  // Search voter
+  const matchedVoter = app.voters.find(v => {
+    if (v.name.trim() !== searchName) return false;
+    const voterBirth = normalizeBirthdate(v.birthdate);
+    if (voterBirth === normalizedInputBirth) return true;
+    if (voterBirth.length >= 6 && normalizedInputBirth.length >= 6) {
+      if (voterBirth.slice(-6) === normalizedInputBirth.slice(-6)) return true;
+    }
+    return false;
+  });
+
+  if (!matchedVoter) {
+    if (errBox) {
+      errBox.textContent = '❌ 등록된 성명 및 생년월일과 일치하지 않습니다. 엑셀 사전 등록 여부를 확인하세요.';
+      errBox.style.display = 'block';
+    }
+    return;
+  }
+
+  // Login success
+  app.currentVoter = matchedVoter;
+  app.saveCurrentVoter();
+  updateVoterHeaderUI();
+  closeModal('voterLoginModal');
+  showToast(`🎉 ${matchedVoter.name} (${matchedVoter.dept}) 님, 성공적으로 로그인되었습니다!`, 'success');
+  renderContestGallery();
+}
+
+function logoutVoter() {
+  app.currentVoter = null;
+  app.saveCurrentVoter();
+  updateVoterHeaderUI();
+  showToast('로그아웃되었습니다.', 'info');
+  renderContestGallery();
+}
+
+function openVoterAdminModal() {
+  renderVoterTable();
+  openModal('voterAdminModal');
+}
+
+function renderVoterTable() {
+  const tbody = document.getElementById('voterTableBody');
+  const countBadge = document.getElementById('voterCountBadge');
+  if (!tbody) return;
+
+  if (countBadge) countBadge.textContent = `${app.voters.length}명`;
+
+  if (app.voters.length === 0) {
+    tbody.innerHTML = `<tr><td colspan="5" style="text-align:center; padding:20px; color:var(--text-muted);">등록된 투표자가 없습니다. 엑셀 파일을 업로드하세요.</td></tr>`;
+    return;
+  }
+
+  let html = '';
+  app.voters.forEach((v, idx) => {
+    const isVoted = v.votedSubmissionId != null;
+    html += `
+      <tr>
+        <td style="padding:10px 12px;">${idx + 1}</td>
+        <td style="padding:10px 12px; font-weight:700;">${v.name}</td>
+        <td style="padding:10px 12px;">${v.dept || '-'}</td>
+        <td style="padding:10px 12px; font-family:monospace;">${v.birthdate || '-'}</td>
+        <td style="padding:10px 12px;">
+          ${isVoted ? '<span style="color:#10b981; font-weight:800;">✔ 투표 완료</span>' : '<span style="color:var(--text-muted);">미투표</span>'}
+        </td>
+      </tr>
+    `;
+  });
+  tbody.innerHTML = html;
+}
+
+function handleVoterExcelFileSelect(event) {
+  const file = event.target.files[0];
+  if (!file) return;
+
+  const reader = new FileReader();
+
+  if (window.XLSX && (file.name.endsWith('.xlsx') || file.name.endsWith('.xls'))) {
+    reader.onload = function(e) {
+      try {
+        const data = new Uint8Array(e.target.result);
+        const workbook = XLSX.read(data, { type: 'array' });
+        const firstSheetName = workbook.SheetNames[0];
+        const worksheet = workbook.Sheets[firstSheetName];
+        const rows = XLSX.utils.sheet_to_json(worksheet, { header: 1 });
+        processExcelRows(rows);
+      } catch (err) {
+        console.error('XLSX parse error:', err);
+        showToast('엑셀 파일 파싱 중 오류가 발생했습니다.', 'info');
+      }
+    };
+    reader.readAsArrayBuffer(file);
+  } else {
+    // CSV / Text fallback
+    reader.onload = function(e) {
+      const text = e.target.result;
+      const lines = text.split(/\r?\n/).map(l => l.split(/,|\t/));
+      processExcelRows(lines);
+    };
+    reader.readAsText(file, 'utf-8');
+  }
+
+  event.target.value = '';
+}
+
+function processExcelRows(rows) {
+  if (!rows || rows.length < 2) {
+    showToast('⚠️ 엑셀 데이터가 부족합니다. 최소 헤더 1행과 데이터 1행이 필요합니다.', 'info');
+    return;
+  }
+
+  const headers = rows[0].map(h => String(h || '').trim());
+  
+  let nameColIdx = headers.findIndex(h => h.includes('성명') || h.includes('이름') || h.toLowerCase().includes('name'));
+  let deptColIdx = headers.findIndex(h => h.includes('소속') || h.includes('부서') || h.includes('팀') || h.toLowerCase().includes('dept'));
+  let birthColIdx = headers.findIndex(h => h.includes('생년월일') || h.includes('생일') || h.includes('비밀번호') || h.toLowerCase().includes('birth'));
+
+  if (nameColIdx === -1) nameColIdx = 0;
+  if (deptColIdx === -1) deptColIdx = 1;
+  if (birthColIdx === -1) birthColIdx = 2;
+
+  let addedCount = 0;
+  const newVoters = [];
+
+  for (let i = 1; i < rows.length; i++) {
+    const row = rows[i];
+    if (!row || row.length === 0) continue;
+
+    const name = String(row[nameColIdx] || '').trim();
+    const dept = String(row[deptColIdx] || '').trim();
+    const birthdate = String(row[birthColIdx] || '').trim();
+
+    if (!name) continue;
+
+    const newVoter = {
+      id: 'voter_' + Date.now() + '_' + Math.floor(Math.random()*1000),
+      name: name,
+      dept: dept || '사내',
+      birthdate: birthdate || '19900101',
+      votedSubmissionId: null
+    };
+    newVoters.push(newVoter);
+    addedCount++;
+  }
+
+  if (newVoters.length > 0) {
+    app.voters = newVoters;
+    app.saveVoters();
+    renderVoterTable();
+    populateVoterSelect();
+    showToast(`🎉 엑셀에서 ${addedCount}명의 투표자가 성공적으로 등록되었습니다!`, 'success');
+  } else {
+    showToast('등록할 유효한 투표자 데이터가 없습니다.', 'info');
+  }
+}
+
+function downloadSampleVoterExcel() {
+  const csvContent = "\uFEFF성명,소속,생년월일\n홍길동,디지털혁신팀,19900101\n김경위,사이버범죄수사대,19850515\n이형사,종합조정관실,19921120\n박수사관,생활안전과,19880808";
+  const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+  const url = URL.createObjectURL(blob);
+  const link = document.createElement('a');
+  link.setAttribute('href', url);
+  link.setAttribute('download', '투표자_등록_샘플_서식.csv');
+  document.body.appendChild(link);
+  link.click();
+  document.body.removeChild(link);
+  showToast('📄 샘플 엑셀 서식이 다운로드되었습니다.', 'success');
+}
+
+function clearAllVotersList() {
+  if (confirm('등록된 투표자 명단을 전체 초기화하시겠습니까?')) {
+    app.voters = [];
+    app.currentVoter = null;
+    app.saveVoters();
+    app.saveCurrentVoter();
+    renderVoterTable();
+    populateVoterSelect();
+    updateVoterHeaderUI();
+    showToast('등록된 투표자 명단이 전체 초기화되었습니다.', 'info');
+  }
+}
+
+function openSimpleSubmissionModal() {
+  const nameEl = document.getElementById('simpleSubName');
+  const deptEl = document.getElementById('simpleSubDept');
+  const titleEl = document.getElementById('simpleSubTitle');
+  const descEl = document.getElementById('simpleSubDesc');
+
+  if (titleEl) titleEl.value = '';
+  if (descEl) descEl.value = '';
+
+  if (app.currentVoter) {
+    if (nameEl) nameEl.value = app.currentVoter.name;
+    if (deptEl) deptEl.value = app.currentVoter.dept;
+  }
+
+  openModal('simpleSubmissionModal');
+}
+
+function handleSimpleSubmissionSubmit(event) {
+  event.preventDefault();
+  const title = (document.getElementById('simpleSubTitle')?.value || '').trim();
+  const desc = (document.getElementById('simpleSubDesc')?.value || '').trim();
+  let name = (document.getElementById('simpleSubName')?.value || '').trim();
+  let dept = (document.getElementById('simpleSubDept')?.value || '').trim();
+
+  if (!title || !desc) {
+    showToast('작품 제목과 간단한 설명을 모두 입력해주세요.', 'info');
+    return;
+  }
+
+  if (!name && app.currentVoter) name = app.currentVoter.name;
+  if (!dept && app.currentVoter) dept = app.currentVoter.dept;
+
+  const newSub = {
+    id: 'sub_' + Date.now(),
+    name: name || '사내 직원',
+    dept: dept || '본사',
+    title: title,
+    desc: desc,
+    url: '',
+    videoUrl: '',
+    image: 'slides_media/slide_22.jpg',
+    votes: 0,
+    date: new Date().toISOString().split('T')[0],
+    status: 'visible'
+  };
+
+  app.submissions.unshift(newSub);
+  app.saveSubmissions();
+
+  if (window.location.protocol.startsWith('http')) {
+    fetch('/api/submissions', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(app.submissions)
+    }).catch(e => console.warn('Submission sync fallback:', e));
+  }
+
+  closeModal('simpleSubmissionModal');
+  showToast(`✨ 작품 '${title}'이 성공적으로 등록되었습니다!`, 'success');
+  renderContestGallery();
+  renderHomeStats();
+  renderHomeTopEntries();
 }
 
 

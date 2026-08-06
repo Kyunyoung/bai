@@ -5,10 +5,15 @@ const os = require('os');
 
 const PORT = 3000;
 const DATA_FILE = path.join(__dirname, 'submissions_db.json');
+const VOTERS_FILE = path.join(__dirname, 'voters_db.json');
 const UPLOADS_DIR = path.join(__dirname, 'uploads');
 
 if (!fs.existsSync(DATA_FILE)) {
   fs.writeFileSync(DATA_FILE, JSON.stringify([], null, 2));
+}
+
+if (!fs.existsSync(VOTERS_FILE)) {
+  fs.writeFileSync(VOTERS_FILE, JSON.stringify([], null, 2));
 }
 
 if (!fs.existsSync(UPLOADS_DIR)) {
@@ -82,6 +87,25 @@ const server = http.createServer((req, res) => {
         res.end(JSON.stringify({ success: true, message: 'Saved and processed video files' }));
       } catch (e) {
         console.error('API Error:', e);
+        res.writeHead(400, { 'Content-Type': 'application/json' });
+        res.end(JSON.stringify({ error: 'Invalid JSON' }));
+      }
+    });
+  } else if (cleanUrl === '/api/voters' && req.method === 'GET') {
+    const data = fs.readFileSync(VOTERS_FILE, 'utf8');
+    res.writeHead(200, { 'Content-Type': 'application/json; charset=utf-8' });
+    res.end(data);
+  } else if (cleanUrl === '/api/voters' && req.method === 'POST') {
+    let body = '';
+    req.on('data', chunk => { body += chunk.toString(); });
+    req.on('end', () => {
+      try {
+        const voters = JSON.parse(body);
+        fs.writeFileSync(VOTERS_FILE, JSON.stringify(voters, null, 2));
+        res.writeHead(200, { 'Content-Type': 'application/json' });
+        res.end(JSON.stringify({ success: true, message: 'Saved voters list' }));
+      } catch (e) {
+        console.error('API Voters Error:', e);
         res.writeHead(400, { 'Content-Type': 'application/json' });
         res.end(JSON.stringify({ error: 'Invalid JSON' }));
       }
