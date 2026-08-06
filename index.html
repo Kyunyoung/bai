@@ -33,7 +33,7 @@
         <div class="logo-icon">🚀</div>
         <div>
           <span class="brand-title">VIBE CODING</span>
-          <span class="brand-badge">교육 & 콘테스트 포털</span>
+          <span class="brand-badge">작품 등록 & 투표</span>
         </div>
       </a>
 
@@ -46,17 +46,8 @@
           <span>📚 교육 포털</span>
         </button>
         <button type="button" class="nav-tab-btn" data-tab="contest" onclick="switchNavTab('contest')">
-          <span>🏆 콘테스트</span>
+          <span>🏆 콘테스트 & 투표</span>
         </button>
-        <!-- 동영상 제출 안 보이게 -->
-        <!--<button type="button" class="nav-tab-btn" onclick="window.openDirectSubmissionModal()"
-          style="color:#10b981; font-weight:800;">
-          <span>📱 🎬 동영상 제출</span> -->
-        </button>
-        <!-- 관리자 안 보이게 -->
-        <!--<button type="button" class="nav-tab-btn" data-tab="admin" onclick="switchNavTab('admin')">
-          <span>⚙️ 관리자</span>
-        </button> -->
       </nav>
 
       <!-- Header Actions -->
@@ -70,7 +61,7 @@
         <!-- Excel Voter Registration Admin Button -->
         <button type="button" onclick="openVoterAdminModal()" class="btn btn-outline"
           style="border-color: #6366f1; color: #6366f1; font-weight: 700;">
-          <span>📁 투표자 엑셀 등록</span>
+          <span>📁 엑셀 등록</span>
         </button>
 
         <!-- Voter Login Button / Indicator -->
@@ -78,11 +69,6 @@
           style="background: linear-gradient(135deg, #4f46e5 0%, #3730a3 100%); font-weight: 800; border: none;">
           <span>👤 투표자 로그인</span>
         </button>
-
-        <!-- Direct Default Focus Viewer Launch CTA -->
-        <a href="focus.html" class="btn btn-outline" title="59개 슬라이드 전용 몰입 집중 뷰어 실행 (기본 모드)">
-          <span>🎯 교육자료</span>
-        </a>
 
         <!-- Dark / Light Theme Toggle -->
         <button id="themeToggleBtn" class="theme-toggle-btn" title="다크/라이트 모드 전환" aria-label="테마 전환">
@@ -334,9 +320,6 @@
           <button class="contest-tab-btn active" data-subtab="gallery" onclick="switchContestSubTab('gallery')">
             🏆 작품 갤러리 & 실시간 투표
           </button>
-          <!-- <button class="contest-tab-btn" data-subtab="submit" onclick="switchContestSubTab('submit')">
-            📝 작품 제출하기 -->
-          </button>
           <button class="contest-tab-btn" data-subtab="guide" onclick="switchContestSubTab('guide')">
             📌 대회 안내 & 투표 규칙
           </button>
@@ -344,8 +327,7 @@
 
         <!-- User Voting Ticket Badge -->
         <div class="voting-ticket-badge">
-          <span>🎟️ 나의 잔여 투표권: </span>
-          <strong id="userTicketDisplay">3 / 3 표</strong>
+          <strong id="userTicketDisplay">🔓 로그인 후 투표 가능</strong>
         </div>
       </div>
 
@@ -366,10 +348,6 @@
               <option value="newest">🕒 최신 제출순</option>
               <option value="my">👤 내가 제출한 작품</option>
             </select>
-
-            <!-- <button class="btn btn-primary" onclick="switchContestSubTab('submit')">
-              + 내 작품 제출하기 -->
-            </button>
           </div>
         </div>
 
@@ -966,6 +944,12 @@
               <label class="form-label" for="simpleSubDept">소속 부서</label>
               <input type="text" id="simpleSubDept" class="form-input" placeholder="예: 디지털혁신팀">
             </div>
+          </div>
+
+          <div class="form-group" style="margin-top: 14px;">
+            <label class="form-label" for="simpleSubPasscode">작품 수정/취소 비밀번호 <span class="required">*</span></label>
+            <input type="password" id="simpleSubPasscode" class="form-input" placeholder="본인 확인용 비밀번호 4자리 (예: 1234)" maxlength="12" required>
+            <span style="font-size:0.75rem; color:var(--text-muted);">작품 수정 및 삭제 시 본인 확인용으로 사용됩니다.</span>
           </div>
 
           <div class="form-actions" style="margin-top: 20px;">

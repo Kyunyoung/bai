@@ -2521,9 +2521,11 @@ function openSimpleSubmissionModal() {
   const deptEl = document.getElementById('simpleSubDept');
   const titleEl = document.getElementById('simpleSubTitle');
   const descEl = document.getElementById('simpleSubDesc');
+  const passEl = document.getElementById('simpleSubPasscode');
 
   if (titleEl) titleEl.value = '';
   if (descEl) descEl.value = '';
+  if (passEl) passEl.value = '';
 
   if (app.currentVoter) {
     if (nameEl) nameEl.value = app.currentVoter.name;
@@ -2534,14 +2536,24 @@ function openSimpleSubmissionModal() {
 }
 
 function handleSimpleSubmissionSubmit(event) {
-  event.preventDefault();
+  if (event) {
+    if (typeof event.preventDefault === 'function') event.preventDefault();
+  }
   const title = (document.getElementById('simpleSubTitle')?.value || '').trim();
   const desc = (document.getElementById('simpleSubDesc')?.value || '').trim();
   let name = (document.getElementById('simpleSubName')?.value || '').trim();
   let dept = (document.getElementById('simpleSubDept')?.value || '').trim();
+  const passcode = (document.getElementById('simpleSubPasscode')?.value || '').trim();
 
   if (!title || !desc) {
     showToast('작품 제목과 간단한 설명을 모두 입력해주세요.', 'info');
+    return;
+  }
+
+  if (!passcode) {
+    showToast('⚠️ 작품 수정/취소용 비밀번호 4자리를 입력해주세요.', 'info');
+    const passEl = document.getElementById('simpleSubPasscode');
+    if (passEl) passEl.focus();
     return;
   }
 
@@ -2557,13 +2569,16 @@ function handleSimpleSubmissionSubmit(event) {
     url: '',
     videoUrl: '',
     image: 'slides_media/slide_22.jpg',
+    passcode: passcode,
     votes: 0,
+    ratings: [],
     date: new Date().toISOString().split('T')[0],
     status: 'visible'
   };
 
   app.submissions.unshift(newSub);
   app.saveSubmissions();
+  autoPushSubmissionToCloudDB(newSub);
 
   if (window.location.protocol.startsWith('http')) {
     fetch('/api/submissions', {
@@ -2574,6 +2589,9 @@ function handleSimpleSubmissionSubmit(event) {
   }
 
   closeModal('simpleSubmissionModal');
+  const form = document.getElementById('simpleSubmissionForm');
+  if (form) form.reset();
+
   showToast(`✨ 작품 '${title}'이 성공적으로 등록되었습니다!`, 'success');
   renderContestGallery();
   renderHomeStats();

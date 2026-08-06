@@ -1304,6 +1304,21 @@ body {
   box-shadow: var(--shadow-sm);
 }
 
+.header-actions {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.header-actions .btn {
+  padding: 8px 14px;
+  font-size: 0.85rem;
+  font-weight: 700;
+  border-radius: var(--radius-md);
+  white-space: nowrap;
+}
+
 .btn-focus-cta {
   background: linear-gradient(135deg, #2563eb, #7c3aed) !important;
   color: white !important;
