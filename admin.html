@@ -1,0 +1,353 @@
+<!DOCTYPE html>
+<html lang="ko" data-theme="light">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>바이브코딩 관리자 시스템 - 엑셀 등록 & 투표자 관리 (/admin)</title>
+  <meta name="description" content="바이브코딩 콘테스트 및 투표 엑셀 사전 등록 관리자 포털">
+  <link rel="stylesheet" href="styles.css?v=10">
+  <!-- SheetJS Excel Parser Library -->
+  <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
+  <style>
+    .admin-container {
+      max-width: 1200px;
+      margin: 0 auto;
+      padding: 32px 20px;
+    }
+
+    .admin-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 28px;
+      padding-bottom: 20px;
+      border-bottom: 2px solid var(--border-color, #e5e7eb);
+      flex-wrap: wrap;
+      gap: 16px;
+    }
+
+    .admin-title-group h1 {
+      font-size: 1.8rem;
+      font-weight: 900;
+      color: var(--primary-700, #4338ca);
+      margin: 0 0 6px 0;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .admin-title-group p {
+      margin: 0;
+      color: var(--text-muted, #6b7280);
+      font-size: 0.95rem;
+    }
+
+    .admin-kpi-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+      gap: 16px;
+      margin-bottom: 32px;
+    }
+
+    .kpi-card {
+      background: var(--bg-surface, #ffffff);
+      border: 1px solid var(--border-color, #e2e8f0);
+      border-radius: var(--radius-lg, 12px);
+      padding: 20px;
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.04);
+      display: flex;
+      align-items: center;
+      gap: 16px;
+    }
+
+    .kpi-icon {
+      width: 48px;
+      height: 48px;
+      border-radius: 12px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 1.5rem;
+      flex-shrink: 0;
+    }
+
+    .kpi-info {
+      display: flex;
+      flex-direction: column;
+    }
+
+    .kpi-label {
+      font-size: 0.85rem;
+      color: var(--text-muted, #64748b);
+      font-weight: 600;
+    }
+
+    .kpi-value {
+      font-size: 1.6rem;
+      font-weight: 900;
+      color: var(--text-heading, #0f172a);
+      margin-top: 2px;
+    }
+
+    .admin-section {
+      background: var(--bg-surface, #ffffff);
+      border: 1px solid var(--border-color, #e2e8f0);
+      border-radius: var(--radius-xl, 16px);
+      padding: 28px;
+      margin-bottom: 32px;
+      box-shadow: 0 4px 16px rgba(0, 0, 0, 0.03);
+    }
+
+    .section-title {
+      font-size: 1.25rem;
+      font-weight: 800;
+      color: var(--text-heading, #1e293b);
+      margin-top: 0;
+      margin-bottom: 20px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      flex-wrap: wrap;
+      gap: 12px;
+    }
+
+    .dropzone-admin {
+      background: var(--bg-tertiary, #f8fafc);
+      border: 2.5px dashed var(--primary-400, #818cf8);
+      border-radius: 14px;
+      padding: 36px 20px;
+      text-align: center;
+      transition: all 0.2s ease;
+      cursor: pointer;
+    }
+
+    .dropzone-admin:hover {
+      border-color: var(--primary-600, #4f46e5);
+      background: rgba(99, 102, 241, 0.05);
+    }
+
+    .table-responsive {
+      overflow-x: auto;
+      max-height: 480px;
+      border: 1px solid var(--border-color, #e2e8f0);
+      border-radius: 10px;
+    }
+
+    .admin-table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 0.9rem;
+      text-align: left;
+    }
+
+    .admin-table th {
+      background: var(--bg-tertiary, #f1f5f9);
+      color: var(--text-heading, #334155);
+      font-weight: 800;
+      padding: 12px 16px;
+      position: sticky;
+      top: 0;
+      z-index: 2;
+      border-bottom: 2px solid var(--border-color, #cbd5e1);
+    }
+
+    .admin-table td {
+      padding: 12px 16px;
+      border-bottom: 1px solid var(--border-color, #f1f5f9);
+      color: var(--text-main, #334155);
+    }
+
+    .admin-table tbody tr:hover {
+      background-color: var(--bg-hover, rgba(241, 245, 249, 0.6));
+    }
+
+    .btn-delete-item {
+      background: #fee2e2;
+      color: #dc2626;
+      border: 1px solid #fca5a5;
+      padding: 4px 10px;
+      border-radius: 6px;
+      font-size: 0.8rem;
+      font-weight: 700;
+      cursor: pointer;
+      transition: all 0.2s ease;
+    }
+
+    .btn-delete-item:hover {
+      background: #ef4444;
+      color: #ffffff;
+    }
+  </style>
+</head>
+
+<body>
+
+  <!-- Toast Container -->
+  <div id="toastContainer" class="toast-container" aria-live="polite"></div>
+
+  <!-- SITE HEADER -->
+  <header class="site-header sticky-header">
+    <div class="header-inner">
+      <a href="/" class="brand-logo">
+        <div class="logo-icon">📂</div>
+        <div>
+          <span class="brand-title">VIBE ADMIN</span>
+          <span class="brand-badge" style="background:#4f46e5; color:#fff;">관리자 모드</span>
+        </div>
+      </a>
+
+      <div class="header-actions">
+        <a href="/" class="btn btn-primary" style="background: linear-gradient(135deg, #2563eb 0%, #1d4ed8 100%); text-decoration: none; font-weight:800;">
+          <span>🏠 메인 홈으로 돌아가기</span>
+        </a>
+        <button id="themeToggleBtn" class="theme-toggle-btn" title="다크/라이트 모드 전환">
+          <span id="themeIcon">🌙</span>
+        </button>
+      </div>
+    </div>
+  </header>
+
+  <!-- MAIN CONTAINER -->
+  <div class="admin-container">
+
+    <!-- PAGE TITLE -->
+    <div class="admin-header">
+      <div class="admin-title-group">
+        <h1>📊 엑셀 사전 등록 & 관리자 대시보드</h1>
+        <p>투표자 명단을 엑셀 파일(.xlsx, .csv)로 대량 등록하고, 출품작 및 투표 현황을 한눈에 관리하세요.</p>
+      </div>
+      <div>
+        <span id="syncStatusBadge" class="badge-tag" style="background:#10b981; color:#fff; font-size:0.85rem; padding:6px 12px; border-radius:9999px;">
+          🟢 실시간 서버 연동 완료
+        </span>
+      </div>
+    </div>
+
+    <!-- KPI CARDS GRID -->
+    <div class="admin-kpi-grid">
+      <div class="kpi-card">
+        <div class="kpi-icon" style="background:#e0e7ff; color:#4338ca;">👥</div>
+        <div class="kpi-info">
+          <span class="kpi-label">등록된 투표자</span>
+          <span class="kpi-value" id="kpiTotalVoters">0 명</span>
+        </div>
+      </div>
+
+      <div class="kpi-card">
+        <div class="kpi-icon" style="background:#dcfce7; color:#15803d;">🎟️</div>
+        <div class="kpi-info">
+          <span class="kpi-label">투표 완료 인원</span>
+          <span class="kpi-value" id="kpiVotedCount">0 명</span>
+        </div>
+      </div>
+
+      <div class="kpi-card">
+        <div class="kpi-icon" style="background:#fef3c7; color:#b45309;">🏆</div>
+        <div class="kpi-info">
+          <span class="kpi-label">등록된 출품작</span>
+          <span class="kpi-value" id="kpiTotalSubmissions">0 개</span>
+        </div>
+      </div>
+
+      <div class="kpi-card">
+        <div class="kpi-icon" style="background:#f3e8ff; color:#6b21a8;">⭐</div>
+        <div class="kpi-info">
+          <span class="kpi-label">총 누적 투표수</span>
+          <span class="kpi-value" id="kpiTotalVotes">0 표</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- SECTION 1: EXCEL UPLOAD -->
+    <div class="admin-section">
+      <div class="section-title">
+        <span>📁 엑셀 파일 투표자 명단 등록</span>
+        <button type="button" class="btn btn-outline btn-sm" onclick="downloadSampleVoterExcel()">
+          📄 샘플 엑셀 서식 다운로드
+        </button>
+      </div>
+
+      <p style="color:var(--text-muted); font-size:0.9rem; margin-bottom:16px;">
+        사전에 수집된 성명, 소속, 생년월일(비밀번호) 정보가 적힌 엑셀(.xlsx, .xls) 또는 CSV 파일을 업로드해주세요.
+      </p>
+
+      <div class="dropzone-admin" onclick="document.getElementById('excelFileInput').click()">
+        <div style="font-size: 2.5rem; margin-bottom: 8px;">📊 📂</div>
+        <strong style="font-size: 1.1rem; color: var(--primary-700); display: block;">여기를 클릭하거나 엑셀 파일을 드롭하세요</strong>
+        <span style="font-size: 0.85rem; color: var(--text-muted); margin-top: 4px; display: block;">(.xlsx, .xls, .csv 확장자 자동 감지)</span>
+        <input type="file" id="excelFileInput" accept=".xlsx,.xls,.csv" style="display:none;" onchange="handleExcelFileSelect(event)">
+      </div>
+    </div>
+
+    <!-- SECTION 2: VOTER LIST TABLE -->
+    <div class="admin-section">
+      <div class="section-title">
+        <span>📋 등록된 투표자 명단 (<span id="voterListCount">0명</span>)</span>
+        <div style="display:flex; gap:10px;">
+          <input type="text" id="voterSearchInput" class="form-input" placeholder="🔍 성명/소속 검색..." oninput="filterVoterTable()" style="padding:6px 12px; font-size:0.85rem; width:200px;">
+          <button type="button" class="btn btn-outline btn-sm" onclick="clearAllVotersList()" style="color:#ef4444; border-color:#fca5a5;">
+            🗑️ 명단 전체 초기화
+          </button>
+        </div>
+      </div>
+
+      <div class="table-responsive">
+        <table class="admin-table">
+          <thead>
+            <tr>
+              <th style="width:60px;">No.</th>
+              <th>성명</th>
+              <th>소속 부서</th>
+              <th>생년월일 (비밀번호)</th>
+              <th>투표 상태</th>
+              <th style="width:100px; text-align:center;">관리</th>
+            </tr>
+          </thead>
+          <tbody id="voterTableBody">
+            <tr>
+              <td colspan="6" style="text-align:center; padding:24px; color:var(--text-muted);">
+                등록된 투표자가 없습니다. 위 엑셀 등록 서식에서 업로드해주세요.
+              </td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- SECTION 3: CONTEST SUBMISSIONS MANAGEMENT -->
+    <div class="admin-section">
+      <div class="section-title">
+        <span>🏆 콘테스트 출품작 관리 (<span id="submissionListCount">0개</span>)</span>
+      </div>
+
+      <div class="table-responsive">
+        <table class="admin-table">
+          <thead>
+            <tr>
+              <th style="width:60px;">No.</th>
+              <th>출품작 제목</th>
+              <th>출품자</th>
+              <th>소속 부서</th>
+              <th>득표 수</th>
+              <th>등록일</th>
+              <th style="width:100px; text-align:center;">삭제</th>
+            </tr>
+          </thead>
+          <tbody id="submissionTableBody">
+            <tr>
+              <td colspan="7" style="text-align:center; padding:24px; color:var(--text-muted);">
+                등록된 출품작이 없습니다.
+              </td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+  </div>
+
+  <script src="admin.js?v=20260807"></script>
+</body>
+
+</html>

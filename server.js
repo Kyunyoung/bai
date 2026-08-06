@@ -127,7 +127,8 @@ const server = http.createServer((req, res) => {
       res.end(JSON.stringify({ error: 'Upload failed' }));
     });
   } else {
-    let filePath = path.join(__dirname, cleanUrl === '/' ? 'index.html' : cleanUrl);
+    let targetFile = (cleanUrl === '/' ? 'index.html' : (cleanUrl === '/admin' || cleanUrl === '/admin/' ? 'admin.html' : cleanUrl));
+    let filePath = path.join(__dirname, targetFile);
     const ext = path.extname(filePath).toLowerCase();
     const contentTypeMap = {
       '.html': 'text/html; charset=utf-8',
