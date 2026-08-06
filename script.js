@@ -1521,47 +1521,6 @@ function openSubmissionDetailModal(submissionId) {
           </div>
         ` : ''}
 
-        <!-- Multi-Criteria Star Rating Evaluation Box -->
-        <div class="evaluation-star-box">
-          <div style="display:flex; justify-content:space-between; align-items:center;">
-            <h4 style="font-size:0.95rem; font-weight:800; color:var(--text-main);">⭐ 시연 영상 종합 심사 평가</h4>
-            <span style="font-size:0.8rem; color:var(--primary-600); font-weight:700;">평균 4.9 / 5.0 점</span>
-          </div>
-
-          <div class="star-rating-row">
-            <span>🌟 완성도 (Completeness)</span>
-            <div class="star-rating-select">
-              <button class="star-btn selected" onclick="submitStarRating('${s.id}', '완성도', 5)">★</button>
-              <button class="star-btn selected" onclick="submitStarRating('${s.id}', '완성도', 4)">★</button>
-              <button class="star-btn selected" onclick="submitStarRating('${s.id}', '완성도', 3)">★</button>
-              <button class="star-btn selected" onclick="submitStarRating('${s.id}', '완성도', 2)">★</button>
-              <button class="star-btn selected" onclick="submitStarRating('${s.id}', '완성도', 1)">★</button>
-            </div>
-          </div>
-
-          <div class="star-rating-row">
-            <span>💡 창의성 (Creativity)</span>
-            <div class="star-rating-select">
-              <button class="star-btn selected" onclick="submitStarRating('${s.id}', '창의성', 5)">★</button>
-              <button class="star-btn selected" onclick="submitStarRating('${s.id}', '창의성', 4)">★</button>
-              <button class="star-btn selected" onclick="submitStarRating('${s.id}', '창의성', 3)">★</button>
-              <button class="star-btn selected" onclick="submitStarRating('${s.id}', '창의성', 2)">★</button>
-              <button class="star-btn selected" onclick="submitStarRating('${s.id}', '창의성', 1)">★</button>
-            </div>
-          </div>
-
-          <div class="star-rating-row">
-            <span>🚀 업무 활용도 (Practical Impact)</span>
-            <div class="star-rating-select">
-              <button class="star-btn selected" onclick="submitStarRating('${s.id}', '업무활용도', 5)">★</button>
-              <button class="star-btn selected" onclick="submitStarRating('${s.id}', '업무활용도', 4)">★</button>
-              <button class="star-btn selected" onclick="submitStarRating('${s.id}', '업무활용도', 3)">★</button>
-              <button class="star-btn selected" onclick="submitStarRating('${s.id}', '업무활용도', 2)">★</button>
-              <button class="star-btn selected" onclick="submitStarRating('${s.id}', '업무활용도', 1)">★</button>
-            </div>
-          </div>
-        </div>
-
         <!-- Actions Bar (Voting & Protected Edit/Cancel) -->
         <div style="display:flex; justify-content:space-between; align-items:center; margin-top:12px; flex-wrap:wrap; gap:12px;">
           <span style="font-size:1.2rem; font-weight:800; color:var(--primary-600);">❤️ 총 ${s.votes} 표 득표</span>
