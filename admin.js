@@ -141,6 +141,39 @@ async function saveAdminSubmissions() {
   renderAdminKPIs();
 }
 
+async function clearAllSubmissions() {
+  if (!confirm('⚠️ 모든 작품 출품 내역을 정말로 전체 초기화(삭제)하시겠습니까?\n이 작업은 취소할 수 없습니다.')) {
+    return;
+  }
+
+  adminSubmissions = [];
+  localStorage.removeItem('vibecoding_contest_submissions');
+  localStorage.removeItem('vibecoding_deleted_ids');
+
+  const cloudUrl = localStorage.getItem('vibecoding_cloud_db_url') || 'https://jsonblob.com/api/jsonBlob/019fea01-e225-7e8e-b86f-40df54614b00';
+  try {
+    await fetch(cloudUrl, {
+      method: 'PUT',
+      headers: { 'Content-Type': 'application/json', 'Accept': 'application/json' },
+      body: JSON.stringify([])
+    });
+  } catch (e) {}
+
+  if (window.location.protocol.startsWith('http')) {
+    try {
+      await fetch('/api/submissions', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify([])
+      });
+    } catch (e) {}
+  }
+
+  showToast('🗑️ 모든 출품작 데이터가 클리어 되었습니다.', 'success');
+  renderAdminKPIs();
+  renderSubmissionTable();
+}
+
 // Render KPIs
 function renderAdminKPIs() {
   const totalVotersEl = document.getElementById('kpiTotalVoters');

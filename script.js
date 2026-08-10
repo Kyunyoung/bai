@@ -2227,6 +2227,46 @@ window.handleVoterLoginSubmit = handleVoterLoginSubmit;
 window.logoutVoter = logoutVoter;
 window.handleVoterExcelFileSelect = handleVoterExcelFileSelect;
 window.downloadSampleVoterExcel = downloadSampleVoterExcel;
+async function clearAllSubmissions() {
+  if (!confirm('⚠️ 등록된 모든 작품 출품 내역을 전체 초기화(삭제)하시겠습니까?\n이 작업은 취소할 수 없습니다.')) {
+    return;
+  }
+
+  app.submissions = [];
+  app.deletedIds = new Set();
+  localStorage.removeItem('vibecoding_contest_submissions');
+  localStorage.removeItem('vibecoding_deleted_ids');
+  app.saveSubmissions();
+
+  try {
+    await fetch(FREE_CLOUD_DB_URL, {
+      method: 'PUT',
+      headers: {
+        'Content-Type': 'application/json',
+        'Accept': 'application/json'
+      },
+      body: JSON.stringify([])
+    });
+  } catch (e) {}
+
+  if (window.location.protocol.startsWith('http')) {
+    try {
+      await fetch('/api/submissions', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify([])
+      });
+    } catch (e) {}
+  }
+
+  showToast('🗑️ 모든 출품작 데이터가 클리어 되었습니다.', 'success');
+  renderContestGallery();
+  renderHomeStats();
+  renderHomeTopEntries();
+  if (app.isAdmin) renderAdminDashboard();
+}
+
+window.clearAllSubmissions = clearAllSubmissions;
 window.clearAllVotersList = clearAllVotersList;
 window.handleSimpleSubmissionSubmit = handleSimpleSubmissionSubmit;
 

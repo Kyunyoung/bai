@@ -317,8 +317,11 @@
 
     <!-- SECTION 3: CONTEST SUBMISSIONS MANAGEMENT -->
     <div class="admin-section">
-      <div class="section-title">
+      <div class="section-title" style="display:flex; justify-content:space-between; align-items:center;">
         <span>🏆 콘테스트 출품작 관리 (<span id="submissionListCount">0개</span>)</span>
+        <button type="button" class="btn btn-outline btn-sm" onclick="clearAllSubmissions()" style="color:#ef4444; border-color:#fca5a5; font-weight:700;">
+          🗑️ 출품작 전체 초기화
+        </button>
       </div>
 
       <div class="table-responsive">
