@@ -611,12 +611,36 @@ function handleImageFileSelect(event, previewId, wrapperId) {
 
   const reader = new FileReader();
   reader.onload = function(e) {
-    uploadedImageDataUrl = e.target.result;
-    const preview = document.getElementById(previewId || 'subImagePreview');
-    const wrapper = document.getElementById(wrapperId || 'imagePreviewWrapper');
-    if (preview) preview.src = uploadedImageDataUrl;
-    if (wrapper) wrapper.style.display = 'block';
-    showToast('🖼️ 작품 캡처 이미지가 성공적으로 첨부되었습니다!', 'success');
+    const img = new Image();
+    img.onload = function() {
+      const canvas = document.createElement('canvas');
+      const maxDim = 800;
+      let width = img.width;
+      let height = img.height;
+
+      if (width > maxDim || height > maxDim) {
+        if (width > height) {
+          height = Math.round((height * maxDim) / width);
+          width = maxDim;
+        } else {
+          width = Math.round((width * maxDim) / height);
+          height = maxDim;
+        }
+      }
+
+      canvas.width = width;
+      canvas.height = height;
+      const ctx = canvas.getContext('2d');
+      ctx.drawImage(img, 0, 0, width, height);
+
+      uploadedImageDataUrl = canvas.toDataURL('image/jpeg', 0.8);
+      const preview = document.getElementById(previewId || 'subImagePreview');
+      const wrapper = document.getElementById(wrapperId || 'imagePreviewWrapper');
+      if (preview) preview.src = uploadedImageDataUrl;
+      if (wrapper) wrapper.style.display = 'block';
+      showToast('🖼️ 작품 캡처 이미지가 압축 최적화되어 첨부되었습니다!', 'success');
+    };
+    img.src = e.target.result;
   };
   try {
     reader.readAsDataURL(file);
@@ -1034,7 +1058,37 @@ async function pushSubmissionToGitHub(newSub) {
 }
 
 /* 100% AUTOMATIC REAL-TIME CLOUD DB SYNC ENGINE */
-const FREE_CLOUD_DB_URL = 'https://jsonblob.com/api/jsonBlob/019fcc42-f8a8-7f5e-94c8-bc3557750fe5';
+let FREE_CLOUD_DB_URL = localStorage.getItem('vibecoding_cloud_db_url') || 'https://jsonblob.com/api/jsonBlob/019fea01-e225-7e8e-b86f-40df54614b00';
+
+async function createNewCloudDbBin() {
+  try {
+    const res = await fetch('https://jsonblob.com/api/jsonBlob', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Accept': 'application/json'
+      },
+      body: JSON.stringify(app.submissions || [])
+    });
+    if (res.ok) {
+      const location = res.headers.get('location');
+      if (location) {
+        const newUrl = location.startsWith('http') ? location : `https://jsonblob.com${location}`;
+        FREE_CLOUD_DB_URL = newUrl;
+        localStorage.setItem('vibecoding_cloud_db_url', newUrl);
+        console.log('New Cloud DB created:', newUrl);
+      }
+    }
+  } catch (e) {
+    console.warn('Create Cloud DB error:', e);
+  }
+}
+
+async function forceRefreshCentralSync() {
+  showToast('🔄 중앙 DB와 실시간 재동기화를 진행 중입니다...', 'info');
+  await autoSyncCentralCloudDB();
+  showToast(`✅ 동기화 완료! 총 ${app.submissions.length}개 출품작이 반영되었습니다.`, 'success');
+}
 
 async function autoSyncCentralCloudDB() {
   // 1. If running under HTTP/HTTPS server (e.g. node server.js), check local server API first!
@@ -1061,6 +1115,8 @@ async function autoSyncCentralCloudDB() {
       if (Array.isArray(items)) {
         mergeSubmissionsData(items);
       }
+    } else if (res.status === 404) {
+      await createNewCloudDbBin();
     }
   } catch (e) {}
 
@@ -1096,7 +1152,7 @@ async function autoPushSubmissionToCloudDB(newSub) {
   });
 
   try {
-    await fetch(FREE_CLOUD_DB_URL, {
+    const putRes = await fetch(FREE_CLOUD_DB_URL, {
       method: 'PUT',
       headers: {
         'Content-Type': 'application/json',
@@ -1104,7 +1160,11 @@ async function autoPushSubmissionToCloudDB(newSub) {
       },
       body: JSON.stringify(sanitized)
     });
-    showToast('🟢 전 세계 중앙 DB에 작품 및 동영상이 3초 자동 동기화되었습니다!', 'success');
+    if (putRes.ok) {
+      showToast('🟢 전 세계 중앙 DB에 작품 및 동영상이 3초 자동 동기화되었습니다!', 'success');
+    } else if (putRes.status === 404) {
+      await createNewCloudDbBin();
+    }
   } catch (e) {}
 
   pushSubmissionToGitHub(newSub);
@@ -2152,6 +2212,7 @@ window.loadSampleDemoVideoIntoFormDirect = loadSampleDemoVideoIntoFormDirect;
 window.handleVideoFileSelect = handleVideoFileSelect;
 window.handleImageFileSelect = handleImageFileSelect;
 window.handleImagePresetChange = handleImagePresetChange;
+window.forceRefreshCentralSync = forceRefreshCentralSync;
 window.openSubmissionDetailModal = openSubmissionDetailModal;
 window.switchNavTab = switchNavTab;
 window.switchContestSubTab = switchContestSubTab;
