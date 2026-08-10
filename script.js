@@ -61,16 +61,26 @@ class VibePortalApp {
     this.theme = this.loadFromStorage('vibecoding_theme', 'light');
     this.viewedSlides = new Set(this.loadFromStorage('vibecoding_viewed_slides', []));
     
-    // Contest Submissions
-    this.submissions = this.loadFromStorage('vibecoding_contest_submissions', []);
-    if (!Array.isArray(this.submissions)) {
+    // Contest Submissions (Mobile Cache Invalidation Engine)
+    const APP_VERSION_TAG = '20260810_v2';
+    const savedVersion = localStorage.getItem('vibecoding_app_version');
+    if (savedVersion !== APP_VERSION_TAG) {
+      localStorage.setItem('vibecoding_app_version', APP_VERSION_TAG);
+      localStorage.removeItem('vibecoding_contest_submissions');
+      localStorage.removeItem('vibecoding_deleted_ids');
       this.submissions = [];
-    }
-    // Clean legacy seed submission entries if present in local storage
-    const cleanedSubmissions = this.submissions.filter(s => s && s.id && !['sub_1', 'sub_2', 'sub_3'].includes(s.id));
-    if (cleanedSubmissions.length !== this.submissions.length) {
-      this.submissions = cleanedSubmissions;
       this.saveSubmissions();
+    } else {
+      this.submissions = this.loadFromStorage('vibecoding_contest_submissions', []);
+      if (!Array.isArray(this.submissions)) {
+        this.submissions = [];
+      }
+      // Clean legacy seed submission entries if present in local storage
+      const cleanedSubmissions = this.submissions.filter(s => s && s.id && !['sub_1', 'sub_2', 'sub_3'].includes(s.id));
+      if (cleanedSubmissions.length !== this.submissions.length) {
+        this.submissions = cleanedSubmissions;
+        this.saveSubmissions();
+      }
     }
 
     // Registered Voters List
