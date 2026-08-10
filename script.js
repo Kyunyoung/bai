@@ -62,7 +62,7 @@ class VibePortalApp {
     this.viewedSlides = new Set(this.loadFromStorage('vibecoding_viewed_slides', []));
     
     // Contest Submissions (Mobile Cache Invalidation Engine)
-    const APP_VERSION_TAG = '20260810_v2';
+    const APP_VERSION_TAG = '20260810_v3';
     const savedVersion = localStorage.getItem('vibecoding_app_version');
     if (savedVersion !== APP_VERSION_TAG) {
       localStorage.setItem('vibecoding_app_version', APP_VERSION_TAG);
@@ -1695,11 +1695,13 @@ function handleEditImagePresetChange(val) {
 }
 
 function handleEditSubmissionSubmit(event) {
-  event.preventDefault();
+  if (event) {
+    if (typeof event.preventDefault === 'function') event.preventDefault();
+  }
 
   const id = document.getElementById('editSubId').value;
   const s = app.submissions.find(item => item.id === id);
-  if (!s) return;
+  if (!s) return false;
 
   const name = document.getElementById('editName').value.trim();
   const dept = document.getElementById('editDept').value.trim();
@@ -1709,7 +1711,12 @@ function handleEditSubmissionSubmit(event) {
 
   const preset = document.getElementById('editImagePreset').value;
   const customImg = document.getElementById('editCustomImageUrl').value.trim();
-  const image = preset === 'custom' ? (customImg || 'slides_media/slide_22.jpg') : preset;
+  let image = preset;
+  if (preset === 'custom') {
+    image = customImg || s.image || 'slides_media/slide_22.jpg';
+  } else if (preset === 'upload' && uploadedImageDataUrl) {
+    image = uploadedImageDataUrl;
+  }
 
   s.name = name;
   s.dept = dept;
@@ -1719,14 +1726,16 @@ function handleEditSubmissionSubmit(event) {
   s.image = image;
 
   app.saveSubmissions();
+  autoPushSubmissionToCloudDB(s);
 
   closeModal('editSubmissionModal');
-  showToast('✅ 출품 작품 수정사항이 성공적으로 저장되었습니다!', 'success');
+  showToast('✅ 출품 작품 수정사항이 성공적으로 저장 및 실시간 동기화되었습니다!', 'success');
 
   renderContestGallery();
   renderHomeStats();
   renderHomeTopEntries();
   if (app.isAdmin) renderAdminDashboard();
+  return false;
 }
 
 async function syncSubmissionsToCentralCloudDB() {
@@ -1744,17 +1753,18 @@ async function syncSubmissionsToCentralCloudDB() {
 
   const sanitized = app.submissions.map(item => {
     const copy = { ...item };
-    if (!copy.videoUrl || copy.videoUrl.startsWith('blob:')) {
-      copy.videoUrl = 'https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/ForBiggerBlazes.mp4';
-    }
-    if (copy.videoData && copy.videoData.length > 1000000) {
-      copy.videoData = '';
+    if (copy.videoUrl && copy.videoUrl.startsWith('blob:')) {
+      if (copy.videoData && copy.videoData.startsWith('data:video/')) {
+        copy.videoUrl = copy.videoData;
+      } else {
+        copy.videoUrl = '';
+      }
     }
     return copy;
   });
 
   try {
-    await fetch(FREE_CLOUD_DB_URL, {
+    const putRes = await fetch(FREE_CLOUD_DB_URL, {
       method: 'PUT',
       headers: {
         'Content-Type': 'application/json',
@@ -1762,6 +1772,9 @@ async function syncSubmissionsToCentralCloudDB() {
       },
       body: JSON.stringify(sanitized)
     });
+    if (putRes.status === 404) {
+      await createNewCloudDbBin();
+    }
   } catch (e) {}
 }
 
