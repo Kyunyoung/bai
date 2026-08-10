@@ -923,19 +923,32 @@ function mergeSubmissionsData(newItems) {
 
   const mergedMap = new Map();
 
-  // 1. Keep valid non-deleted local submissions so fresh uploads are never erased!
-  (app.submissions || []).forEach(item => {
-    if (item && item.id && !app.deletedIds.has(item.id)) {
-      mergedMap.set(item.id, item);
-    }
-  });
-
-  // 2. Merge valid remote items from cloud DB
+  // 1. Primary: Remote items from central DB
   validRemoteItems.forEach(item => {
     if (item && item.id && !app.deletedIds.has(item.id)) {
       mergedMap.set(item.id, item);
     }
   });
+
+  // 2. Secondary: Local items stored in localStorage
+  const localStoredRaw = localStorage.getItem('vibecoding_contest_submissions');
+  let localStoredList = [];
+  try {
+    localStoredList = localStoredRaw ? JSON.parse(localStoredRaw) : [];
+  } catch (e) {}
+
+  localStoredList.forEach(item => {
+    if (item && item.id && !app.deletedIds.has(item.id)) {
+      if (!mergedMap.has(item.id)) {
+        mergedMap.set(item.id, item);
+      }
+    }
+  });
+
+  // If central DB is empty [] and local storage is empty [], set submissions to []
+  if (validRemoteItems.length === 0 && localStoredList.length === 0) {
+    mergedMap.clear();
+  }
 
   app.submissions = Array.from(mergedMap.values()).sort((a, b) => {
     return new Date(b.date || 0) - new Date(a.date || 0);
@@ -947,6 +960,19 @@ function mergeSubmissionsData(newItems) {
   renderHomeTopEntries();
   if (app.isAdmin) renderAdminDashboard();
 }
+
+// Real-time tab sync listener
+window.addEventListener('storage', (e) => {
+  if (e.key === 'vibecoding_contest_submissions') {
+    try {
+      const updated = JSON.parse(e.newValue || '[]');
+      app.submissions = Array.isArray(updated) ? updated : [];
+      renderContestGallery();
+      renderHomeStats();
+      renderHomeTopEntries();
+    } catch (err) {}
+  }
+});
 
 /* GITHUB REST API CENTRAL DATABASE LOGIC */
 let ghConfig = {
@@ -2234,8 +2260,8 @@ async function clearAllSubmissions() {
 
   app.submissions = [];
   app.deletedIds = new Set();
-  localStorage.removeItem('vibecoding_contest_submissions');
-  localStorage.removeItem('vibecoding_deleted_ids');
+  localStorage.setItem('vibecoding_contest_submissions', JSON.stringify([]));
+  localStorage.setItem('vibecoding_deleted_ids', JSON.stringify([]));
   app.saveSubmissions();
 
   try {

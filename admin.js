@@ -147,8 +147,8 @@ async function clearAllSubmissions() {
   }
 
   adminSubmissions = [];
-  localStorage.removeItem('vibecoding_contest_submissions');
-  localStorage.removeItem('vibecoding_deleted_ids');
+  localStorage.setItem('vibecoding_contest_submissions', JSON.stringify([]));
+  localStorage.setItem('vibecoding_deleted_ids', JSON.stringify([]));
 
   const cloudUrl = localStorage.getItem('vibecoding_cloud_db_url') || 'https://jsonblob.com/api/jsonBlob/019fea01-e225-7e8e-b86f-40df54614b00';
   try {
