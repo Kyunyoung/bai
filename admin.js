@@ -86,7 +86,7 @@ async function loadAdminData() {
   } catch (e) {
     console.warn('Fallback submissions to localStorage');
     try {
-      const local = localStorage.getItem('vibecoding_submissions');
+      const local = localStorage.getItem('vibecoding_contest_submissions');
       if (local) adminSubmissions = JSON.parse(local);
     } catch (err) {}
   }
@@ -124,7 +124,7 @@ async function saveAdminVoters() {
 // Save Submissions
 async function saveAdminSubmissions() {
   try {
-    localStorage.setItem('vibecoding_submissions', JSON.stringify(adminSubmissions));
+    localStorage.setItem('vibecoding_contest_submissions', JSON.stringify(adminSubmissions));
   } catch (e) {}
 
   if (window.location.protocol.startsWith('http')) {

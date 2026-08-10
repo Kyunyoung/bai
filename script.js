@@ -14,48 +14,8 @@ const PPT_SLIDES = Array.from({ length: 59 }, (_, i) => {
   };
 });
 
-// Seed Initial Contest Submissions (if empty)
-const SEED_SUBMISSIONS = [
-  {
-    id: 'sub_1',
-    name: '김경위',
-    dept: '디지털혁신팀',
-    title: '📊 250개 경찰서 엑셀 1초 서식 검증기',
-    desc: '전국 250개 경찰서에서 들어오는 취합 서식 오류를 파이썬 openpyxl 스크립트로 1초만에 자동 검증하고 정형화하는 통합 도구입니다.',
-    url: 'https://github.com/police-excel-validator',
-    videoUrl: 'https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/ForBiggerBlazes.mp4',
-    image: 'slides_media/slide_22.jpg',
-    votes: 42,
-    date: '2026-08-01',
-    status: 'visible'
-  },
-  {
-    id: 'sub_2',
-    name: '이형사',
-    dept: '사이버범죄수사대',
-    title: '📑 한글/엑셀 공문서 표도우미 자동화 툴',
-    desc: '복잡한 공문서 표 작성 및 셀 정렬을 클릭 한 번으로 자동 변환해주는 표도우미 매크로 도구입니다.',
-    url: 'https://github.com/hwp-table-helper',
-    videoUrl: 'https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/ForBiggerEscapes.mp4',
-    image: 'slides_media/slide_37.jpg',
-    votes: 38,
-    date: '2026-08-02',
-    status: 'visible'
-  },
-  {
-    id: 'sub_3',
-    name: '박수사관',
-    dept: '종합조정관실',
-    title: '⚙️ 오프라인 설치형 자동 보고서 생성기',
-    desc: '인터넷 연결이 제한된 오프라인 내부망에서 55개 실습 시나리오를 바탕으로 보고서를 자동 작성합니다.',
-    url: 'https://github.com/offline-report-gen',
-    videoUrl: 'https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/ForBiggerFun.mp4',
-    image: 'slides_media/slide_9.jpg',
-    votes: 29,
-    date: '2026-08-03',
-    status: 'visible'
-  }
-];
+// Seed Initial Contest Submissions (Empty default)
+const SEED_SUBMISSIONS = [];
 
 // AI Prompts Dataset
 const AI_PROMPTS = [
@@ -102,9 +62,14 @@ class VibePortalApp {
     this.viewedSlides = new Set(this.loadFromStorage('vibecoding_viewed_slides', []));
     
     // Contest Submissions
-    this.submissions = this.loadFromStorage('vibecoding_contest_submissions', null);
-    if (this.submissions === null) {
-      this.submissions = SEED_SUBMISSIONS;
+    this.submissions = this.loadFromStorage('vibecoding_contest_submissions', []);
+    if (!Array.isArray(this.submissions)) {
+      this.submissions = [];
+    }
+    // Clean legacy seed submission entries if present in local storage
+    const cleanedSubmissions = this.submissions.filter(s => s && s.id && !['sub_1', 'sub_2', 'sub_3'].includes(s.id));
+    if (cleanedSubmissions.length !== this.submissions.length) {
+      this.submissions = cleanedSubmissions;
       this.saveSubmissions();
     }
 
@@ -364,6 +329,18 @@ function renderHomeTopEntries() {
     .sort((a, b) => b.votes - a.votes)
     .slice(0, 3);
 
+  if (topThree.length === 0) {
+    container.innerHTML = `
+      <div style="grid-column:1/-1; text-align:center; padding:40px 20px; background:var(--card-bg, #ffffff); border-radius:var(--radius-lg, 12px); border:1px dashed var(--border-color, #cbd5e1);">
+        <div style="font-size:2.5rem; margin-bottom:8px;">🏆</div>
+        <h4 style="font-size:1.1rem; font-weight:700; color:var(--text-main); margin-bottom:4px;">아직 출품된 작품이 없습니다</h4>
+        <p style="color:var(--text-muted); font-size:0.85rem; margin-bottom:16px;">첫 번째 작품을 등록하고 명예의 전당 1위에 도전해보세요!</p>
+        <button class="btn btn-primary btn-sm" onclick="openDirectSubmissionModal()">🚀 지금 작품 등록하기</button>
+      </div>
+    `;
+    return;
+  }
+
   let html = '';
   topThree.forEach((s, idx) => {
     const isVoted = app.userVotes.has(s.id);
@@ -519,7 +496,18 @@ function renderContestGallery() {
   }
 
   if (list.length === 0) {
-    grid.innerHTML = `<div style="grid-column:1/-1; text-align:center; padding:40px; color:var(--text-muted);">검색 조건에 일치하는 출품작이 없습니다.</div>`;
+    if (app.submissions.length === 0) {
+      grid.innerHTML = `
+        <div style="grid-column:1/-1; text-align:center; padding:60px 20px; background:var(--card-bg, #ffffff); border-radius:var(--radius-lg, 12px); border:1px dashed var(--border-color, #cbd5e1);">
+          <div style="font-size:3rem; margin-bottom:12px;">🎨</div>
+          <h3 style="font-size:1.25rem; font-weight:700; color:var(--text-main); margin-bottom:8px;">등록된 출품작이 없습니다</h3>
+          <p style="color:var(--text-muted); font-size:0.9rem; margin-bottom:20px;">첫 번째 바이브코딩 업무 자동화 작품을 등록해보세요!</p>
+          <button class="btn btn-primary" onclick="openDirectSubmissionModal()">🚀 첫 작품 출품하기</button>
+        </div>
+      `;
+    } else {
+      grid.innerHTML = `<div style="grid-column:1/-1; text-align:center; padding:40px; color:var(--text-muted);">검색 조건에 일치하는 출품작이 없습니다.</div>`;
+    }
     return;
   }
 
@@ -615,6 +603,27 @@ function handleVote(submissionId) {
 
 let uploadedVideoDataUrl = null;
 let uploadedVideoUrl = null;
+let uploadedImageDataUrl = null;
+
+function handleImageFileSelect(event, previewId, wrapperId) {
+  const file = event.target.files[0];
+  if (!file) return;
+
+  const reader = new FileReader();
+  reader.onload = function(e) {
+    uploadedImageDataUrl = e.target.result;
+    const preview = document.getElementById(previewId || 'subImagePreview');
+    const wrapper = document.getElementById(wrapperId || 'imagePreviewWrapper');
+    if (preview) preview.src = uploadedImageDataUrl;
+    if (wrapper) wrapper.style.display = 'block';
+    showToast('🖼️ 작품 캡처 이미지가 성공적으로 첨부되었습니다!', 'success');
+  };
+  try {
+    reader.readAsDataURL(file);
+  } catch (e) {
+    console.error('Image read error:', e);
+  }
+}
 
 function handleVideoFileSelect(event, previewId, wrapperId) {
   const file = event.target.files[0];
@@ -1076,11 +1085,12 @@ async function autoPushSubmissionToCloudDB(newSub) {
   // 2. Push to Global Cloud DB (Ensure videoUrl is 100% playable on Phone B & PC C!)
   const sanitized = app.submissions.map(item => {
     const copy = { ...item };
-    if (!copy.videoUrl || copy.videoUrl.startsWith('blob:')) {
-      copy.videoUrl = 'https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/ForBiggerBlazes.mp4';
-    }
-    if (copy.videoData && copy.videoData.length > 1000000) {
-      copy.videoData = '';
+    if (copy.videoUrl && copy.videoUrl.startsWith('blob:')) {
+      if (copy.videoData && copy.videoData.startsWith('data:video/')) {
+        copy.videoUrl = copy.videoData;
+      } else {
+        copy.videoUrl = '';
+      }
     }
     return copy;
   });
@@ -1102,8 +1112,12 @@ async function autoPushSubmissionToCloudDB(newSub) {
 
 function handleImagePresetChange(val) {
   const customInput = document.getElementById('subCustomImageUrl');
+  const uploadWrapper = document.getElementById('imageUploadWrapper');
   if (customInput) {
     customInput.style.display = val === 'custom' ? 'block' : 'none';
+  }
+  if (uploadWrapper) {
+    uploadWrapper.style.display = val === 'upload' ? 'block' : 'none';
   }
 }
 
@@ -1217,11 +1231,16 @@ async function handleSubmissionSubmit(event) {
 
     const url = document.getElementById('subUrl')?.value.trim() || '#';
     const inputVideoUrl = document.getElementById('subVideoUrl')?.value.trim();
-    const videoUrl = inputVideoUrl || uploadedVideoUrl || 'https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/ForBiggerBlazes.mp4';
+    const videoUrl = inputVideoUrl || uploadedVideoUrl || '';
 
     const preset = document.getElementById('subImagePreset')?.value || 'slides_media/slide_22.jpg';
     const customImg = document.getElementById('subCustomImageUrl')?.value.trim();
-    const image = preset === 'custom' ? (customImg || 'slides_media/slide_22.jpg') : preset;
+    let image = preset;
+    if (preset === 'custom') {
+      image = customImg || 'slides_media/slide_22.jpg';
+    } else if (preset === 'upload' && uploadedImageDataUrl) {
+      image = uploadedImageDataUrl;
+    }
 
     const newSubId = `sub_${Date.now()}`;
     const newSub = {
@@ -1243,6 +1262,7 @@ async function handleSubmissionSubmit(event) {
 
     uploadedVideoDataUrl = null;
     uploadedVideoUrl = null;
+    uploadedImageDataUrl = null;
 
     app.submissions.unshift(newSub);
     app.saveSubmissions();
@@ -1451,20 +1471,20 @@ function handleDirectSubmissionSubmit(event) {
 }
 
 function getPlayableVideoUrl(s) {
-  if (!s) return 'data/sample_demo.mp4';
+  if (!s) return '';
   
-  if (s.videoUrl && typeof s.videoUrl === 'string' && s.videoUrl.trim().length > 0) {
-    const trimmed = s.videoUrl.trim();
-    if (trimmed.startsWith('http') || trimmed.startsWith('blob:') || trimmed.startsWith('data/') || trimmed.endsWith('.mp4')) {
-      return trimmed;
-    }
-  }
-
   if (s.videoData && typeof s.videoData === 'string' && s.videoData.startsWith('data:video/')) {
     return s.videoData;
   }
 
-  return 'data/sample_demo.mp4';
+  if (s.videoUrl && typeof s.videoUrl === 'string' && s.videoUrl.trim().length > 0) {
+    const trimmed = s.videoUrl.trim();
+    if (trimmed.startsWith('http') || trimmed.startsWith('blob:') || trimmed.startsWith('data:') || trimmed.startsWith('data/') || trimmed.endsWith('.mp4') || trimmed.endsWith('.webm') || trimmed.endsWith('.mov')) {
+      return trimmed;
+    }
+  }
+
+  return '';
 }
 
 function openSubmissionDetailModal(submissionId) {
@@ -2130,6 +2150,8 @@ window.handleDirectSubmissionSubmit = handleDirectSubmissionSubmit;
 window.loadSampleDemoVideoIntoForm = loadSampleDemoVideoIntoForm;
 window.loadSampleDemoVideoIntoFormDirect = loadSampleDemoVideoIntoFormDirect;
 window.handleVideoFileSelect = handleVideoFileSelect;
+window.handleImageFileSelect = handleImageFileSelect;
+window.handleImagePresetChange = handleImagePresetChange;
 window.openSubmissionDetailModal = openSubmissionDetailModal;
 window.switchNavTab = switchNavTab;
 window.switchContestSubTab = switchContestSubTab;

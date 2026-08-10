@@ -429,8 +429,17 @@
                 <option value="slides_media/slide_22.jpg">📊 엑셀 취합 자동화 캡처 (기본)</option>
                 <option value="slides_media/slide_37.jpg">📑 표도우미 양식 자동화 캡처</option>
                 <option value="slides_media/slide_9.jpg">⚙️ 환경 세팅 및 파이썬 캡처</option>
+                <option value="upload">🖼️ 내 기기에서 이미지 파일 선택 (직접 업로드)</option>
                 <option value="custom">✏️ 직접 이미지 URL 입력</option>
               </select>
+              <div id="imageUploadWrapper" style="display:none; margin-top:8px;">
+                <input type="file" id="subImageFile" accept="image/*" class="form-input"
+                  onchange="handleImageFileSelect(event, 'subImagePreview', 'imagePreviewWrapper')">
+              </div>
+              <div id="imagePreviewWrapper" style="display:none; margin-top:8px;">
+                <span style="font-size:0.85rem; font-weight:700; color:var(--primary-600);">🖼️ 업로드된 이미지 미리보기:</span>
+                <img id="subImagePreview" style="max-width:100%; max-height:180px; border-radius:var(--radius-md); margin-top:4px; border:1px solid var(--border-color); object-fit:cover;" />
+              </div>
               <input type="text" id="subCustomImageUrl" class="form-input" style="display:none; margin-top:8px;"
                 placeholder="https://... 이미지 URL 입력">
             </div>
