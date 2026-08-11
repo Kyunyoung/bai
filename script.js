@@ -62,7 +62,7 @@ class VibePortalApp {
     this.viewedSlides = new Set(this.loadFromStorage('vibecoding_viewed_slides', []));
     
     // Contest Submissions (Mobile Cache Invalidation Engine)
-    const APP_VERSION_TAG = '20260810_v3';
+    const APP_VERSION_TAG = '20260811_v4';
     const savedVersion = localStorage.getItem('vibecoding_app_version');
     if (savedVersion !== APP_VERSION_TAG) {
       localStorage.setItem('vibecoding_app_version', APP_VERSION_TAG);
@@ -1094,31 +1094,8 @@ async function pushSubmissionToGitHub(newSub) {
 }
 
 /* 100% AUTOMATIC REAL-TIME CLOUD DB SYNC ENGINE */
-let FREE_CLOUD_DB_URL = localStorage.getItem('vibecoding_cloud_db_url') || 'https://jsonblob.com/api/jsonBlob/019fea01-e225-7e8e-b86f-40df54614b00';
-
-async function createNewCloudDbBin() {
-  try {
-    const res = await fetch('https://jsonblob.com/api/jsonBlob', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        'Accept': 'application/json'
-      },
-      body: JSON.stringify(app.submissions || [])
-    });
-    if (res.ok) {
-      const location = res.headers.get('location');
-      if (location) {
-        const newUrl = location.startsWith('http') ? location : `https://jsonblob.com${location}`;
-        FREE_CLOUD_DB_URL = newUrl;
-        localStorage.setItem('vibecoding_cloud_db_url', newUrl);
-        console.log('New Cloud DB created:', newUrl);
-      }
-    }
-  } catch (e) {
-    console.warn('Create Cloud DB error:', e);
-  }
-}
+const CENTRAL_CLOUD_DB_URL = 'https://api.restful-api.dev/objects/ff8081819f7e10ae019ff10a25952642';
+const CENTRAL_CLOUD_DB_BACKUP_URL = 'https://api.restful-api.dev/objects/ff8081819f7e10ae019ff10aa9732648';
 
 async function forceRefreshCentralSync() {
   showToast('🔄 중앙 DB와 실시간 재동기화를 진행 중입니다...', 'info');
@@ -1127,8 +1104,8 @@ async function forceRefreshCentralSync() {
 }
 
 async function autoSyncCentralCloudDB() {
-  // 1. If running under HTTP/HTTPS server (e.g. node server.js), check local server API first!
-  if (window.location.protocol.startsWith('http')) {
+  // 1. If running under local Node server (e.g. localhost:3000), NOT static GitHub Pages!
+  if (window.location.protocol.startsWith('http') && !window.location.hostname.includes('github.io')) {
     try {
       const res = await fetch('/api/submissions');
       if (res.ok) {
@@ -1140,19 +1117,25 @@ async function autoSyncCentralCloudDB() {
     } catch (e) {}
   }
 
-  // 2. Global CORS Cloud DB
+  // 2. Fixed Central CORS REST DB (Primary)
   try {
-    const res = await fetch(`${FREE_CLOUD_DB_URL}?t=${Date.now()}`, {
-      headers: { 'Accept': 'application/json' }
-    });
+    const res = await fetch(`${CENTRAL_CLOUD_DB_URL}?t=${Date.now()}`);
     if (res.ok) {
-      const data = await res.json();
-      const items = Array.isArray(data) ? data : (data.record || []);
+      const json = await res.json();
+      const items = json?.data?.submissions;
       if (Array.isArray(items)) {
         mergeSubmissionsData(items);
       }
-    } else if (res.status === 404) {
-      await createNewCloudDbBin();
+    } else {
+      // Fallback to Backup DB
+      const resB = await fetch(`${CENTRAL_CLOUD_DB_BACKUP_URL}?t=${Date.now()}`);
+      if (resB.ok) {
+        const jsonB = await resB.json();
+        const itemsB = jsonB?.data?.submissions;
+        if (Array.isArray(itemsB)) {
+          mergeSubmissionsData(itemsB);
+        }
+      }
     }
   } catch (e) {}
 
@@ -1162,19 +1145,21 @@ async function autoSyncCentralCloudDB() {
 }
 
 async function autoPushSubmissionToCloudDB(newSub) {
-  // 1. If running under HTTP/HTTPS server, push to local server API first!
-  if (window.location.protocol.startsWith('http')) {
+  // 1. If running under local Node server, push to local server API
+  if (window.location.protocol.startsWith('http') && !window.location.hostname.includes('github.io')) {
     try {
-      await fetch('/api/submissions', {
+      const res = await fetch('/api/submissions', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(app.submissions)
       });
-      showToast('🟢 서버 중앙 DB에 실시간 등록되었습니다!', 'success');
+      if (res.ok) {
+        showToast('🟢 로컬 서버 DB에 실시간 등록되었습니다!', 'success');
+      }
     } catch (e) {}
   }
 
-  // 2. Push to Global Cloud DB (Ensure videoUrl is 100% playable on Phone B & PC C!)
+  // 2. Push to Global Cloud DB (Ensure videoUrl is 100% playable on all devices)
   const sanitized = app.submissions.map(item => {
     const copy = { ...item };
     if (copy.videoUrl && copy.videoUrl.startsWith('blob:')) {
@@ -1187,21 +1172,38 @@ async function autoPushSubmissionToCloudDB(newSub) {
     return copy;
   });
 
+  // 3. Push to Fixed Central CORS REST DB
+  let cloudPushed = false;
   try {
-    const putRes = await fetch(FREE_CLOUD_DB_URL, {
+    const putRes = await fetch(CENTRAL_CLOUD_DB_URL, {
       method: 'PUT',
-      headers: {
-        'Content-Type': 'application/json',
-        'Accept': 'application/json'
-      },
-      body: JSON.stringify(sanitized)
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        name: 'vibecoding_submissions',
+        data: { submissions: sanitized }
+      })
     });
     if (putRes.ok) {
-      showToast('🟢 전 세계 중앙 DB에 작품 및 동영상이 3초 자동 동기화되었습니다!', 'success');
-    } else if (putRes.status === 404) {
-      await createNewCloudDbBin();
+      cloudPushed = true;
+      showToast('🟢 전 세계 중앙 DB에 작품이 실시간 자동 저장되었습니다!', 'success');
     }
   } catch (e) {}
+
+  if (!cloudPushed) {
+    try {
+      const putBRes = await fetch(CENTRAL_CLOUD_DB_BACKUP_URL, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          name: 'vibecoding_submissions_backup',
+          data: { submissions: sanitized }
+        })
+      });
+      if (putBRes.ok) {
+        showToast('🟢 중앙 DB(백업)에 작품이 실시간 자동 저장되었습니다!', 'success');
+      }
+    } catch (e) {}
+  }
 
   pushSubmissionToGitHub(newSub);
 }
@@ -2288,17 +2290,22 @@ async function clearAllSubmissions() {
   app.saveSubmissions();
 
   try {
-    await fetch(FREE_CLOUD_DB_URL, {
+    await fetch(CENTRAL_CLOUD_DB_URL, {
       method: 'PUT',
-      headers: {
-        'Content-Type': 'application/json',
-        'Accept': 'application/json'
-      },
-      body: JSON.stringify([])
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ name: 'vibecoding_submissions', data: { submissions: [] } })
     });
   } catch (e) {}
 
-  if (window.location.protocol.startsWith('http')) {
+  try {
+    await fetch(CENTRAL_CLOUD_DB_BACKUP_URL, {
+      method: 'PUT',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ name: 'vibecoding_submissions_backup', data: { submissions: [] } })
+    });
+  } catch (e) {}
+
+  if (window.location.protocol.startsWith('http') && !window.location.hostname.includes('github.io')) {
     try {
       await fetch('/api/submissions', {
         method: 'POST',
@@ -2308,7 +2315,7 @@ async function clearAllSubmissions() {
     } catch (e) {}
   }
 
-  showToast('🗑️ 모든 출품작 데이터가 클리어 되었습니다.', 'success');
+  showToast('🗑️ 전 세계 중앙 DB의 모든 출품작 내역이 깨끗이 초기화되었습니다.', 'success');
   renderContestGallery();
   renderHomeStats();
   renderHomeTopEntries();

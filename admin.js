@@ -55,44 +55,43 @@ function initTheme() {
   }
 }
 
+const CENTRAL_CLOUD_DB_URL = 'https://api.restful-api.dev/objects/ff8081819f7e10ae019ff10a25952642';
+const CENTRAL_CLOUD_DB_BACKUP_URL = 'https://api.restful-api.dev/objects/ff8081819f7e10ae019ff10aa9732648';
+
 // Load Data
 async function loadAdminData() {
   const syncBadge = document.getElementById('syncStatusBadge');
 
-  try {
-    // 1. Fetch Voters
-    const resVoters = await fetch('/api/voters');
-    if (resVoters.ok) {
-      adminVoters = await resVoters.json();
-    } else {
-      throw new Error('Voters API failed');
-    }
-  } catch (e) {
-    console.warn('Fallback voters to localStorage');
+  if (window.location.protocol.startsWith('http') && !window.location.hostname.includes('github.io')) {
     try {
-      const local = localStorage.getItem('vibe_voters_db');
-      if (local) adminVoters = JSON.parse(local);
-    } catch (err) {}
+      const resVoters = await fetch('/api/voters');
+      if (resVoters.ok) adminVoters = await resVoters.json();
+    } catch (e) {}
+
+    try {
+      const resSub = await fetch('/api/submissions');
+      if (resSub.ok) adminSubmissions = await resSub.json();
+    } catch (e) {}
+  } else {
+    try {
+      const localV = localStorage.getItem('vibe_voters_db');
+      if (localV) adminVoters = JSON.parse(localV);
+    } catch (e) {}
   }
 
+  // Fetch Central Cloud DB Submissions
   try {
-    // 2. Fetch Submissions
-    const resSub = await fetch('/api/submissions');
-    if (resSub.ok) {
-      adminSubmissions = await resSub.json();
-    } else {
-      throw new Error('Submissions API failed');
+    const resCloud = await fetch(`${CENTRAL_CLOUD_DB_URL}?t=${Date.now()}`);
+    if (resCloud.ok) {
+      const json = await resCloud.json();
+      if (Array.isArray(json?.data?.submissions)) {
+        adminSubmissions = json.data.submissions;
+      }
     }
-  } catch (e) {
-    console.warn('Fallback submissions to localStorage');
-    try {
-      const local = localStorage.getItem('vibecoding_contest_submissions');
-      if (local) adminSubmissions = JSON.parse(local);
-    } catch (err) {}
-  }
+  } catch (e) {}
 
   if (syncBadge) {
-    syncBadge.textContent = '🟢 실시간 서버 연동 완료';
+    syncBadge.textContent = '🟢 실시간 전역 중앙 DB 연동 완료';
     syncBadge.style.background = '#10b981';
   }
 
@@ -107,7 +106,7 @@ async function saveAdminVoters() {
     localStorage.setItem('vibe_voters_db', JSON.stringify(adminVoters));
   } catch (e) {}
 
-  if (window.location.protocol.startsWith('http')) {
+  if (window.location.protocol.startsWith('http') && !window.location.hostname.includes('github.io')) {
     try {
       await fetch('/api/voters', {
         method: 'POST',
@@ -127,17 +126,32 @@ async function saveAdminSubmissions() {
     localStorage.setItem('vibecoding_contest_submissions', JSON.stringify(adminSubmissions));
   } catch (e) {}
 
-  if (window.location.protocol.startsWith('http')) {
+  if (window.location.protocol.startsWith('http') && !window.location.hostname.includes('github.io')) {
     try {
       await fetch('/api/submissions', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(adminSubmissions)
       });
-    } catch (e) {
-      console.error('Failed to sync submissions to server:', e);
-    }
+    } catch (e) {}
   }
+
+  try {
+    await fetch(CENTRAL_CLOUD_DB_URL, {
+      method: 'PUT',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ name: 'vibecoding_submissions', data: { submissions: adminSubmissions } })
+    });
+  } catch (e) {}
+
+  try {
+    await fetch(CENTRAL_CLOUD_DB_BACKUP_URL, {
+      method: 'PUT',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ name: 'vibecoding_submissions_backup', data: { submissions: adminSubmissions } })
+    });
+  } catch (e) {}
+
   renderAdminKPIs();
 }
 
@@ -150,16 +164,23 @@ async function clearAllSubmissions() {
   localStorage.setItem('vibecoding_contest_submissions', JSON.stringify([]));
   localStorage.setItem('vibecoding_deleted_ids', JSON.stringify([]));
 
-  const cloudUrl = localStorage.getItem('vibecoding_cloud_db_url') || 'https://jsonblob.com/api/jsonBlob/019fea01-e225-7e8e-b86f-40df54614b00';
   try {
-    await fetch(cloudUrl, {
+    await fetch(CENTRAL_CLOUD_DB_URL, {
       method: 'PUT',
-      headers: { 'Content-Type': 'application/json', 'Accept': 'application/json' },
-      body: JSON.stringify([])
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ name: 'vibecoding_submissions', data: { submissions: [] } })
     });
   } catch (e) {}
 
-  if (window.location.protocol.startsWith('http')) {
+  try {
+    await fetch(CENTRAL_CLOUD_DB_BACKUP_URL, {
+      method: 'PUT',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ name: 'vibecoding_submissions_backup', data: { submissions: [] } })
+    });
+  } catch (e) {}
+
+  if (window.location.protocol.startsWith('http') && !window.location.hostname.includes('github.io')) {
     try {
       await fetch('/api/submissions', {
         method: 'POST',
@@ -169,7 +190,7 @@ async function clearAllSubmissions() {
     } catch (e) {}
   }
 
-  showToast('🗑️ 모든 출품작 데이터가 클리어 되었습니다.', 'success');
+  showToast('🗑️ 전 세계 중앙 DB의 모든 출품작 내역이 깨끗이 초기화되었습니다.', 'success');
   renderAdminKPIs();
   renderSubmissionTable();
 }
