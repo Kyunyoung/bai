@@ -67,11 +67,6 @@ async function loadAdminData() {
       const resVoters = await fetch('/api/voters');
       if (resVoters.ok) adminVoters = await resVoters.json();
     } catch (e) {}
-
-    try {
-      const resSub = await fetch('/api/submissions');
-      if (resSub.ok) adminSubmissions = await resSub.json();
-    } catch (e) {}
   } else {
     try {
       const localV = localStorage.getItem('vibe_voters_db');
@@ -79,20 +74,31 @@ async function loadAdminData() {
     } catch (e) {}
   }
 
-  // Fetch Central Cloud DB Submissions
-  try {
-    const resCloud = await fetch(`${CENTRAL_CLOUD_DB_URL}?t=${Date.now()}`);
-    if (resCloud.ok) {
-      const json = await resCloud.json();
-      if (Array.isArray(json?.data?.submissions)) {
-        adminSubmissions = json.data.submissions;
+  // Fetch Central Submissions via SubmissionsService
+  if (window.isBackendConfigured()) {
+    try {
+      const items = await window.SubmissionsService.fetchSubmissions();
+      if (Array.isArray(items)) {
+        adminSubmissions = items;
       }
+    } catch (e) {
+      console.error('Admin Load Error:', e);
     }
-  } catch (e) {}
+  } else {
+    try {
+      const local = localStorage.getItem('vibecoding_contest_submissions');
+      if (local) adminSubmissions = JSON.parse(local);
+    } catch (err) {}
+  }
 
   if (syncBadge) {
-    syncBadge.textContent = '🟢 실시간 전역 중앙 DB 연동 완료';
-    syncBadge.style.background = '#10b981';
+    if (window.isBackendConfigured()) {
+      syncBadge.textContent = '🟢 Supabase 중앙 DB 연동 완료';
+      syncBadge.style.background = '#10b981';
+    } else {
+      syncBadge.textContent = '⚠️ 중앙 DB 미설정';
+      syncBadge.style.background = '#ef4444';
+    }
   }
 
   renderAdminKPIs();
@@ -419,14 +425,28 @@ function renderSubmissionTable() {
 }
 
 // Delete Single Submission
-function deleteSingleSubmission(id) {
+async function deleteSingleSubmission(id) {
   const sub = adminSubmissions.find(s => s.id === id);
   if (!sub) return;
-  if (confirm(`'${sub.title}' 작품을 삭제하시겠습니까?`)) {
+  if (!confirm(`'${sub.title}' 작품을 삭제하시겠습니까?`)) return;
+
+  if (window.isBackendConfigured()) {
+    try {
+      await window.SubmissionsService.adminDeleteSubmission(id);
+      adminSubmissions = adminSubmissions.filter(s => s.id !== id);
+      localStorage.setItem('vibecoding_contest_submissions', JSON.stringify(adminSubmissions));
+      renderSubmissionTable();
+      renderAdminKPIs();
+      showToast(`'${sub.title}' 작품이 중앙 DB에서 삭제되었습니다.`, 'success');
+    } catch (err) {
+      showToast('❌ 삭제 실패: ' + err.message, 'error');
+    }
+  } else {
     adminSubmissions = adminSubmissions.filter(s => s.id !== id);
-    saveAdminSubmissions();
+    localStorage.setItem('vibecoding_contest_submissions', JSON.stringify(adminSubmissions));
     renderSubmissionTable();
-    showToast(`'${sub.title}' 작품이 삭제되었습니다.`, 'info');
+    renderAdminKPIs();
+    showToast(`'${sub.title}' 작품이 로컬에서 삭제되었습니다.`, 'info');
   }
 }
 
@@ -434,9 +454,4 @@ function deleteSingleSubmission(id) {
 document.addEventListener('DOMContentLoaded', () => {
   initTheme();
   loadAdminData();
-
-  // Auto Refresh Data Every 4 Seconds
-  setInterval(() => {
-    loadAdminData();
-  }, 4000);
 });

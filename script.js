@@ -209,13 +209,9 @@ document.addEventListener('DOMContentLoaded', () => {
   updateVoterHeaderUI();
   renderVoterTable();
   setupModalEvents();
-  fetchGitHubSubmissions();
   fetchVotersFromServer();
 
-  // 100% AUTOMATIC BACKGROUND SYNC EVERY 3 SECONDS
-  setInterval(() => {
-    autoSyncCentralCloudDB();
-  }, 3000);
+  loadCentralSubmissions();
 });
 
 function initTheme() {
@@ -992,220 +988,85 @@ let ghConfig = {
   path: 'data/submissions.json'
 };
 
-function saveGitHubConfig() {
-  const owner = document.getElementById('ghOwnerInput')?.value.trim();
-  const repo = document.getElementById('ghRepoInput')?.value.trim();
-  const token = document.getElementById('ghTokenInput')?.value.trim();
-
-  if (owner) {
-    ghConfig.owner = owner;
-    localStorage.setItem('vibecoding_gh_owner', owner);
-  }
-  if (repo) {
-    ghConfig.repo = repo;
-    localStorage.setItem('vibecoding_gh_repo', repo);
-  }
-  if (token) {
-    ghConfig.token = token;
-    localStorage.setItem('vibecoding_gh_token', token);
-  }
-
-  showToast('💾 GitHub REST API 중앙 DB 설정이 저장되었습니다!', 'success');
-  fetchGitHubSubmissions(true);
-}
-
-function loadGitHubConfigUI() {
-  const ownerEl = document.getElementById('ghOwnerInput');
-  const repoEl = document.getElementById('ghRepoInput');
-  const tokenEl = document.getElementById('ghTokenInput');
-
-  if (ownerEl) ownerEl.value = ghConfig.owner;
-  if (repoEl) repoEl.value = ghConfig.repo;
-  if (tokenEl) tokenEl.value = ghConfig.token;
-}
-
-async function fetchGitHubSubmissions(showToastNotice = false) {
-  if (!ghConfig.owner || !ghConfig.repo) return;
-
-  const rawUrl = `https://raw.githubusercontent.com/${ghConfig.owner}/${ghConfig.repo}/main/${ghConfig.path}?t=${Date.now()}`;
-
-  try {
-    const res = await fetch(rawUrl);
-    if (res.ok) {
-      const data = await res.json();
-      if (Array.isArray(data)) {
-        mergeSubmissionsData(data);
-        const badge = document.getElementById('githubDbStatusBadge');
-        if (badge) {
-          badge.textContent = `🐙 GitHub DB 실시간 연동 중 (${data.length}개 커밋 동기화)`;
-          badge.style.background = 'rgba(16, 185, 129, 0.15)';
-          badge.style.color = '#059669';
-        }
-        if (showToastNotice) showToast(`🐙 GitHub에서 ${data.length}개의 최신 제출작을 동기화했습니다!`, 'success');
-      }
-    } else {
-      if (showToastNotice) showToast('GitHub 리포지토리의 submissions.json 연동 대기 중입니다.', 'info');
+async function loadCentralSubmissions() {
+  if (!window.isBackendConfigured()) {
+    const badge = document.getElementById('realtimeSyncBadge');
+    if (badge) {
+      badge.textContent = '⚠️ 중앙 DB 미설정 (config.js 환경설정 필요)';
+      badge.style.background = 'rgba(239, 68, 68, 0.15)';
+      badge.style.color = '#dc2626';
     }
-  } catch (err) {
-    console.warn('GitHub API fetch error:', err);
-    if (showToastNotice) showToast('⚠️ GitHub DB 읽기 실패. 소유자/리포지토리명을 확인하세요.', 'info');
-  }
-}
-
-async function pushSubmissionToGitHub(newSub) {
-  if (!ghConfig.owner || !ghConfig.repo || !ghConfig.token) {
-    console.log('GitHub Token/Repo not fully set for auto-commit.');
     return;
   }
 
-  const apiUrl = `https://api.github.com/repos/${ghConfig.owner}/${ghConfig.repo}/contents/${ghConfig.path}`;
-
   try {
-    let sha = '';
-    const getRes = await fetch(apiUrl, {
-      headers: { 'Authorization': `token ${ghConfig.token}` }
-    });
-    if (getRes.ok) {
-      const existing = await getRes.json();
-      sha = existing.sha;
-    }
-
-    const contentBase64 = btoa(unescape(encodeURIComponent(JSON.stringify(app.submissions, null, 2))));
-
-    const putRes = await fetch(apiUrl, {
-      method: 'PUT',
-      headers: {
-        'Authorization': `token ${ghConfig.token}`,
-        'Content-Type': 'application/json'
-      },
-      body: JSON.stringify({
-        message: `feat: Add contest submission '${newSub.title}' by ${newSub.name}`,
-        content: contentBase64,
-        sha: sha || undefined
-      })
-    });
-
-    if (putRes.ok) {
-      showToast('🐙 GitHub 중앙 DB에 Commit 등록이 완료되었습니다!', 'success');
+    const items = await window.SubmissionsService.fetchSubmissions();
+    if (Array.isArray(items)) {
+      app.submissions = items;
+      app.saveSubmissions();
+      renderContestGallery();
+      renderHomeStats();
+      renderHomeTopEntries();
     }
   } catch (e) {
-    console.warn('GitHub API push error:', e);
+    console.error('Load Central Submissions Error:', e);
   }
-}
 
-/* 100% AUTOMATIC REAL-TIME CLOUD DB SYNC ENGINE */
-const CENTRAL_CLOUD_DB_URL = 'https://api.restful-api.dev/objects/ff8081819f7e10ae019ff10a25952642';
-const CENTRAL_CLOUD_DB_BACKUP_URL = 'https://api.restful-api.dev/objects/ff8081819f7e10ae019ff10aa9732648';
+  window.SubmissionsService.subscribeToRealtimeSubmissions(
+    (newSub) => {
+      const idx = app.submissions.findIndex(s => s.id === newSub.id);
+      if (idx === -1) {
+        app.submissions.unshift(newSub);
+      } else {
+        app.submissions[idx] = newSub;
+      }
+      app.saveSubmissions();
+      renderContestGallery();
+      renderHomeStats();
+      renderHomeTopEntries();
+    },
+    (updatedSub) => {
+      const idx = app.submissions.findIndex(s => s.id === updatedSub.id);
+      if (idx !== -1) {
+        app.submissions[idx] = updatedSub;
+      } else {
+        app.submissions.unshift(updatedSub);
+      }
+      app.saveSubmissions();
+      renderContestGallery();
+      renderHomeStats();
+      renderHomeTopEntries();
+    },
+    (deletedId) => {
+      app.submissions = app.submissions.filter(s => s.id !== deletedId);
+      app.saveSubmissions();
+      renderContestGallery();
+      renderHomeStats();
+      renderHomeTopEntries();
+    }
+  );
+}
 
 async function forceRefreshCentralSync() {
-  showToast('🔄 중앙 DB와 실시간 재동기화를 진행 중입니다...', 'info');
-  await autoSyncCentralCloudDB();
-  showToast(`✅ 동기화 완료! 총 ${app.submissions.length}개 출품작이 반영되었습니다.`, 'success');
-}
-
-async function autoSyncCentralCloudDB() {
-  // 1. If running under local Node server (e.g. localhost:3000), NOT static GitHub Pages!
-  if (window.location.protocol.startsWith('http') && !window.location.hostname.includes('github.io')) {
-    try {
-      const res = await fetch('/api/submissions');
-      if (res.ok) {
-        const items = await res.json();
-        if (Array.isArray(items)) {
-          mergeSubmissionsData(items);
-        }
-      }
-    } catch (e) {}
+  if (!window.isBackendConfigured()) {
+    showToast('⚠️ 중앙 저장소가 설정되지 않았습니다. config.js를 확인해주세요.', 'warning');
+    return;
   }
 
-  // 2. Fixed Central CORS REST DB (Primary)
+  showToast('🔄 Supabase 중앙 DB와 실시간 재동기화를 진행 중입니다...', 'info');
   try {
-    const res = await fetch(`${CENTRAL_CLOUD_DB_URL}?t=${Date.now()}`);
-    if (res.ok) {
-      const json = await res.json();
-      const items = json?.data?.submissions;
-      if (Array.isArray(items)) {
-        mergeSubmissionsData(items);
-      }
-    } else {
-      // Fallback to Backup DB
-      const resB = await fetch(`${CENTRAL_CLOUD_DB_BACKUP_URL}?t=${Date.now()}`);
-      if (resB.ok) {
-        const jsonB = await resB.json();
-        const itemsB = jsonB?.data?.submissions;
-        if (Array.isArray(itemsB)) {
-          mergeSubmissionsData(itemsB);
-        }
-      }
+    const items = await window.SubmissionsService.fetchSubmissions();
+    if (Array.isArray(items)) {
+      app.submissions = items;
+      app.saveSubmissions();
+      renderContestGallery();
+      renderHomeStats();
+      renderHomeTopEntries();
+      showToast(`✅ 동기화 완료! 총 ${items.length}개 출품작이 반영되었습니다. (시각: ${new Date().toLocaleTimeString()})`, 'success');
     }
-  } catch (e) {}
-
-  if (ghConfig.owner && ghConfig.repo) {
-    await fetchGitHubSubmissions(false);
+  } catch (e) {
+    showToast('❌ 동기화 실패: ' + e.message, 'error');
   }
-}
-
-async function autoPushSubmissionToCloudDB(newSub) {
-  // 1. If running under local Node server, push to local server API
-  if (window.location.protocol.startsWith('http') && !window.location.hostname.includes('github.io')) {
-    try {
-      const res = await fetch('/api/submissions', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(app.submissions)
-      });
-      if (res.ok) {
-        showToast('🟢 로컬 서버 DB에 실시간 등록되었습니다!', 'success');
-      }
-    } catch (e) {}
-  }
-
-  // 2. Push to Global Cloud DB (Ensure videoUrl is 100% playable on all devices)
-  const sanitized = app.submissions.map(item => {
-    const copy = { ...item };
-    if (copy.videoUrl && copy.videoUrl.startsWith('blob:')) {
-      if (copy.videoData && copy.videoData.startsWith('data:video/')) {
-        copy.videoUrl = copy.videoData;
-      } else {
-        copy.videoUrl = '';
-      }
-    }
-    return copy;
-  });
-
-  // 3. Push to Fixed Central CORS REST DB
-  let cloudPushed = false;
-  try {
-    const putRes = await fetch(CENTRAL_CLOUD_DB_URL, {
-      method: 'PUT',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        name: 'vibecoding_submissions',
-        data: { submissions: sanitized }
-      })
-    });
-    if (putRes.ok) {
-      cloudPushed = true;
-      showToast('🟢 전 세계 중앙 DB에 작품이 실시간 자동 저장되었습니다!', 'success');
-    }
-  } catch (e) {}
-
-  if (!cloudPushed) {
-    try {
-      const putBRes = await fetch(CENTRAL_CLOUD_DB_BACKUP_URL, {
-        method: 'PUT',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          name: 'vibecoding_submissions_backup',
-          data: { submissions: sanitized }
-        })
-      });
-      if (putBRes.ok) {
-        showToast('🟢 중앙 DB(백업)에 작품이 실시간 자동 저장되었습니다!', 'success');
-      }
-    } catch (e) {}
-  }
-
-  pushSubmissionToGitHub(newSub);
 }
 
 function handleImagePresetChange(val) {
@@ -1250,32 +1111,32 @@ function promptPasscodeVerification(submissionId, actionType) {
   }, 50);
 }
 
+let verifyPasscodeCache = '';
+
 function handleVerifyPasscodeSubmit(event) {
-  event.preventDefault();
+  if (event) {
+    if (typeof event.preventDefault === 'function') event.preventDefault();
+  }
 
   const id = document.getElementById('verifySubId').value;
   const actionType = document.getElementById('verifyActionType').value;
   const passInput = document.getElementById('verifyPassInput').value.trim();
 
-  const s = app.submissions.find(item => item.id === id);
-  if (!s) return;
-
-  const expectedPasscode = s.passcode || '1234';
-
-  if (passInput === expectedPasscode) {
-    closeModal('verifyPasscodeModal');
-    showToast('🔒 비밀번호 인증이 완료되었습니다.', 'success');
-
-    setTimeout(() => {
-      if (actionType === 'edit') {
-        openEditSubmissionModal(id);
-      } else if (actionType === 'cancel') {
-        handleCancelSubmission(id);
-      }
-    }, 100);
-  } else {
-    showToast('⚠️ 비밀번호가 일치하지 않습니다. (샘플 예제 비밀번호: 1234)', 'info');
+  if (!passInput) {
+    showToast('⚠️ 본인 확인 비밀번호를 입력해주세요.', 'warning');
+    return false;
   }
+
+  verifyPasscodeCache = passInput;
+  closeModal('verifyPasscodeModal');
+
+  if (actionType === 'edit') {
+    openEditSubmissionModal(id);
+  } else if (actionType === 'cancel') {
+    handleCancelSubmission(id, passInput);
+  }
+
+  return false;
 }
 
 async function handleSubmissionSubmit(event) {
@@ -1283,6 +1144,14 @@ async function handleSubmissionSubmit(event) {
     if (typeof event.preventDefault === 'function') event.preventDefault();
     if (typeof event.stopPropagation === 'function') event.stopPropagation();
   }
+
+  if (!window.isBackendConfigured()) {
+    showToast('⚠️ 중앙 저장소가 설정되지 않아 등록할 수 없습니다. config.js 설정을 확인해주세요.', 'warning');
+    return false;
+  }
+
+  const submitBtn = document.querySelector('#submissionForm button[type="submit"]');
+  const origBtnHTML = submitBtn ? submitBtn.innerHTML : '';
 
   try {
     const nameInput = document.getElementById('subName');
@@ -1297,79 +1166,60 @@ async function handleSubmissionSubmit(event) {
     const desc = descInput ? descInput.value.trim() : '';
     const passcode = passInput ? passInput.value.trim() : '';
 
-    [nameInput, deptInput, titleInput, descInput, passInput].forEach(el => {
-      if (el) el.style.borderColor = '';
-    });
-
-    if (!name) {
-      if (nameInput) { nameInput.style.borderColor = '#ef4444'; nameInput.focus(); }
-      alert('⚠️ 제출자 성명을 입력해주세요.');
-      return false;
-    }
-    if (!dept) {
-      if (deptInput) { deptInput.style.borderColor = '#ef4444'; deptInput.focus(); }
-      alert('⚠️ 소속 부서를 입력해주세요.');
-      return false;
-    }
-    if (!title) {
-      if (titleInput) { titleInput.style.borderColor = '#ef4444'; titleInput.focus(); }
-      alert('⚠️ 작품 제목을 입력해주세요.');
-      return false;
-    }
-    if (!desc) {
-      if (descInput) { descInput.style.borderColor = '#ef4444'; descInput.focus(); }
-      alert('⚠️ 작품 기획 의도 및 설명을 입력해주세요.');
-      return false;
-    }
-    if (!passcode) {
-      if (passInput) { passInput.style.borderColor = '#ef4444'; passInput.focus(); }
-      alert('⚠️ 작품 수정/취소용 비밀번호 4자리를 입력해주세요.');
+    if (!name || !dept || !title || !desc || !passcode) {
+      showToast('⚠️ 필수 입력 항목과 비밀번호를 모두 입력해주세요.', 'warning');
       return false;
     }
 
-    const url = document.getElementById('subUrl')?.value.trim() || '#';
+    if (passcode.length < 4) {
+      showToast('⚠️ 본인 확인 비밀번호는 최소 4자리 이상이어야 합니다.', 'warning');
+      if (passInput) passInput.focus();
+      return false;
+    }
+
+    if (submitBtn) {
+      submitBtn.disabled = true;
+      submitBtn.innerHTML = '⏳ 중앙 DB 서버 등록 중...';
+    }
+
+    const url = document.getElementById('subUrl')?.value.trim() || '';
     const inputVideoUrl = document.getElementById('subVideoUrl')?.value.trim();
-    const videoUrl = inputVideoUrl || uploadedVideoUrl || '';
 
     const preset = document.getElementById('subImagePreset')?.value || 'slides_media/slide_22.jpg';
     const customImg = document.getElementById('subCustomImageUrl')?.value.trim();
-    let image = preset;
+    let image_url = preset;
     if (preset === 'custom') {
-      image = customImg || 'slides_media/slide_22.jpg';
-    } else if (preset === 'upload' && uploadedImageDataUrl) {
-      image = uploadedImageDataUrl;
+      image_url = customImg || 'slides_media/slide_22.jpg';
     }
 
-    const newSubId = `sub_${Date.now()}`;
-    const newSub = {
-      id: newSubId,
-      name: name,
-      dept: dept,
-      title: title,
-      desc: desc,
-      url: url,
-      videoUrl: videoUrl,
-      videoData: uploadedVideoDataUrl || '',
-      image: image,
-      passcode: passcode,
-      votes: 0,
-      ratings: [],
-      date: new Date().toISOString().split('T')[0],
-      status: 'visible'
+    const formData = {
+      name,
+      dept,
+      title,
+      desc,
+      url,
+      passcode,
+      image_url,
+      video_url: inputVideoUrl || null,
+      imageFile: (preset === 'upload' && uploadedImageFile) ? uploadedImageFile : null,
+      videoFile: uploadedVideoFile || null
     };
 
-    uploadedVideoDataUrl = null;
+    const newSub = await window.SubmissionsService.createSubmission(formData);
+
+    uploadedVideoFile = null;
+    uploadedImageFile = null;
     uploadedVideoUrl = null;
     uploadedImageDataUrl = null;
 
     app.submissions.unshift(newSub);
     app.saveSubmissions();
-    autoPushSubmissionToCloudDB(newSub);
 
-    alert(`🎉 '${title}' 작품이 성공적으로 출품되었습니다!\n작품 갤러리로 이동합니다.`);
     const form = document.getElementById('submissionForm');
     if (form) form.reset();
+    closeModal('submissionModal');
 
+    showToast(`🟢 '${title}' 작품이 중앙 DB에 성공적으로 저장되었습니다! 다른 기기에서도 확인하실 수 있습니다.`, 'success');
     switchNavTab('contest');
     switchContestSubTab('gallery');
     renderHomeStats();
@@ -1377,8 +1227,13 @@ async function handleSubmissionSubmit(event) {
     renderContestGallery();
 
   } catch (err) {
-    alert('제출 처리 중 오류 발생: ' + err.message);
     console.error('Submission error:', err);
+    showToast('❌ 작품 등록 실패: ' + (err.message || '서버 저장 중 오류가 발생했습니다.'), 'error');
+  } finally {
+    if (submitBtn) {
+      submitBtn.disabled = false;
+      submitBtn.innerHTML = origBtnHTML;
+    }
   }
 
   return false;
@@ -1475,11 +1330,19 @@ function loadSampleDemoVideoIntoFormDirect() {
   showToast('🎉 시연 동영상 및 기본 출품 정보가 1초만에 자동 세팅되었습니다!', 'success');
 }
 
-function handleDirectSubmissionSubmit(event) {
+async function handleDirectSubmissionSubmit(event) {
   if (event) {
     if (typeof event.preventDefault === 'function') event.preventDefault();
     if (typeof event.stopPropagation === 'function') event.stopPropagation();
   }
+
+  if (!window.isBackendConfigured()) {
+    showToast('⚠️ 중앙 저장소가 설정되지 않아 등록할 수 없습니다. config.js 설정을 확인해주세요.', 'warning');
+    return false;
+  }
+
+  const submitBtn = document.querySelector('#directSubmissionForm button[type="submit"]');
+  const origBtnHTML = submitBtn ? submitBtn.innerHTML : '';
 
   try {
     const nameInput = document.getElementById('directSubName');
@@ -1494,66 +1357,47 @@ function handleDirectSubmissionSubmit(event) {
     const desc = descInput ? descInput.value.trim() : '';
     const passcode = passInput ? passInput.value.trim() : '';
 
-    [nameInput, deptInput, titleInput, descInput, passInput].forEach(el => {
-      if (el) el.style.borderColor = '';
-    });
-
-    if (!name) {
-      if (nameInput) { nameInput.style.borderColor = '#ef4444'; nameInput.focus(); }
-      alert('⚠️ 제출자 성명을 입력해주세요.');
-      return false;
-    }
-    if (!dept) {
-      if (deptInput) { deptInput.style.borderColor = '#ef4444'; deptInput.focus(); }
-      alert('⚠️ 소속 부서를 입력해주세요.');
-      return false;
-    }
-    if (!title) {
-      if (titleInput) { titleInput.style.borderColor = '#ef4444'; titleInput.focus(); }
-      alert('⚠️ 작품 제목을 입력해주세요.');
-      return false;
-    }
-    if (!desc) {
-      if (descInput) { descInput.style.borderColor = '#ef4444'; descInput.focus(); }
-      alert('⚠️ 작품 기획 의도 및 설명을 입력해주세요.');
-      return false;
-    }
-    if (!passcode) {
-      if (passInput) { passInput.style.borderColor = '#ef4444'; passInput.focus(); }
-      alert('⚠️ 작품 수정/취소용 비밀번호 4자리를 입력해주세요.');
+    if (!name || !dept || !title || !desc || !passcode) {
+      showToast('⚠️ 필수 입력 항목과 비밀번호를 모두 입력해주세요.', 'warning');
       return false;
     }
 
-    const newSubId = `sub_${Date.now()}`;
-    const newSub = {
-      id: newSubId,
-      name: name,
-      dept: dept,
-      title: title,
-      desc: desc,
+    if (passcode.length < 4) {
+      showToast('⚠️ 본인 확인 비밀번호는 최소 4자리 이상이어야 합니다.', 'warning');
+      if (passInput) passInput.focus();
+      return false;
+    }
+
+    if (submitBtn) {
+      submitBtn.disabled = true;
+      submitBtn.innerHTML = '⏳ 동영상 및 작품 등록 중...';
+    }
+
+    const formData = {
+      name,
+      dept,
+      title,
+      desc,
       url: '#',
-      videoUrl: uploadedVideoUrl || 'https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/ForBiggerBlazes.mp4',
-      videoData: uploadedVideoDataUrl || '',
-      image: 'slides_media/slide_22.jpg',
-      passcode: passcode,
-      votes: 0,
-      ratings: [],
-      date: new Date().toISOString().split('T')[0],
-      status: 'visible'
+      passcode,
+      image_url: 'slides_media/slide_22.jpg',
+      video_url: uploadedVideoUrl || null,
+      videoFile: uploadedVideoFile || null
     };
 
-    uploadedVideoDataUrl = null;
+    const newSub = await window.SubmissionsService.createSubmission(formData);
+
+    uploadedVideoFile = null;
     uploadedVideoUrl = null;
 
     app.submissions.unshift(newSub);
     app.saveSubmissions();
-    autoPushSubmissionToCloudDB(newSub);
 
-    closeModal('directVideoSubmissionModal');
-    alert(`🎉 '${title}' 시연 동영상 및 작품이 성공적으로 출품되었습니다!\n작품 갤러리로 이동합니다.`);
     const form = document.getElementById('directSubmissionForm');
     if (form) form.reset();
+    closeModal('directVideoSubmissionModal');
 
+    showToast(`🟢 '${title}' 시연 동영상 및 작품이 성공적으로 중앙 DB에 저장되었습니다!`, 'success');
     switchNavTab('contest');
     switchContestSubTab('gallery');
     renderHomeStats();
@@ -1561,8 +1405,13 @@ function handleDirectSubmissionSubmit(event) {
     renderContestGallery();
 
   } catch (err) {
-    alert('제출 처리 중 오류 발생: ' + err.message);
     console.error('Direct submission error:', err);
+    showToast('❌ 작품 등록 실패: ' + (err.message || '서버 저장 중 오류가 발생했습니다.'), 'error');
+  } finally {
+    if (submitBtn) {
+      submitBtn.disabled = false;
+      submitBtn.innerHTML = origBtnHTML;
+    }
   }
 
   return false;
@@ -1696,114 +1545,125 @@ function handleEditImagePresetChange(val) {
   }
 }
 
-function handleEditSubmissionSubmit(event) {
+async function handleEditSubmissionSubmit(event) {
   if (event) {
     if (typeof event.preventDefault === 'function') event.preventDefault();
+  }
+
+  if (!window.isBackendConfigured()) {
+    showToast('⚠️ 중앙 저장소가 설정되지 않아 수정할 수 없습니다.', 'warning');
+    return false;
   }
 
   const id = document.getElementById('editSubId').value;
   const s = app.submissions.find(item => item.id === id);
   if (!s) return false;
 
-  const name = document.getElementById('editName').value.trim();
-  const dept = document.getElementById('editDept').value.trim();
-  const title = document.getElementById('editTitle').value.trim();
-  const desc = document.getElementById('editDesc').value.trim();
-  const url = document.getElementById('editUrl').value.trim();
-
-  const preset = document.getElementById('editImagePreset').value;
-  const customImg = document.getElementById('editCustomImageUrl').value.trim();
-  let image = preset;
-  if (preset === 'custom') {
-    image = customImg || s.image || 'slides_media/slide_22.jpg';
-  } else if (preset === 'upload' && uploadedImageDataUrl) {
-    image = uploadedImageDataUrl;
+  const passcode = verifyPasscodeCache;
+  if (!passcode) {
+    showToast('⚠️ 본인 확인 비밀번호가 필요합니다.', 'warning');
+    return false;
   }
 
-  s.name = name;
-  s.dept = dept;
-  s.title = title;
-  s.desc = desc;
-  s.url = url || '#';
-  s.image = image;
-
-  app.saveSubmissions();
-  autoPushSubmissionToCloudDB(s);
-
-  closeModal('editSubmissionModal');
-  showToast('✅ 출품 작품 수정사항이 성공적으로 저장 및 실시간 동기화되었습니다!', 'success');
-
-  renderContestGallery();
-  renderHomeStats();
-  renderHomeTopEntries();
-  if (app.isAdmin) renderAdminDashboard();
-  return false;
-}
-
-async function syncSubmissionsToCentralCloudDB() {
-  app.saveSubmissions();
-
-  if (window.location.protocol.startsWith('http')) {
-    try {
-      await fetch('/api/submissions', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(app.submissions)
-      });
-    } catch (e) {}
+  const submitBtn = document.querySelector('#editSubmissionForm button[type="submit"]');
+  const origBtnText = submitBtn ? submitBtn.innerHTML : '';
+  if (submitBtn) {
+    submitBtn.disabled = true;
+    submitBtn.innerHTML = '⏳ 수정사항 저장 중...';
   }
-
-  const sanitized = app.submissions.map(item => {
-    const copy = { ...item };
-    if (copy.videoUrl && copy.videoUrl.startsWith('blob:')) {
-      if (copy.videoData && copy.videoData.startsWith('data:video/')) {
-        copy.videoUrl = copy.videoData;
-      } else {
-        copy.videoUrl = '';
-      }
-    }
-    return copy;
-  });
 
   try {
-    const putRes = await fetch(FREE_CLOUD_DB_URL, {
-      method: 'PUT',
-      headers: {
-        'Content-Type': 'application/json',
-        'Accept': 'application/json'
-      },
-      body: JSON.stringify(sanitized)
-    });
-    if (putRes.status === 404) {
-      await createNewCloudDbBin();
+    const name = document.getElementById('editName').value.trim();
+    const dept = document.getElementById('editDept').value.trim();
+    const title = document.getElementById('editTitle').value.trim();
+    const desc = document.getElementById('editDesc').value.trim();
+    const url = document.getElementById('editUrl').value.trim();
+
+    const preset = document.getElementById('editImagePreset').value;
+    const customImg = document.getElementById('editCustomImageUrl').value.trim();
+    let image_url = preset;
+    if (preset === 'custom') {
+      image_url = customImg || s.image || 'slides_media/slide_22.jpg';
     }
-  } catch (e) {}
-}
 
-function handleCancelSubmission(submissionId) {
-  const s = app.submissions.find(item => item.id === submissionId);
-  if (!s) return;
+    const formData = {
+      name,
+      dept,
+      title,
+      desc,
+      url,
+      image_url
+    };
 
-  if (confirm(`'${s.title}' 작품 출품을 정말로 취소/삭제하시겠습니까?`)) {
-    // 1. Permanently register submissionId as deleted
-    app.deletedIds.add(submissionId);
-    app.saveDeletedIds();
+    const updatedSub = await window.SubmissionsService.updateSubmission(id, passcode, formData);
 
-    // 2. Filter out submission from local list
-    app.submissions = app.submissions.filter(item => item.id !== submissionId);
+    const idx = app.submissions.findIndex(item => item.id === id);
+    if (idx !== -1) {
+      app.submissions[idx] = updatedSub;
+    }
     app.saveSubmissions();
-    
-    // 3. Sync deletion across all devices & central cloud DB instantly!
-    syncSubmissionsToCentralCloudDB();
 
-    closeModal('submissionDetailModal');
-    alert(`🗑️ '${s.title}' 작품 출품이 성공적으로 취소/삭제되었습니다.`);
-    showToast('🗑️ 작품 출품이 취소되었습니다.', 'info');
+    verifyPasscodeCache = '';
+    closeModal('editSubmissionModal');
+    closeModal('verifyPasscodeModal');
+
+    showToast('✅ 작품 수정사항이 성공적으로 저장되었습니다!', 'success');
 
     renderContestGallery();
     renderHomeStats();
     renderHomeTopEntries();
     if (app.isAdmin) renderAdminDashboard();
+  } catch (err) {
+    console.error('Edit Submission Error:', err);
+    showToast('❌ 수정 실패: ' + (err.message || '비밀번호가 일치하지 않습니다.'), 'error');
+  } finally {
+    if (submitBtn) {
+      submitBtn.disabled = false;
+      submitBtn.innerHTML = origBtnText;
+    }
+  }
+
+  return false;
+}
+
+async function handleCancelSubmission(submissionId, passcodeOverride = null) {
+  const passcode = passcodeOverride || verifyPasscodeCache;
+  if (!passcode) {
+    showToast('⚠️ 본인 확인 비밀번호를 입력해주세요.', 'warning');
+    return false;
+  }
+
+  if (!window.isBackendConfigured()) {
+    showToast('⚠️ 중앙 저장소가 설정되지 않아 취소할 수 없습니다.', 'warning');
+    return false;
+  }
+
+  const s = app.submissions.find(item => item.id === submissionId);
+  const title = s ? s.title : '';
+
+  if (!confirm(`'${title || '작품'}' 출품을 정말로 취소/삭제하시겠습니까?`)) {
+    return false;
+  }
+
+  try {
+    await window.SubmissionsService.deleteSubmission(submissionId, passcode);
+
+    app.submissions = app.submissions.filter(item => item.id !== submissionId);
+    app.saveSubmissions();
+
+    verifyPasscodeCache = '';
+    closeModal('submissionDetailModal');
+    closeModal('verifyPasscodeModal');
+
+    showToast(`🗑️ '${title || '작품'}' 출품이 성공적으로 취소(삭제)되었습니다.`, 'success');
+
+    renderContestGallery();
+    renderHomeStats();
+    renderHomeTopEntries();
+    if (app.isAdmin) renderAdminDashboard();
+  } catch (err) {
+    console.error('Cancel Submission Error:', err);
+    showToast('❌ 삭제 실패: ' + (err.message || '비밀번호가 일치하지 않습니다.'), 'error');
   }
 }
 
@@ -1811,23 +1671,59 @@ function handleCancelSubmission(submissionId) {
    ADMIN CENTER & CSV DATA EXPORT LOGIC
    ========================================== */
 
-function verifyAdminAuth() {
-  const input = document.getElementById('adminPassInput');
-  const pass = input ? input.value : '';
+async function verifyAdminAuth() {
+  const emailInput = document.getElementById('adminEmailInput');
+  const passInput = document.getElementById('adminPassInput');
+  const email = emailInput ? emailInput.value.trim() : '';
+  const pass = passInput ? passInput.value : '';
 
-  if (pass === 'admin123' || pass === '1234') {
+  if (!window.isBackendConfigured()) {
+    showToast('⚠️ Supabase 중앙 DB가 설정되지 않았습니다. config.js를 확인하세요.', 'warning');
+    return;
+  }
+
+  const client = window.getSupabaseClient();
+  if (!client) {
+    showToast('⚠️ Supabase 클라이언트를 불러올 수 없습니다.', 'error');
+    return;
+  }
+
+  try {
+    const { data, error } = await client.auth.signInWithPassword({
+      email,
+      password: pass
+    });
+
+    if (error) {
+      throw error;
+    }
+
+    const { data: isAdmin, error: adminErr } = await client.rpc('is_admin');
+    if (adminErr || !isAdmin) {
+      await client.auth.signOut();
+      showToast('⚠️ 관리자 권한이 승인되지 않은 계정입니다.', 'warning');
+      return;
+    }
+
     app.isAdmin = true;
-    showToast('🔑 관리자 로그인 성공!', 'success');
+    showToast('🔑 Supabase 관리자 인증 성공!', 'success');
     document.getElementById('adminAuthBox').style.display = 'none';
     document.getElementById('adminDashboardBox').style.display = 'block';
     renderAdminDashboard();
-  } else {
-    showToast('비밀번호가 올바르지 않습니다. (기본: admin123)', 'info');
+  } catch (err) {
+    console.error('Admin auth error:', err);
+    showToast('❌ 로그인 실패: 이메일 또는 비밀번호가 올바르지 않습니다.', 'error');
   }
 }
 
-function logoutAdminAuth() {
+async function logoutAdminAuth() {
   app.isAdmin = false;
+  const client = window.getSupabaseClient();
+  if (client) {
+    try {
+      await client.auth.signOut();
+    } catch (e) {}
+  }
   document.getElementById('adminAuthBox').style.display = 'block';
   document.getElementById('adminDashboardBox').style.display = 'none';
   showToast('관리자 로그아웃 되었습니다.', 'info');
@@ -2714,67 +2610,80 @@ function openSimpleSubmissionModal() {
   openModal('simpleSubmissionModal');
 }
 
-function handleSimpleSubmissionSubmit(event) {
+async function handleSimpleSubmissionSubmit(event) {
   if (event) {
     if (typeof event.preventDefault === 'function') event.preventDefault();
   }
-  const title = (document.getElementById('simpleSubTitle')?.value || '').trim();
-  const desc = (document.getElementById('simpleSubDesc')?.value || '').trim();
-  let name = (document.getElementById('simpleSubName')?.value || '').trim();
-  let dept = (document.getElementById('simpleSubDept')?.value || '').trim();
-  const passcode = (document.getElementById('simpleSubPasscode')?.value || '').trim();
 
-  if (!title || !desc) {
-    showToast('작품 제목과 간단한 설명을 모두 입력해주세요.', 'info');
-    return;
+  if (!window.isBackendConfigured()) {
+    showToast('⚠️ 중앙 저장소가 설정되지 않아 등록할 수 없습니다. config.js 설정을 확인해주세요.', 'warning');
+    return false;
   }
 
-  if (!passcode) {
-    showToast('⚠️ 작품 수정/취소용 비밀번호 4자리를 입력해주세요.', 'info');
-    const passEl = document.getElementById('simpleSubPasscode');
-    if (passEl) passEl.focus();
-    return;
+  const submitBtn = document.querySelector('#simpleSubmissionForm button[type="submit"]');
+  const origBtnHTML = submitBtn ? submitBtn.innerHTML : '';
+
+  try {
+    const title = (document.getElementById('simpleSubTitle')?.value || '').trim();
+    const desc = (document.getElementById('simpleSubDesc')?.value || '').trim();
+    let name = (document.getElementById('simpleSubName')?.value || '').trim();
+    let dept = (document.getElementById('simpleSubDept')?.value || '').trim();
+    const passcode = (document.getElementById('simpleSubPasscode')?.value || '').trim();
+
+    if (!title || !desc) {
+      showToast('작품 제목과 간단한 설명을 모두 입력해주세요.', 'info');
+      return false;
+    }
+
+    if (!passcode || passcode.length < 4) {
+      showToast('⚠️ 작품 수정/취소용 비밀번호 4자리 이상을 입력해주세요.', 'info');
+      const passEl = document.getElementById('simpleSubPasscode');
+      if (passEl) passEl.focus();
+      return false;
+    }
+
+    if (!name && app.currentVoter) name = app.currentVoter.name;
+    if (!dept && app.currentVoter) dept = app.currentVoter.dept;
+
+    if (submitBtn) {
+      submitBtn.disabled = true;
+      submitBtn.innerHTML = '⏳ 작품 등록 중...';
+    }
+
+    const formData = {
+      name: name || '사내 직원',
+      dept: dept || '본사',
+      title,
+      desc,
+      url: '#',
+      passcode,
+      image_url: 'slides_media/slide_22.jpg'
+    };
+
+    const newSub = await window.SubmissionsService.createSubmission(formData);
+
+    app.submissions.unshift(newSub);
+    app.saveSubmissions();
+
+    closeModal('simpleSubmissionModal');
+    const form = document.getElementById('simpleSubmissionForm');
+    if (form) form.reset();
+
+    showToast(`🟢 작품 '${title}'이 성공적으로 중앙 DB에 저장되었습니다!`, 'success');
+    renderContestGallery();
+    renderHomeStats();
+    renderHomeTopEntries();
+  } catch (err) {
+    console.error('Simple submission error:', err);
+    showToast('❌ 작품 등록 실패: ' + (err.message || '서버 저장 중 오류가 발생했습니다.'), 'error');
+  } finally {
+    if (submitBtn) {
+      submitBtn.disabled = false;
+      submitBtn.innerHTML = origBtnHTML;
+    }
   }
 
-  if (!name && app.currentVoter) name = app.currentVoter.name;
-  if (!dept && app.currentVoter) dept = app.currentVoter.dept;
-
-  const newSub = {
-    id: 'sub_' + Date.now(),
-    name: name || '사내 직원',
-    dept: dept || '본사',
-    title: title,
-    desc: desc,
-    url: '',
-    videoUrl: '',
-    image: 'slides_media/slide_22.jpg',
-    passcode: passcode,
-    votes: 0,
-    ratings: [],
-    date: new Date().toISOString().split('T')[0],
-    status: 'visible'
-  };
-
-  app.submissions.unshift(newSub);
-  app.saveSubmissions();
-  autoPushSubmissionToCloudDB(newSub);
-
-  if (window.location.protocol.startsWith('http')) {
-    fetch('/api/submissions', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(app.submissions)
-    }).catch(e => console.warn('Submission sync fallback:', e));
-  }
-
-  closeModal('simpleSubmissionModal');
-  const form = document.getElementById('simpleSubmissionForm');
-  if (form) form.reset();
-
-  showToast(`✨ 작품 '${title}'이 성공적으로 등록되었습니다!`, 'success');
-  renderContestGallery();
-  renderHomeStats();
-  renderHomeTopEntries();
+  return false;
 }
 
 

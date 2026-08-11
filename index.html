@@ -517,12 +517,13 @@
         <div class="admin-auth-inner">
           <div class="admin-lock-icon">🔒</div>
           <h2>관리자 인증 (Admin Center)</h2>
-          <p>제출작 관리, 투표 결과 실시간 집계 및 엑셀 다운로드는 비밀번호 인증이 필요합니다.</p>
+          <p>제출작 관리, 투표 결과 실시간 집계 및 엑셀 다운로드는 Supabase 계정 로그인이 필요합니다.</p>
 
-          <div style="display:flex; gap:10px; margin-top:16px; width:100%; max-width:340px;">
-            <input type="password" id="adminPassInput" class="form-input" placeholder="비밀번호 입력 (기본: admin123)"
-              onkeydown="if(e.key==='Enter') verifyAdminAuth()">
-            <button class="btn btn-primary" onclick="verifyAdminAuth()">인증하기</button>
+          <div style="display:flex; flex-direction:column; gap:10px; margin-top:16px; width:100%; max-width:360px;">
+            <input type="email" id="adminEmailInput" class="form-input" placeholder="관리자 이메일 주소 (예: admin@company.com)">
+            <input type="password" id="adminPassInput" class="form-input" placeholder="비밀번호 입력"
+              onkeydown="if(event.key==='Enter') verifyAdminAuth()">
+            <button class="btn btn-primary" onclick="verifyAdminAuth()">🔐 관리자 로그인</button>
           </div>
         </div>
       </div>
@@ -545,44 +546,26 @@
           </div>
         </div>
 
-        <!-- GitHub REST API Database Integration Control Card -->
+        <!-- Supabase Realtime Database Control Card -->
         <div
           style="background:var(--bg-card); border:1px solid var(--border-color); border-radius:var(--radius-lg); padding:20px; margin-bottom:24px;">
           <div style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:12px;">
             <div>
               <h3 style="font-size:1.05rem; font-weight:800; color:var(--text-main); margin-bottom:4px;">
-                🐙 GitHub REST API 중앙 DB 연동 관리
+                ☁️ Supabase 중앙 데이터베이스 연동 상태
               </h3>
               <p style="font-size:0.85rem; color:var(--text-muted);">
-                GitHub 리포지토리(`submissions.json`)를 무료 중앙 데이터베이스로 연동하여 제출작이 커밋(Commit) 저장됩니다.
+                Supabase PostgreSQL & Realtime 클라우드가 연동되어 전 세계 모든 기기와 100% 실시간 동기화됩니다.
               </p>
             </div>
-            <span id="githubDbStatusBadge"
-              style="font-size:0.8rem; background:rgba(59,130,246,0.15); color:#2563eb; padding:4px 12px; border-radius:9999px; font-weight:700;">
-              🐙 GitHub DB 연동 시스템 준비
+            <span id="realtimeSyncBadge"
+              style="font-size:0.85rem; background:rgba(16, 185, 129, 0.15); color:#059669; padding:6px 14px; border-radius:9999px; font-weight:700;">
+              🟢 실시간 DB 연동 중
             </span>
           </div>
 
-          <div class="form-grid" style="margin-top:14px; grid-template-columns: 1fr 1fr 1.2fr;">
-            <div class="form-group">
-              <label class="form-label" for="ghOwnerInput" style="font-size:0.8rem;">GitHub 소유자 (User/Org)</label>
-              <input type="text" id="ghOwnerInput" class="form-input" placeholder="예: Kyunyoung">
-            </div>
-            <div class="form-group">
-              <label class="form-label" for="ghRepoInput" style="font-size:0.8rem;">리포지토리 이름 (Repo)</label>
-              <input type="text" id="ghRepoInput" class="form-input" placeholder="예: bai">
-            </div>
-            <div class="form-group">
-              <label class="form-label" for="ghTokenInput" style="font-size:0.8rem;">GitHub Personal Access Token
-                (선택)</label>
-              <input type="password" id="ghTokenInput" class="form-input" placeholder="ghp_... (자동 커밋 권한용)">
-            </div>
-          </div>
-
-          <div style="display:flex; gap:10px; margin-top:12px; flex-wrap:wrap;">
-            <button class="btn btn-primary btn-sm" onclick="saveGitHubConfig()">💾 GitHub DB 설정 저장</button>
-            <button class="btn btn-outline btn-sm" onclick="fetchGitHubSubmissions(true)">🔄 GitHub DB에서 최신 데이터
-              읽기</button>
+          <div style="display:flex; gap:10px; margin-top:14px; flex-wrap:wrap;">
+            <button class="btn btn-primary btn-sm" onclick="forceRefreshCentralSync()">🔄 중앙 DB 수동 동기화</button>
           </div>
         </div>
 
@@ -975,7 +958,12 @@
     </div>
   </div>
 
-  <script src="script.js?v=20260811_v4"></script>
+  <!-- Supabase & Central DB Service Modules -->
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
+  <script src="config.js?v=20260811"></script>
+  <script src="js/supabase-client.js?v=20260811"></script>
+  <script src="js/submissions-service.js?v=20260811"></script>
+  <script src="script.js?v=20260811_v5"></script>
 </body>
 
 </html>
