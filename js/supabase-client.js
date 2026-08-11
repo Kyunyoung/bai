@@ -14,6 +14,14 @@
     );
   }
 
+  function getCleanSupabaseUrl(rawUrl) {
+    if (!rawUrl) return '';
+    let cleaned = rawUrl.trim();
+    cleaned = cleaned.replace(/\/rest\/v1\/?$/, '');
+    cleaned = cleaned.replace(/\/+$/, '');
+    return cleaned;
+  }
+
   function getSupabaseClient() {
     if (!isBackendConfigured()) {
       return null;
@@ -22,8 +30,9 @@
       return window.supabaseClient;
     }
     if (window.supabase && typeof window.supabase.createClient === 'function') {
+      const cleanUrl = getCleanSupabaseUrl(window.BAI_CONFIG.SUPABASE_URL);
       window.supabaseClient = window.supabase.createClient(
-        window.BAI_CONFIG.SUPABASE_URL.trim(),
+        cleanUrl,
         window.BAI_CONFIG.SUPABASE_PUBLISHABLE_KEY.trim(),
         {
           auth: {

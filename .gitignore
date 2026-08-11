@@ -1,4 +1,4 @@
-config.js
+# config.js is included for GitHub Pages static site deployment
 node_modules/
 .DS_Store
 *.log
