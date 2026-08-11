@@ -55,24 +55,14 @@ function initTheme() {
   }
 }
 
-const CENTRAL_CLOUD_DB_URL = 'https://api.restful-api.dev/objects/ff8081819f7e10ae019ff10a25952642';
-const CENTRAL_CLOUD_DB_BACKUP_URL = 'https://api.restful-api.dev/objects/ff8081819f7e10ae019ff10aa9732648';
-
 // Load Data
 async function loadAdminData() {
   const syncBadge = document.getElementById('syncStatusBadge');
 
-  if (window.location.protocol.startsWith('http') && !window.location.hostname.includes('github.io')) {
-    try {
-      const resVoters = await fetch('/api/voters');
-      if (resVoters.ok) adminVoters = await resVoters.json();
-    } catch (e) {}
-  } else {
-    try {
-      const localV = localStorage.getItem('vibe_voters_db');
-      if (localV) adminVoters = JSON.parse(localV);
-    } catch (e) {}
-  }
+  try {
+    const localV = localStorage.getItem('vibe_voters_db');
+    if (localV) adminVoters = JSON.parse(localV);
+  } catch (e) {}
 
   // Fetch Central Submissions via SubmissionsService
   if (window.isBackendConfigured()) {
@@ -106,58 +96,11 @@ async function loadAdminData() {
   renderSubmissionTable();
 }
 
-// Save Voters
-async function saveAdminVoters() {
-  try {
-    localStorage.setItem('vibe_voters_db', JSON.stringify(adminVoters));
-  } catch (e) {}
-
-  if (window.location.protocol.startsWith('http') && !window.location.hostname.includes('github.io')) {
-    try {
-      await fetch('/api/voters', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(adminVoters)
-      });
-    } catch (e) {
-      console.error('Failed to sync voters to server:', e);
-    }
-  }
-  renderAdminKPIs();
-}
-
 // Save Submissions
 async function saveAdminSubmissions() {
   try {
     localStorage.setItem('vibecoding_contest_submissions', JSON.stringify(adminSubmissions));
   } catch (e) {}
-
-  if (window.location.protocol.startsWith('http') && !window.location.hostname.includes('github.io')) {
-    try {
-      await fetch('/api/submissions', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(adminSubmissions)
-      });
-    } catch (e) {}
-  }
-
-  try {
-    await fetch(CENTRAL_CLOUD_DB_URL, {
-      method: 'PUT',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ name: 'vibecoding_submissions', data: { submissions: adminSubmissions } })
-    });
-  } catch (e) {}
-
-  try {
-    await fetch(CENTRAL_CLOUD_DB_BACKUP_URL, {
-      method: 'PUT',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ name: 'vibecoding_submissions_backup', data: { submissions: adminSubmissions } })
-    });
-  } catch (e) {}
-
   renderAdminKPIs();
 }
 
@@ -166,37 +109,24 @@ async function clearAllSubmissions() {
     return;
   }
 
-  adminSubmissions = [];
-  localStorage.setItem('vibecoding_contest_submissions', JSON.stringify([]));
-  localStorage.setItem('vibecoding_deleted_ids', JSON.stringify([]));
-
-  try {
-    await fetch(CENTRAL_CLOUD_DB_URL, {
-      method: 'PUT',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ name: 'vibecoding_submissions', data: { submissions: [] } })
-    });
-  } catch (e) {}
-
-  try {
-    await fetch(CENTRAL_CLOUD_DB_BACKUP_URL, {
-      method: 'PUT',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ name: 'vibecoding_submissions_backup', data: { submissions: [] } })
-    });
-  } catch (e) {}
-
-  if (window.location.protocol.startsWith('http') && !window.location.hostname.includes('github.io')) {
-    try {
-      await fetch('/api/submissions', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify([])
-      });
-    } catch (e) {}
+  if (!window.isBackendConfigured()) {
+    showToast('⚠️ 중앙 DB가 설정되지 않았습니다.', 'warning');
+    return;
   }
 
-  showToast('🗑️ 전 세계 중앙 DB의 모든 출품작 내역이 깨끗이 초기화되었습니다.', 'success');
+  try {
+    for (const sub of adminSubmissions) {
+      try {
+        await window.SubmissionsService.adminDeleteSubmission(sub.id);
+      } catch (e) {}
+    }
+    adminSubmissions = [];
+    localStorage.setItem('vibecoding_contest_submissions', JSON.stringify([]));
+    showToast('🗑️ 중앙 DB의 모든 출품작 내역이 초기화되었습니다.', 'success');
+  } catch (err) {
+    showToast('❌ 초기화 실패: ' + err.message, 'error');
+  }
+
   renderAdminKPIs();
   renderSubmissionTable();
 }

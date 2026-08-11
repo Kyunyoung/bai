@@ -61,26 +61,16 @@ class VibePortalApp {
     this.theme = this.loadFromStorage('vibecoding_theme', 'light');
     this.viewedSlides = new Set(this.loadFromStorage('vibecoding_viewed_slides', []));
     
-    // Contest Submissions (Mobile Cache Invalidation Engine)
-    const APP_VERSION_TAG = '20260811_v4';
-    const savedVersion = localStorage.getItem('vibecoding_app_version');
-    if (savedVersion !== APP_VERSION_TAG) {
-      localStorage.setItem('vibecoding_app_version', APP_VERSION_TAG);
-      localStorage.removeItem('vibecoding_contest_submissions');
-      localStorage.removeItem('vibecoding_deleted_ids');
+    // Contest Submissions (Initial Load from Local Storage / Supabase Sync)
+    this.submissions = this.loadFromStorage('vibecoding_contest_submissions', []);
+    if (!Array.isArray(this.submissions)) {
       this.submissions = [];
+    }
+    // Clean legacy seed submission entries if present in local storage
+    const cleanedSubmissions = this.submissions.filter(s => s && s.id && !['sub_1', 'sub_2', 'sub_3'].includes(s.id));
+    if (cleanedSubmissions.length !== this.submissions.length) {
+      this.submissions = cleanedSubmissions;
       this.saveSubmissions();
-    } else {
-      this.submissions = this.loadFromStorage('vibecoding_contest_submissions', []);
-      if (!Array.isArray(this.submissions)) {
-        this.submissions = [];
-      }
-      // Clean legacy seed submission entries if present in local storage
-      const cleanedSubmissions = this.submissions.filter(s => s && s.id && !['sub_1', 'sub_2', 'sub_3'].includes(s.id));
-      if (cleanedSubmissions.length !== this.submissions.length) {
-        this.submissions = cleanedSubmissions;
-        this.saveSubmissions();
-      }
     }
 
     // Registered Voters List
@@ -979,14 +969,6 @@ window.addEventListener('storage', (e) => {
     } catch (err) {}
   }
 });
-
-/* GITHUB REST API CENTRAL DATABASE LOGIC */
-let ghConfig = {
-  owner: localStorage.getItem('vibecoding_gh_owner') || 'Kyunyoung',
-  repo: localStorage.getItem('vibecoding_gh_repo') || 'bai',
-  token: localStorage.getItem('vibecoding_gh_token') || '',
-  path: 'data/submissions.json'
-};
 
 async function loadCentralSubmissions() {
   if (!window.isBackendConfigured()) {
@@ -2179,39 +2161,25 @@ async function clearAllSubmissions() {
     return;
   }
 
-  app.submissions = [];
-  app.deletedIds = new Set();
-  localStorage.setItem('vibecoding_contest_submissions', JSON.stringify([]));
-  localStorage.setItem('vibecoding_deleted_ids', JSON.stringify([]));
-  app.saveSubmissions();
-
-  try {
-    await fetch(CENTRAL_CLOUD_DB_URL, {
-      method: 'PUT',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ name: 'vibecoding_submissions', data: { submissions: [] } })
-    });
-  } catch (e) {}
-
-  try {
-    await fetch(CENTRAL_CLOUD_DB_BACKUP_URL, {
-      method: 'PUT',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ name: 'vibecoding_submissions_backup', data: { submissions: [] } })
-    });
-  } catch (e) {}
-
-  if (window.location.protocol.startsWith('http') && !window.location.hostname.includes('github.io')) {
+  if (window.isBackendConfigured()) {
     try {
-      await fetch('/api/submissions', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify([])
-      });
-    } catch (e) {}
+      for (const sub of app.submissions) {
+        try {
+          await window.SubmissionsService.adminDeleteSubmission(sub.id);
+        } catch (e) {}
+      }
+      app.submissions = [];
+      app.saveSubmissions();
+      showToast('🗑️ 중앙 DB의 모든 출품작 내역이 초기화되었습니다.', 'success');
+    } catch (err) {
+      showToast('❌ 초기화 실패: ' + err.message, 'error');
+    }
+  } else {
+    app.submissions = [];
+    app.saveSubmissions();
+    showToast('🗑️ 로컬 출품작 목록이 초기화되었습니다.', 'info');
   }
 
-  showToast('🗑️ 전 세계 중앙 DB의 모든 출품작 내역이 깨끗이 초기화되었습니다.', 'success');
   renderContestGallery();
   renderHomeStats();
   renderHomeTopEntries();
