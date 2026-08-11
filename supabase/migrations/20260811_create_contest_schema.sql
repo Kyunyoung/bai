@@ -364,10 +364,65 @@ BEGIN
   END IF;
 END $$;
 
--- ==============================================================================
--- Storage Bucket Instructions for Supabase Dashboard:
--- 1. Create a Public Bucket named: submission-media
--- 2. Storage Policies:
---    - Allow Public Read (SELECT) for all objects
---    - Allow Public Upload (INSERT) for MIME types: video/mp4, video/webm, video/quicktime, image/jpeg, image/png, image/webp
--- ==============================================================================
+-- 8. Create Storage Bucket 'submission-media' and RLS Policies (Idempotent)
+INSERT INTO storage.buckets (id, name, public, file_size_limit, allowed_mime_types)
+VALUES (
+  'submission-media',
+  'submission-media',
+  true,
+  104857600, -- 100MB limit
+  ARRAY['image/jpeg', 'image/png', 'image/webp', 'video/mp4', 'video/webm', 'video/quicktime']
+)
+ON CONFLICT (id) DO UPDATE
+SET public = true,
+    file_size_limit = 104857600,
+    allowed_mime_types = ARRAY['image/jpeg', 'image/png', 'image/webp', 'video/mp4', 'video/webm', 'video/quicktime'];
+
+-- Enable Row Level Security on storage.objects
+ALTER TABLE storage.objects ENABLE ROW LEVEL SECURITY;
+
+-- Idempotent Policy 1: Allow public/anon/authenticated SELECT on 'submission-media'
+DO $$
+BEGIN
+  IF NOT EXISTS (
+    SELECT 1 FROM pg_policies
+    WHERE schemaname = 'storage'
+      AND tablename = 'objects'
+      AND policyname = 'Public Access for submission-media bucket'
+  ) THEN
+    CREATE POLICY "Public Access for submission-media bucket"
+    ON storage.objects FOR SELECT
+    USING (bucket_id = 'submission-media');
+  END IF;
+END $$;
+
+-- Idempotent Policy 2: Allow public/anon/authenticated INSERT on 'submission-media'
+DO $$
+BEGIN
+  IF NOT EXISTS (
+    SELECT 1 FROM pg_policies
+    WHERE schemaname = 'storage'
+      AND tablename = 'objects'
+      AND policyname = 'Allow public upload to submission-media bucket'
+  ) THEN
+    CREATE POLICY "Allow public upload to submission-media bucket"
+    ON storage.objects FOR INSERT
+    WITH CHECK (bucket_id = 'submission-media');
+  END IF;
+END $$;
+
+-- Idempotent Policy 3: Allow authenticated users to DELETE on 'submission-media'
+DO $$
+BEGIN
+  IF NOT EXISTS (
+    SELECT 1 FROM pg_policies
+    WHERE schemaname = 'storage'
+      AND tablename = 'objects'
+      AND policyname = 'Allow admin delete from submission-media bucket'
+  ) THEN
+    CREATE POLICY "Allow admin delete from submission-media bucket"
+    ON storage.objects FOR DELETE
+    TO authenticated
+    USING (bucket_id = 'submission-media');
+  END IF;
+END $$;

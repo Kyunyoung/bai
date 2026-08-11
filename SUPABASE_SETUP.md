@@ -21,17 +21,15 @@
 
 ---
 
-## 3. 미디어 스토리지 (Storage Bucket) 생성
+## 3. 미디어 스토리지 (Storage Bucket) 확인
 
-1. Supabase 좌측 메뉴에서 **Storage**를 클릭합니다.
-2. **Create a new bucket**을 누르고 다음 정보를 입력합니다:
-   - Bucket name: `submission-media`
-   - Public bucket: **ON (체크)**
-3. **Save**를 눌러 버킷을 생성합니다.
-4. 생성된 `submission-media` 버킷의 **Configuration -> Policies**로 이동하여 다음 정책을 추가합니다:
-   - **SELECT (읽기)**: Anyone can read (anon & authenticated)
-   - **INSERT (업로드)**: Anyone can upload (anon & authenticated)
-   - **Allowed MIME types**: `image/jpeg, image/png, image/webp, video/mp4, video/webm, video/quicktime`
+위 2번 단계에서 `20260811_create_contest_schema.sql` 마이그레이션 SQL을 실행하면 **`submission-media` 퍼블릭 버킷과 읽기/업로드 RLS 정책이 자동으로 생성**됩니다.
+
+필요 시 Supabase 좌측 메뉴 **Storage**에서 다음 사항을 확인하십시오:
+- Bucket name: `submission-media` (대소문자/하이픈 100% 일치)
+- Public bucket: **ON (공개)**
+- Storage Policies: Public Access(SELECT) 및 Public Upload(INSERT) 정책 활성화 여부
+- Allowed MIME types: `image/jpeg, image/png, image/webp, video/mp4, video/webm, video/quicktime` (최대 100MB)
 
 ---
 
