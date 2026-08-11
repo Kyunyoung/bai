@@ -597,11 +597,9 @@ function handleVote(submissionId) {
   renderHomeTopEntries();
 }
 
-let uploadedVideoDataUrl = null;
-let uploadedVideoUrl = null;
-let uploadedImageDataUrl = null;
 let uploadedVideoFile = null;
 let uploadedImageFile = null;
+let activeVideoPreviewObjectUrl = null;
 
 function handleImageFileSelect(event, previewId, wrapperId) {
   const file = event.target.files?.[0];
@@ -611,10 +609,9 @@ function handleImageFileSelect(event, previewId, wrapperId) {
 
   const reader = new FileReader();
   reader.onload = function(e) {
-    uploadedImageDataUrl = e.target.result;
     const preview = document.getElementById(previewId || 'subImagePreview');
     const wrapper = document.getElementById(wrapperId || 'imagePreviewWrapper');
-    if (preview) preview.src = uploadedImageDataUrl;
+    if (preview) preview.src = e.target.result;
     if (wrapper) wrapper.style.display = 'block';
     showToast('🖼️ 작품 캡처 이미지가 첨부되었습니다!', 'success');
   };
@@ -629,133 +626,27 @@ function handleVideoFileSelect(event, previewId, wrapperId) {
   const file = event.target.files?.[0];
   if (!file) return;
 
+  const maxVidSize = 100 * 1024 * 1024; // 100MB
+  if (file.size > maxVidSize) {
+    showToast('⚠️ 동영상 파일 크기는 최대 100MB까지 지원됩니다.', 'warning');
+    event.target.value = '';
+    return;
+  }
+
+  if (activeVideoPreviewObjectUrl) {
+    try { URL.revokeObjectURL(activeVideoPreviewObjectUrl); } catch (e) {}
+  }
+
   uploadedVideoFile = file;
+  activeVideoPreviewObjectUrl = URL.createObjectURL(file);
 
   const preview = document.getElementById(previewId || 'subVideoPreview');
   const wrapper = document.getElementById(wrapperId || 'videoPreviewWrapper');
 
-  // Instant local preview via ObjectURL
-  const localObjectUrl = URL.createObjectURL(file);
-  uploadedVideoUrl = localObjectUrl;
-  if (preview) preview.src = localObjectUrl;
+  if (preview) preview.src = activeVideoPreviewObjectUrl;
   if (wrapper) wrapper.style.display = 'block';
 
-  showToast('📱 핸드폰 시연 영상 파일이 선택되었습니다! (' + (file.name || '동영상 파일') + ')', 'info');
-}
-
-function createInteractiveCanvasVideoBlob(callback) {
-  const canvas = document.createElement('canvas');
-  canvas.width = 480;
-  canvas.height = 854;
-  const ctx = canvas.getContext('2d');
-
-  const stream = canvas.captureStream(30);
-  let mediaRecorder;
-  try {
-    mediaRecorder = new MediaRecorder(stream, { mimeType: 'video/webm' });
-  } catch (e) {
-    mediaRecorder = new MediaRecorder(stream);
-  }
-
-  const chunks = [];
-  mediaRecorder.ondataavailable = e => {
-    if (e.data.size > 0) chunks.push(e.data);
-  };
-  mediaRecorder.onstop = () => {
-    const blob = new Blob(chunks, { type: 'video/webm' });
-    const videoUrl = URL.createObjectURL(blob);
-    callback(videoUrl);
-  };
-
-  mediaRecorder.start();
-
-  let frame = 0;
-  const totalFrames = 120; // 4 seconds video
-
-  function renderFrame() {
-    frame++;
-
-    // Background Dark Phone Backdrop
-    ctx.fillStyle = '#0f172a';
-    ctx.fillRect(0, 0, 480, 854);
-
-    // Phone Top Status Bar
-    ctx.fillStyle = '#1e293b';
-    ctx.fillRect(0, 0, 480, 44);
-    ctx.fillStyle = '#94a3b8';
-    ctx.font = 'bold 15px sans-serif';
-    ctx.fillText('📱 18:35', 20, 28);
-    ctx.fillStyle = '#ef4444';
-    ctx.fillText('🔴 REC 00:04', 350, 28);
-
-    // App Header Bar
-    ctx.fillStyle = '#2563eb';
-    ctx.fillRect(0, 44, 480, 70);
-    ctx.fillStyle = '#ffffff';
-    ctx.font = 'bold 20px sans-serif';
-    ctx.fillText('⚡ 바이브코딩 AI 자동화 시연', 24, 88);
-
-    // Card 1: Prompt Box
-    ctx.fillStyle = '#1e293b';
-    ctx.fillRect(20, 134, 440, 140);
-
-    ctx.fillStyle = '#38bdf8';
-    ctx.font = 'bold 16px sans-serif';
-    ctx.fillText('🤖 AI 프롬프트 명령', 36, 168);
-
-    ctx.fillStyle = '#e2e8f0';
-    ctx.font = '14px sans-serif';
-    const textPrompt = '"전국 250개 경찰서 엑셀 1초 검증해줘"';
-    const charLen = Math.min(textPrompt.length, Math.floor(frame / 2.5));
-    ctx.fillText(textPrompt.substring(0, charLen), 36, 204);
-
-    // Card 2: Progress Animation Bar
-    const progress = Math.min(1.0, frame / (totalFrames * 0.7));
-    ctx.fillStyle = '#1e293b';
-    ctx.fillRect(20, 294, 440, 150);
-
-    ctx.fillStyle = '#fbbf24';
-    ctx.font = 'bold 16px sans-serif';
-    ctx.fillText(`⚡ 자동 검증 진행률 (${Math.floor(progress * 100)}%)`, 36, 328);
-
-    // Progress Bar Fill
-    ctx.fillStyle = '#334155';
-    ctx.fillRect(36, 350, 390, 24);
-
-    ctx.fillStyle = '#10b981';
-    ctx.fillRect(36, 350, Math.max(12, 390 * progress), 24);
-
-    ctx.fillStyle = '#94a3b8';
-    ctx.font = '13px monospace';
-    ctx.fillText(`Processing... [${Math.floor(progress * 250)} / 250 경찰서]`, 36, 408);
-
-    // Card 3: Execution Results (Appears after 40% progress)
-    if (progress > 0.3) {
-      ctx.fillStyle = '#064e3b';
-      ctx.fillRect(20, 464, 440, 260);
-
-      ctx.fillStyle = '#34d399';
-      ctx.font = 'bold 18px sans-serif';
-      ctx.fillText('🏆 시연 결과 100% 자동화 성공!', 36, 504);
-
-      ctx.fillStyle = '#ffffff';
-      ctx.font = '14px sans-serif';
-      ctx.fillText('✅ 강남경찰서: 서식 정상 (오류 0개)', 36, 544);
-      ctx.fillText('✅ 종로경찰서: 서식 자동 표준화', 36, 584);
-      ctx.fillText('✅ 마포경찰서: 취합 서식 교정 완료', 36, 624);
-      ctx.fillStyle = '#fde047';
-      ctx.font = 'bold 16px sans-serif';
-      ctx.fillText('⏱️ 소요시간: 0.85초 (4시간 -> 1초 단축)', 36, 674);
-    }
-
-    if (frame < totalFrames) {
-      requestAnimationFrame(renderFrame);
-    } else {
-      mediaRecorder.stop();
-    }
-  }
-
-  renderFrame();
+  showToast('📱 시연 영상 파일이 선택되었습니다! (' + (file.name || '동영상 파일') + ')', 'info');
 }
 
 function loadSampleDemoVideoIntoForm() {
@@ -1265,128 +1156,18 @@ document.addEventListener('keydown', function(e) {
   }
 });
 
-function openDirectSubmissionModal() {
+function openUnifiedSubmissionForm() {
   switchNavTab('contest');
   switchContestSubTab('submit');
-  openModal('directVideoSubmissionModal');
+  const formCard = document.querySelector('#subtabSubmit .form-container-card');
+  if (formCard) {
+    formCard.scrollIntoView({ behavior: 'smooth' });
+  }
 }
 
-function loadSampleDemoVideoIntoFormDirect() {
-  const sampleVideoUrl = 'https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/ForBiggerBlazes.mp4';
-  uploadedVideoUrl = sampleVideoUrl;
-
-  const preview = document.getElementById('directSubVideoPreview');
-  const wrapper = document.getElementById('directVideoPreviewWrapper');
-
-  if (preview) preview.src = sampleVideoUrl;
-  if (wrapper) wrapper.style.display = 'block';
-
-  const nameEl = document.getElementById('directSubName');
-  const deptEl = document.getElementById('directSubDept');
-  const titleEl = document.getElementById('directSubTitle');
-  const descEl = document.getElementById('directSubDesc');
-  const passEl = document.getElementById('directSubPasscode');
-
-  if (nameEl) nameEl.value = '김경위';
-  if (deptEl) deptEl.value = '디지털혁신팀';
-  if (titleEl) titleEl.value = '📱 250개 경찰서 엑셀 1초 서식 검증기 (시연)';
-  if (descEl) descEl.value = '전국 250개 경찰서 서식 오류를 1초만에 자동 검증하는 파이썬 취합 도구 시연 영상입니다.';
-  if (passEl) passEl.value = '1234';
-
-  showToast('🎉 시연 동영상 및 기본 출품 정보가 1초만에 자동 세팅되었습니다!', 'success');
-}
-
-async function handleDirectSubmissionSubmit(event) {
-  if (event) {
-    if (typeof event.preventDefault === 'function') event.preventDefault();
-    if (typeof event.stopPropagation === 'function') event.stopPropagation();
-  }
-
-  if (!window.isBackendConfigured()) {
-    showToast('⚠️ 중앙 저장소가 설정되지 않아 등록할 수 없습니다. config.js 설정을 확인해주세요.', 'warning');
-    return false;
-  }
-
-  const submitBtn = document.querySelector('#directSubmissionForm button[type="submit"]');
-  const origBtnHTML = submitBtn ? submitBtn.innerHTML : '';
-
-  try {
-    const nameInput = document.getElementById('directSubName');
-    const deptInput = document.getElementById('directSubDept');
-    const titleInput = document.getElementById('directSubTitle');
-    const descInput = document.getElementById('directSubDesc');
-    const passInput = document.getElementById('directSubPasscode');
-
-    const name = nameInput ? nameInput.value.trim() : '';
-    const dept = deptInput ? deptInput.value.trim() : '';
-    const title = titleInput ? titleInput.value.trim() : '';
-    const desc = descInput ? descInput.value.trim() : '';
-    const passcode = passInput ? passInput.value.trim() : '';
-
-    if (!name || !dept || !title || !desc || !passcode) {
-      showToast('⚠️ 필수 입력 항목과 비밀번호를 모두 입력해주세요.', 'warning');
-      return false;
-    }
-
-    if (passcode.length < 4) {
-      showToast('⚠️ 본인 확인 비밀번호는 최소 4자리 이상이어야 합니다.', 'warning');
-      if (passInput) passInput.focus();
-      return false;
-    }
-
-    if (submitBtn) {
-      submitBtn.disabled = true;
-      submitBtn.innerHTML = '⏳ 동영상 및 작품 등록 중...';
-    }
-
-    const directVideoFileInput = document.getElementById('directSubVideoFile');
-    const videoFile = uploadedVideoFile || directVideoFileInput?.files?.[0] || null;
-
-    const formData = {
-      name,
-      dept,
-      title,
-      desc,
-      url: '#',
-      passcode,
-      image_url: 'slides_media/slide_22.jpg',
-      video_url: (uploadedVideoFile ? null : uploadedVideoUrl) || null,
-      videoFile
-    };
-
-    const newSub = await window.SubmissionsService.createSubmission(formData);
-
-    uploadedVideoFile = null;
-    uploadedImageFile = null;
-    uploadedVideoUrl = null;
-    uploadedImageDataUrl = null;
-
-    app.submissions.unshift(newSub);
-    app.saveSubmissions();
-
-    const form = document.getElementById('directSubmissionForm');
-    if (form) form.reset();
-    closeModal('directVideoSubmissionModal');
-
-    showToast(`🟢 '${title}' 시연 동영상 및 작품이 성공적으로 중앙 DB에 저장되었습니다!`, 'success');
-    switchNavTab('contest');
-    switchContestSubTab('gallery');
-    renderHomeStats();
-    renderHomeTopEntries();
-    renderContestGallery();
-
-  } catch (err) {
-    console.error('Direct submission error:', err);
-    showToast('❌ 작품 등록 실패: ' + (err.message || '서버 저장 중 오류가 발생했습니다.'), 'error');
-  } finally {
-    if (submitBtn) {
-      submitBtn.disabled = false;
-      submitBtn.innerHTML = origBtnHTML;
-    }
-  }
-
-  return false;
-}
+// Aliases for legacy callers
+function openDirectSubmissionModal() { openUnifiedSubmissionForm(); }
+function openSimpleSubmissionModal() { openUnifiedSubmissionForm(); }
 
 function getPlayableVideoUrl(s) {
   if (!s) return '';
@@ -2122,11 +1903,11 @@ function setupModalEvents() {
 // Explicitly expose global action functions to window for 100% inline onclick compatibility
 window.openModal = openModal;
 window.closeModal = closeModal;
-window.openDirectSubmissionModal = openDirectSubmissionModal;
+window.openUnifiedSubmissionForm = openUnifiedSubmissionForm;
+window.openDirectSubmissionModal = openUnifiedSubmissionForm;
+window.openSimpleSubmissionModal = openUnifiedSubmissionForm;
 window.handleSubmissionSubmit = handleSubmissionSubmit;
-window.handleDirectSubmissionSubmit = handleDirectSubmissionSubmit;
 window.loadSampleDemoVideoIntoForm = loadSampleDemoVideoIntoForm;
-window.loadSampleDemoVideoIntoFormDirect = loadSampleDemoVideoIntoFormDirect;
 window.handleVideoFileSelect = handleVideoFileSelect;
 window.handleImageFileSelect = handleImageFileSelect;
 window.handleImagePresetChange = handleImagePresetChange;
@@ -2136,7 +1917,6 @@ window.switchNavTab = switchNavTab;
 window.switchContestSubTab = switchContestSubTab;
 window.openVoterLoginModal = openVoterLoginModal;
 window.openVoterAdminModal = openVoterAdminModal;
-window.openSimpleSubmissionModal = openSimpleSubmissionModal;
 window.handleVoterHeaderClick = handleVoterHeaderClick;
 window.handleVoterSearchInput = handleVoterSearchInput;
 window.handleVoterSelectChange = handleVoterSelectChange;
@@ -2548,99 +2328,6 @@ function clearAllVotersList() {
   }
 }
 
-function openSimpleSubmissionModal() {
-  const nameEl = document.getElementById('simpleSubName');
-  const deptEl = document.getElementById('simpleSubDept');
-  const titleEl = document.getElementById('simpleSubTitle');
-  const descEl = document.getElementById('simpleSubDesc');
-  const passEl = document.getElementById('simpleSubPasscode');
 
-  if (titleEl) titleEl.value = '';
-  if (descEl) descEl.value = '';
-  if (passEl) passEl.value = '';
-
-  if (app.currentVoter) {
-    if (nameEl) nameEl.value = app.currentVoter.name;
-    if (deptEl) deptEl.value = app.currentVoter.dept;
-  }
-
-  openModal('simpleSubmissionModal');
-}
-
-async function handleSimpleSubmissionSubmit(event) {
-  if (event) {
-    if (typeof event.preventDefault === 'function') event.preventDefault();
-  }
-
-  if (!window.isBackendConfigured()) {
-    showToast('⚠️ 중앙 저장소가 설정되지 않아 등록할 수 없습니다. config.js 설정을 확인해주세요.', 'warning');
-    return false;
-  }
-
-  const submitBtn = document.querySelector('#simpleSubmissionForm button[type="submit"]');
-  const origBtnHTML = submitBtn ? submitBtn.innerHTML : '';
-
-  try {
-    const title = (document.getElementById('simpleSubTitle')?.value || '').trim();
-    const desc = (document.getElementById('simpleSubDesc')?.value || '').trim();
-    let name = (document.getElementById('simpleSubName')?.value || '').trim();
-    let dept = (document.getElementById('simpleSubDept')?.value || '').trim();
-    const passcode = (document.getElementById('simpleSubPasscode')?.value || '').trim();
-
-    if (!title || !desc) {
-      showToast('작품 제목과 간단한 설명을 모두 입력해주세요.', 'info');
-      return false;
-    }
-
-    if (!passcode || passcode.length < 4) {
-      showToast('⚠️ 작품 수정/취소용 비밀번호 4자리 이상을 입력해주세요.', 'info');
-      const passEl = document.getElementById('simpleSubPasscode');
-      if (passEl) passEl.focus();
-      return false;
-    }
-
-    if (!name && app.currentVoter) name = app.currentVoter.name;
-    if (!dept && app.currentVoter) dept = app.currentVoter.dept;
-
-    if (submitBtn) {
-      submitBtn.disabled = true;
-      submitBtn.innerHTML = '⏳ 작품 등록 중...';
-    }
-
-    const formData = {
-      name: name || '사내 직원',
-      dept: dept || '본사',
-      title,
-      desc,
-      url: '#',
-      passcode,
-      image_url: 'slides_media/slide_22.jpg'
-    };
-
-    const newSub = await window.SubmissionsService.createSubmission(formData);
-
-    app.submissions.unshift(newSub);
-    app.saveSubmissions();
-
-    closeModal('simpleSubmissionModal');
-    const form = document.getElementById('simpleSubmissionForm');
-    if (form) form.reset();
-
-    showToast(`🟢 작품 '${title}'이 성공적으로 중앙 DB에 저장되었습니다!`, 'success');
-    renderContestGallery();
-    renderHomeStats();
-    renderHomeTopEntries();
-  } catch (err) {
-    console.error('Simple submission error:', err);
-    showToast('❌ 작품 등록 실패: ' + (err.message || '서버 저장 중 오류가 발생했습니다.'), 'error');
-  } finally {
-    if (submitBtn) {
-      submitBtn.disabled = false;
-      submitBtn.innerHTML = origBtnHTML;
-    }
-  }
-
-  return false;
-}
 
 
