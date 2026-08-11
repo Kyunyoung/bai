@@ -600,43 +600,23 @@ function handleVote(submissionId) {
 let uploadedVideoDataUrl = null;
 let uploadedVideoUrl = null;
 let uploadedImageDataUrl = null;
+let uploadedVideoFile = null;
+let uploadedImageFile = null;
 
 function handleImageFileSelect(event, previewId, wrapperId) {
-  const file = event.target.files[0];
+  const file = event.target.files?.[0];
   if (!file) return;
+
+  uploadedImageFile = file;
 
   const reader = new FileReader();
   reader.onload = function(e) {
-    const img = new Image();
-    img.onload = function() {
-      const canvas = document.createElement('canvas');
-      const maxDim = 800;
-      let width = img.width;
-      let height = img.height;
-
-      if (width > maxDim || height > maxDim) {
-        if (width > height) {
-          height = Math.round((height * maxDim) / width);
-          width = maxDim;
-        } else {
-          width = Math.round((width * maxDim) / height);
-          height = maxDim;
-        }
-      }
-
-      canvas.width = width;
-      canvas.height = height;
-      const ctx = canvas.getContext('2d');
-      ctx.drawImage(img, 0, 0, width, height);
-
-      uploadedImageDataUrl = canvas.toDataURL('image/jpeg', 0.8);
-      const preview = document.getElementById(previewId || 'subImagePreview');
-      const wrapper = document.getElementById(wrapperId || 'imagePreviewWrapper');
-      if (preview) preview.src = uploadedImageDataUrl;
-      if (wrapper) wrapper.style.display = 'block';
-      showToast('🖼️ 작품 캡처 이미지가 압축 최적화되어 첨부되었습니다!', 'success');
-    };
-    img.src = e.target.result;
+    uploadedImageDataUrl = e.target.result;
+    const preview = document.getElementById(previewId || 'subImagePreview');
+    const wrapper = document.getElementById(wrapperId || 'imagePreviewWrapper');
+    if (preview) preview.src = uploadedImageDataUrl;
+    if (wrapper) wrapper.style.display = 'block';
+    showToast('🖼️ 작품 캡처 이미지가 첨부되었습니다!', 'success');
   };
   try {
     reader.readAsDataURL(file);
@@ -646,47 +626,21 @@ function handleImageFileSelect(event, previewId, wrapperId) {
 }
 
 function handleVideoFileSelect(event, previewId, wrapperId) {
-  const file = event.target.files[0];
+  const file = event.target.files?.[0];
   if (!file) return;
 
-  const preview = document.getElementById(previewId);
-  const wrapper = document.getElementById(wrapperId);
+  uploadedVideoFile = file;
 
-  // 1. Instant local preview via ObjectURL (0 MB memory overhead)
+  const preview = document.getElementById(previewId || 'subVideoPreview');
+  const wrapper = document.getElementById(wrapperId || 'videoPreviewWrapper');
+
+  // Instant local preview via ObjectURL
   const localObjectUrl = URL.createObjectURL(file);
   uploadedVideoUrl = localObjectUrl;
   if (preview) preview.src = localObjectUrl;
   if (wrapper) wrapper.style.display = 'block';
 
-  showToast('📱 핸드폰 시연 영상을 서버로 전송 중입니다...', 'info');
-
-  // 2. Direct binary stream upload if running over HTTP
-  if (window.location.protocol.startsWith('http')) {
-    fetch('/api/upload-video', {
-      method: 'POST',
-      headers: { 'Content-Type': file.type || 'video/mp4' },
-      body: file
-    })
-    .then(res => res.json())
-    .then(data => {
-      if (data.videoUrl) {
-        uploadedVideoUrl = data.videoUrl;
-        showToast('✅ 핸드폰 시연 영상이 서버에 성공적으로 저장되었습니다!', 'success');
-      }
-    })
-    .catch(err => {
-      console.warn('Stream upload fallback:', err);
-    });
-  }
-
-  // Also read base64 for fallback
-  const reader = new FileReader();
-  reader.onload = function(e) {
-    uploadedVideoDataUrl = e.target.result;
-  };
-  try {
-    reader.readAsDataURL(file);
-  } catch (e) {}
+  showToast('📱 핸드폰 시연 영상 파일이 선택되었습니다! (' + (file.name || '동영상 파일') + ')', 'info');
 }
 
 function createInteractiveCanvasVideoBlob(callback) {
@@ -1198,6 +1152,12 @@ async function handleSubmissionSubmit(event) {
       image_url = customImg || 'slides_media/slide_22.jpg';
     }
 
+    const videoFileInput = document.getElementById('subVideoFile');
+    const imageFileInput = document.getElementById('subImageFile');
+
+    const videoFile = uploadedVideoFile || videoFileInput?.files?.[0] || null;
+    const imageFile = (preset === 'upload') ? (uploadedImageFile || imageFileInput?.files?.[0] || null) : null;
+
     const formData = {
       name,
       dept,
@@ -1206,9 +1166,9 @@ async function handleSubmissionSubmit(event) {
       url,
       passcode,
       image_url,
-      video_url: inputVideoUrl || null,
-      imageFile: (preset === 'upload' && uploadedImageFile) ? uploadedImageFile : null,
-      videoFile: uploadedVideoFile || null
+      video_url: inputVideoUrl || (uploadedVideoFile ? null : uploadedVideoUrl) || null,
+      imageFile,
+      videoFile
     };
 
     const newSub = await window.SubmissionsService.createSubmission(formData);
@@ -1379,6 +1339,9 @@ async function handleDirectSubmissionSubmit(event) {
       submitBtn.innerHTML = '⏳ 동영상 및 작품 등록 중...';
     }
 
+    const directVideoFileInput = document.getElementById('directSubVideoFile');
+    const videoFile = uploadedVideoFile || directVideoFileInput?.files?.[0] || null;
+
     const formData = {
       name,
       dept,
@@ -1387,14 +1350,16 @@ async function handleDirectSubmissionSubmit(event) {
       url: '#',
       passcode,
       image_url: 'slides_media/slide_22.jpg',
-      video_url: uploadedVideoUrl || null,
-      videoFile: uploadedVideoFile || null
+      video_url: (uploadedVideoFile ? null : uploadedVideoUrl) || null,
+      videoFile
     };
 
     const newSub = await window.SubmissionsService.createSubmission(formData);
 
     uploadedVideoFile = null;
+    uploadedImageFile = null;
     uploadedVideoUrl = null;
+    uploadedImageDataUrl = null;
 
     app.submissions.unshift(newSub);
     app.saveSubmissions();
