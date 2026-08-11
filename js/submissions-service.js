@@ -245,13 +245,25 @@
     return true;
   }
 
+  let activeRealtimeChannel = null;
+
   // Realtime Channel Subscription
-  function subscribeToRealtimeSubmissions(onInsert, onUpdate, onDelete) {
+  function subscribeToRealtimeSubmissions(onInsert, onUpdate, onDelete, onStatusChange) {
     const client = window.getSupabaseClient();
     if (!client) return null;
 
-    const channel = client
-      .channel('public:submissions')
+    // Clean up existing channel to prevent duplicate subscriptions
+    if (activeRealtimeChannel) {
+      try {
+        client.removeChannel(activeRealtimeChannel);
+      } catch (e) {
+        console.warn('Failed to remove old channel:', e);
+      }
+      activeRealtimeChannel = null;
+    }
+
+    activeRealtimeChannel = client
+      .channel('public:submissions:' + Date.now())
       .on(
         'postgres_changes',
         { event: 'INSERT', schema: 'public', table: 'submissions' },
@@ -286,20 +298,31 @@
       )
       .subscribe((status, err) => {
         const badge = document.getElementById('realtimeSyncBadge');
+        if (typeof onStatusChange === 'function') {
+          onStatusChange(status, err);
+        }
         if (badge) {
           if (status === 'SUBSCRIBED') {
             badge.textContent = '🟢 실시간 DB 연동 중';
             badge.style.background = 'rgba(16, 185, 129, 0.15)';
             badge.style.color = '#059669';
-          } else if (status === 'CLOSED' || status === 'CHANNEL_ERROR') {
-            badge.textContent = '⚠️ 실시간 재연결 중';
+          } else if (status === 'TIMED_OUT') {
+            badge.textContent = '⚠️ 실시간 연결 시간 초과 (재연결 시도 중)';
+            badge.style.background = 'rgba(245, 158, 11, 0.15)';
+            badge.style.color = '#d97706';
+          } else if (status === 'CHANNEL_ERROR' || status === 'CLOSED') {
+            badge.textContent = '⚠️ 실시간 DB 연결 끊김 (재연결 시도 중)';
             badge.style.background = 'rgba(239, 68, 68, 0.15)';
             badge.style.color = '#dc2626';
+          } else {
+            badge.textContent = '⏳ 중앙 DB 연결 확인 중...';
+            badge.style.background = 'rgba(107, 114, 128, 0.15)';
+            badge.style.color = '#4b5563';
           }
         }
       });
 
-    return channel;
+    return activeRealtimeChannel;
   }
 
   // Export to window namespace

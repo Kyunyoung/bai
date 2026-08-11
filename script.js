@@ -965,8 +965,32 @@ window.addEventListener('storage', (e) => {
       app.submissions = Array.isArray(updated) ? updated : [];
       renderContestGallery();
       renderHomeStats();
-      renderHomeTopEntries();
     } catch (err) {}
+  }
+});
+
+/* SUPABASE CENTRAL DATABASE LOGIC */
+let lastFocusSyncTime = 0;
+
+// Auto Re-fetch on Tab Visibility, Online, & Focus Events (No Polling)
+document.addEventListener('visibilitychange', () => {
+  if (!document.hidden && window.isBackendConfigured()) {
+    loadCentralSubmissions();
+  }
+});
+
+window.addEventListener('online', () => {
+  if (window.isBackendConfigured()) {
+    showToast('🌐 네트워크 연결 복구됨: 중앙 DB 동기화를 수행합니다.', 'info');
+    loadCentralSubmissions();
+  }
+});
+
+window.addEventListener('focus', () => {
+  const now = Date.now();
+  if (now - lastFocusSyncTime > 3000 && window.isBackendConfigured()) {
+    lastFocusSyncTime = now;
+    loadCentralSubmissions();
   }
 });
 

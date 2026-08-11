@@ -350,6 +350,20 @@ GRANT EXECUTE ON FUNCTION public.admin_update_submission_status TO authenticated
 GRANT EXECUTE ON FUNCTION public.admin_delete_submission TO authenticated;
 GRANT EXECUTE ON FUNCTION public.is_admin TO authenticated;
 
+-- 7. Enable Supabase Realtime Publication for public.submissions
+DO $$
+BEGIN
+  IF NOT EXISTS (
+    SELECT 1
+    FROM pg_publication_tables
+    WHERE pubname = 'supabase_realtime'
+      AND schemaname = 'public'
+      AND tablename = 'submissions'
+  ) THEN
+    ALTER PUBLICATION supabase_realtime ADD TABLE public.submissions;
+  END IF;
+END $$;
+
 -- ==============================================================================
 -- Storage Bucket Instructions for Supabase Dashboard:
 -- 1. Create a Public Bucket named: submission-media
