@@ -320,10 +320,13 @@ function renderHomeTopEntries() {
   const container = document.getElementById('homeTopEntriesGrid');
   if (!container) return;
 
-  const topThree = [...app.submissions]
-    .filter(s => s.status !== 'hidden')
-    .sort((a, b) => b.votes - a.votes)
-    .slice(0, 3);
+  const allVisible = [...app.submissions].filter(s => s.status !== 'hidden');
+  const sortedSubmissions = [...allVisible].sort((a, b) => {
+    if (b.votes !== a.votes) return b.votes - a.votes;
+    return new Date(a.date || 0) - new Date(b.date || 0); // Earliest registered first
+  });
+
+  const topThree = sortedSubmissions.slice(0, 3);
 
   if (topThree.length === 0) {
     container.innerHTML = `
@@ -342,6 +345,23 @@ function renderHomeTopEntries() {
     const isVoted = app.userVotes.has(s.id);
     const hasVideo = s.videoUrl || s.videoData;
     const resolvedVideoSrc = getPlayableVideoUrl(s);
+
+    let rankBadgeText = '';
+    if (s.votes === 0) {
+      rankBadgeText = '✨ 0표 (투표 대기)';
+    } else {
+      let rank = 1;
+      let isTie = false;
+      for (let i = 0; i < sortedSubmissions.length; i++) {
+        if (sortedSubmissions[i].votes > s.votes) {
+          rank++;
+        } else if (sortedSubmissions[i].id !== s.id && sortedSubmissions[i].votes === s.votes) {
+          isTie = true;
+        }
+      }
+      rankBadgeText = isTie ? `👑 TOP ${rank}위 (공동)` : `👑 TOP ${rank}위`;
+    }
+
     html += `
       <div class="contest-card">
         <div class="contest-thumb-wrapper" onclick="openSubmissionDetailModal('${s.id}')">
@@ -351,7 +371,7 @@ function renderHomeTopEntries() {
           ` : `
             <img src="${s.image}" class="contest-thumb-img" alt="${s.title}">
           `}
-          <div class="contest-rank-badge">👑 TOP ${idx + 1}위</div>
+          <div class="contest-rank-badge">${rankBadgeText}</div>
         </div>
         <div class="contest-card-body">
           <div class="contest-card-meta">
@@ -484,9 +504,12 @@ function renderContestGallery() {
 
   // Filter Sort
   if (sortType === 'votes') {
-    list.sort((a, b) => b.votes - a.votes);
+    list.sort((a, b) => {
+      if (b.votes !== a.votes) return b.votes - a.votes;
+      return new Date(a.date || 0) - new Date(b.date || 0); // Earliest registered first
+    });
   } else if (sortType === 'newest') {
-    list.sort((a, b) => new Date(b.date) - new Date(a.date));
+    list.sort((a, b) => new Date(b.date || 0) - new Date(a.date || 0));
   } else if (sortType === 'my') {
     list = list.filter(s => app.userVotes.has(s.id));
   }
@@ -507,11 +530,30 @@ function renderContestGallery() {
     return;
   }
 
+  const allVisibleSubmissions = app.submissions.filter(x => x.status !== 'hidden');
+
   let html = '';
   list.forEach((s, idx) => {
     const isVoted = app.currentVoter && app.currentVoter.votedSubmissionId === s.id;
     const hasVideo = s.videoUrl || s.videoData;
     const resolvedVideoSrc = getPlayableVideoUrl(s);
+
+    let rankBadgeText = '';
+    if (s.votes === 0) {
+      rankBadgeText = '✨ 0표 (투표 대기)';
+    } else {
+      let rank = 1;
+      let isTie = false;
+      for (let i = 0; i < allVisibleSubmissions.length; i++) {
+        if (allVisibleSubmissions[i].votes > s.votes) {
+          rank++;
+        } else if (allVisibleSubmissions[i].id !== s.id && allVisibleSubmissions[i].votes === s.votes) {
+          isTie = true;
+        }
+      }
+      rankBadgeText = isTie ? `🏆 ${rank}위 (공동 ${s.votes}표)` : `🏆 ${rank}위 (${s.votes}표)`;
+    }
+
     html += `
       <div class="contest-card">
         <div class="contest-thumb-wrapper" onclick="openSubmissionDetailModal('${s.id}')">
@@ -521,7 +563,7 @@ function renderContestGallery() {
           ` : `
             <img src="${s.image}" class="contest-thumb-img" alt="${s.title}">
           `}
-          <div class="contest-rank-badge">🏆 ${idx + 1}위 (${s.votes}표)</div>
+          <div class="contest-rank-badge">${rankBadgeText}</div>
         </div>
         <div class="contest-card-body">
           <div class="contest-card-meta">
