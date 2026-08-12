@@ -2199,7 +2199,7 @@ function openVoterAdminModal() {
   openModal('voterAdminModal');
 }
 
-function handleVoterAdminAuthSubmit(event) {
+async function handleVoterAdminAuthSubmit(event) {
   if (event && typeof event.preventDefault === 'function') event.preventDefault();
 
   const idInput = document.getElementById('voterAdminAuthId');
@@ -2209,10 +2209,39 @@ function handleVoterAdminAuthSubmit(event) {
   const inputId = idInput ? idInput.value.trim() : '';
   const inputPass = passInput ? passInput.value.trim() : '';
 
-  const expectedId = window.BAI_CONFIG?.ADMIN_ID || 'admin';
-  const expectedPass = window.BAI_CONFIG?.ADMIN_PASSCODE || 'admin1234';
+  if (!inputId || !inputPass) {
+    if (errBox) {
+      errBox.textContent = '⚠️ 아이디와 비밀번호를 모두 입력해주세요.';
+      errBox.style.display = 'block';
+    }
+    return;
+  }
 
-  if ((inputId === expectedId || inputId === 'admin') && (inputPass === expectedPass || inputPass === 'admin1234')) {
+  let authenticated = false;
+  if (window.isBackendConfigured && window.isBackendConfigured() && window.getSupabaseClient) {
+    const client = window.getSupabaseClient();
+    if (client) {
+      try {
+        const { data, error } = await client.auth.signInWithPassword({
+          email: inputId.includes('@') ? inputId : `${inputId}@admin.local`,
+          password: inputPass
+        });
+        if (!error && data?.session) {
+          authenticated = true;
+        }
+      } catch (e) {}
+    }
+  }
+
+  if (!authenticated) {
+    const expectedId = window.BAI_CONFIG?.ADMIN_ID || 'admin';
+    const expectedPass = window.BAI_CONFIG?.ADMIN_PASSCODE || 'admin1234';
+    if (inputId === expectedId && inputPass === expectedPass) {
+      authenticated = true;
+    }
+  }
+
+  if (authenticated) {
     sessionStorage.setItem('vibe_admin_logged_in', 'true');
     closeModal('voterAdminAuthModal');
     renderVoterTable();
@@ -2220,7 +2249,7 @@ function handleVoterAdminAuthSubmit(event) {
     showToast('🔓 관리자 인증 성공! 엑셀 사전 등록 관리 화면으로 이동합니다.', 'success');
   } else {
     if (errBox) {
-      errBox.textContent = '⚠️ 아이디 또는 비밀번호가 올바르지 않습니다. (기본: admin / admin1234)';
+      errBox.textContent = '⚠️ 아이디 또는 비밀번호가 올바르지 않습니다.';
       errBox.style.display = 'block';
     }
     showToast('❌ 로그인 실패: 아이디/비밀번호를 확인해주세요.', 'danger');

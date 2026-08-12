@@ -784,20 +784,16 @@
         <form id="voterAdminAuthForm" onsubmit="handleVoterAdminAuthSubmit(event)">
           <div class="form-group" style="margin-bottom:14px;">
             <label class="form-label" for="voterAdminAuthId">👤 관리자 아이디 (ID) <span class="required">*</span></label>
-            <input type="text" id="voterAdminAuthId" class="form-input" placeholder="아이디 입력 (기본: admin)" required>
+            <input type="text" id="voterAdminAuthId" class="form-input" placeholder="관리자 아이디 입력" required>
           </div>
 
           <div class="form-group" style="margin-bottom:16px;">
             <label class="form-label" for="voterAdminAuthPassword">🔑 관리자 비밀번호 (Password) <span class="required">*</span></label>
-            <input type="password" id="voterAdminAuthPassword" class="form-input" placeholder="비밀번호 입력 (기본: admin1234)" required>
+            <input type="password" id="voterAdminAuthPassword" class="form-input" placeholder="관리자 비밀번호 입력" required>
           </div>
 
           <div id="voterAdminAuthError" class="alert-box danger" style="display:none; margin-bottom:14px; padding:10px 12px; background:#fef2f2; border:1px solid #fca5a5; border-radius:8px; color:#dc2626; font-size:0.85rem; font-weight:700;">
             ⚠️ 아이디 또는 비밀번호가 올바르지 않습니다.
-          </div>
-
-          <div style="font-size:0.8rem; color:var(--text-muted); background:var(--bg-tertiary); padding:10px 12px; border-radius:8px; margin-bottom:18px;">
-            💡 <strong>관리자 로그인 정보</strong>: ID <code style="color:#4f46e5; font-weight:800;">admin</code> / PW <code style="color:#4f46e5; font-weight:800;">admin1234</code>
           </div>
 
           <div class="form-actions">
@@ -876,10 +872,10 @@
 
   <!-- Supabase & Central DB Service Modules -->
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
-  <script src="config.js?v=20260812_v7"></script>
-  <script src="js/supabase-client.js?v=20260812_v7"></script>
-  <script src="js/submissions-service.js?v=20260812_v7"></script>
-  <script src="script.js?v=20260812_v7"></script>
+  <script src="config.js?v=20260812_v8"></script>
+  <script src="js/supabase-client.js?v=20260812_v8"></script>
+  <script src="js/submissions-service.js?v=20260812_v8"></script>
+  <script src="script.js?v=20260812_v8"></script>
 </body>
 
 </html>
