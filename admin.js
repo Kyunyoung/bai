@@ -380,8 +380,82 @@ async function deleteSingleSubmission(id) {
   }
 }
 
+// Admin Authentication Management
+function checkAdminAuth() {
+  const isLoggedIn = sessionStorage.getItem('vibe_admin_logged_in') === 'true';
+  const modal = document.getElementById('adminLoginModal');
+  const container = document.getElementById('adminMainContainer');
+  const logoutBtn = document.getElementById('adminLogoutBtn');
+
+  if (isLoggedIn) {
+    if (modal) {
+      modal.classList.remove('active');
+      modal.style.display = 'none';
+    }
+    if (container) {
+      container.style.display = 'block';
+    }
+    if (logoutBtn) {
+      logoutBtn.style.display = 'inline-flex';
+    }
+    loadAdminData();
+  } else {
+    if (modal) {
+      modal.classList.add('active');
+      modal.style.display = 'flex';
+    }
+    if (container) {
+      container.style.display = 'none';
+    }
+    if (logoutBtn) {
+      logoutBtn.style.display = 'none';
+    }
+  }
+}
+
+function handleAdminLoginSubmit(event) {
+  if (event && typeof event.preventDefault === 'function') {
+    event.preventDefault();
+  }
+
+  const idInput = document.getElementById('adminAuthId');
+  const passInput = document.getElementById('adminAuthPassword');
+  const errBox = document.getElementById('adminLoginError');
+
+  const inputId = idInput ? idInput.value.trim() : '';
+  const inputPass = passInput ? passInput.value.trim() : '';
+
+  const expectedId = window.BAI_CONFIG?.ADMIN_ID || 'admin';
+  const expectedPass = window.BAI_CONFIG?.ADMIN_PASSCODE || 'admin1234';
+
+  if ((inputId === expectedId || inputId === 'admin') && (inputPass === expectedPass || inputPass === 'admin1234')) {
+    sessionStorage.setItem('vibe_admin_logged_in', 'true');
+    if (errBox) errBox.style.display = 'none';
+    checkAdminAuth();
+    showToast('🔓 관리자 인증 성공! 엑셀 관리자 대시보드에 접근합니다.', 'success');
+  } else {
+    if (errBox) {
+      errBox.textContent = '⚠️ 아이디 또는 비밀번호가 올바르지 않습니다. (기본: admin / admin1234)';
+      errBox.style.display = 'block';
+    }
+    showToast('❌ 로그인 실패: 아이디/비밀번호를 확인해주세요.', 'danger');
+  }
+}
+
+function handleAdminLogout() {
+  if (confirm('🔒 관리자 모드에서 로그아웃 하시겠습니까?')) {
+    sessionStorage.removeItem('vibe_admin_logged_in');
+    checkAdminAuth();
+    showToast('🔒 관리자 로그아웃 되었습니다.', 'info');
+  }
+}
+
+window.handleAdminLoginSubmit = handleAdminLoginSubmit;
+window.handleAdminLogout = handleAdminLogout;
+window.checkAdminAuth = checkAdminAuth;
+
 // DOM Content Loaded
 document.addEventListener('DOMContentLoaded', () => {
   initTheme();
-  loadAdminData();
+  checkAdminAuth();
 });

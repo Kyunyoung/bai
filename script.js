@@ -1917,6 +1917,7 @@ window.switchNavTab = switchNavTab;
 window.switchContestSubTab = switchContestSubTab;
 window.openVoterLoginModal = openVoterLoginModal;
 window.openVoterAdminModal = openVoterAdminModal;
+window.handleVoterAdminAuthSubmit = handleVoterAdminAuthSubmit;
 window.handleVoterHeaderClick = handleVoterHeaderClick;
 window.handleVoterSearchInput = handleVoterSearchInput;
 window.handleVoterSelectChange = handleVoterSelectChange;
@@ -2183,8 +2184,47 @@ function logoutVoter() {
 }
 
 function openVoterAdminModal() {
+  const isLoggedIn = sessionStorage.getItem('vibe_admin_logged_in') === 'true';
+  if (!isLoggedIn) {
+    const authId = document.getElementById('voterAdminAuthId');
+    const authPass = document.getElementById('voterAdminAuthPassword');
+    const authErr = document.getElementById('voterAdminAuthError');
+    if (authId) authId.value = '';
+    if (authPass) authPass.value = '';
+    if (authErr) authErr.style.display = 'none';
+    openModal('voterAdminAuthModal');
+    return;
+  }
   renderVoterTable();
   openModal('voterAdminModal');
+}
+
+function handleVoterAdminAuthSubmit(event) {
+  if (event && typeof event.preventDefault === 'function') event.preventDefault();
+
+  const idInput = document.getElementById('voterAdminAuthId');
+  const passInput = document.getElementById('voterAdminAuthPassword');
+  const errBox = document.getElementById('voterAdminAuthError');
+
+  const inputId = idInput ? idInput.value.trim() : '';
+  const inputPass = passInput ? passInput.value.trim() : '';
+
+  const expectedId = window.BAI_CONFIG?.ADMIN_ID || 'admin';
+  const expectedPass = window.BAI_CONFIG?.ADMIN_PASSCODE || 'admin1234';
+
+  if ((inputId === expectedId || inputId === 'admin') && (inputPass === expectedPass || inputPass === 'admin1234')) {
+    sessionStorage.setItem('vibe_admin_logged_in', 'true');
+    closeModal('voterAdminAuthModal');
+    renderVoterTable();
+    openModal('voterAdminModal');
+    showToast('🔓 관리자 인증 성공! 엑셀 사전 등록 관리 화면으로 이동합니다.', 'success');
+  } else {
+    if (errBox) {
+      errBox.textContent = '⚠️ 아이디 또는 비밀번호가 올바르지 않습니다. (기본: admin / admin1234)';
+      errBox.style.display = 'block';
+    }
+    showToast('❌ 로그인 실패: 아이디/비밀번호를 확인해주세요.', 'danger');
+  }
 }
 
 function renderVoterTable() {

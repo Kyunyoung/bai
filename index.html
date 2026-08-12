@@ -767,6 +767,50 @@
     </div>
   </div>
 
+  <!-- 1-B. VOTER EXCEL ADMIN AUTHENTICATION MODAL -->
+  <div id="voterAdminAuthModal" class="modal-overlay" aria-hidden="true">
+    <div class="modal-card" style="max-width: 440px; width:90%; border-radius:18px;">
+      <div class="modal-header" style="background:linear-gradient(135deg, #4f46e5 0%, #3730a3 100%); color:#fff; padding:18px 24px;">
+        <h3 class="modal-title" style="font-weight:900; font-size:1.15rem; color:#fff; margin:0;">
+          🔒 엑셀 관리자 인증 (ID & 비밀번호)
+        </h3>
+        <button class="modal-close-btn" onclick="closeModal('voterAdminAuthModal')" style="color:#fff;">&times;</button>
+      </div>
+      <div class="modal-body" style="padding: 24px;">
+        <p style="font-size: 0.875rem; color: var(--text-muted); margin-bottom: 18px; line-height:1.5;">
+          엑셀 사전 등록 명단을 관리하려면 <strong>관리자 아이디</strong>와 <strong>비밀번호</strong>를 입력하세요.
+        </p>
+
+        <form id="voterAdminAuthForm" onsubmit="handleVoterAdminAuthSubmit(event)">
+          <div class="form-group" style="margin-bottom:14px;">
+            <label class="form-label" for="voterAdminAuthId">👤 관리자 아이디 (ID) <span class="required">*</span></label>
+            <input type="text" id="voterAdminAuthId" class="form-input" placeholder="아이디 입력 (기본: admin)" required>
+          </div>
+
+          <div class="form-group" style="margin-bottom:16px;">
+            <label class="form-label" for="voterAdminAuthPassword">🔑 관리자 비밀번호 (Password) <span class="required">*</span></label>
+            <input type="password" id="voterAdminAuthPassword" class="form-input" placeholder="비밀번호 입력 (기본: admin1234)" required>
+          </div>
+
+          <div id="voterAdminAuthError" class="alert-box danger" style="display:none; margin-bottom:14px; padding:10px 12px; background:#fef2f2; border:1px solid #fca5a5; border-radius:8px; color:#dc2626; font-size:0.85rem; font-weight:700;">
+            ⚠️ 아이디 또는 비밀번호가 올바르지 않습니다.
+          </div>
+
+          <div style="font-size:0.8rem; color:var(--text-muted); background:var(--bg-tertiary); padding:10px 12px; border-radius:8px; margin-bottom:18px;">
+            💡 <strong>관리자 로그인 정보</strong>: ID <code style="color:#4f46e5; font-weight:800;">admin</code> / PW <code style="color:#4f46e5; font-weight:800;">admin1234</code>
+          </div>
+
+          <div class="form-actions">
+            <button type="button" class="btn btn-outline" onclick="closeModal('voterAdminAuthModal')">취소</button>
+            <button type="submit" class="btn btn-primary" style="flex:1; background:linear-gradient(135deg, #4f46e5 0%, #3730a3 100%); font-weight:800;">
+              🔓 관리자 인증 로그인
+            </button>
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>
+
   <!-- 2. VOTER EXCEL ADMIN MODAL -->
   <div id="voterAdminModal" class="modal-overlay" aria-hidden="true">
     <div class="modal-card" style="max-width: 680px;">
@@ -832,10 +876,10 @@
 
   <!-- Supabase & Central DB Service Modules -->
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
-  <script src="config.js?v=20260812_v5"></script>
-  <script src="js/supabase-client.js?v=20260812_v5"></script>
-  <script src="js/submissions-service.js?v=20260812_v5"></script>
-  <script src="script.js?v=20260812_v5"></script>
+  <script src="config.js?v=20260812_v6"></script>
+  <script src="js/supabase-client.js?v=20260812_v6"></script>
+  <script src="js/submissions-service.js?v=20260812_v6"></script>
+  <script src="script.js?v=20260812_v6"></script>
 </body>
 
 </html>
