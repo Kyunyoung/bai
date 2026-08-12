@@ -231,20 +231,21 @@ BEGIN
     v_clean_image_url := trim(coalesce(p_image_url, ''));
     IF v_clean_image_url = '' THEN
         v_clean_image_url := NULL;
-    ELSIF NOT (v_clean_image_url ~* '^https?://' OR v_clean_image_url ~* '^slides_media/') THEN
+    ELSIF v_clean_image_url <> 'DELETE' AND NOT (v_clean_image_url ~* '^https?://' OR v_clean_image_url ~* '^slides_media/') THEN
         RAISE EXCEPTION 'INVALID_URL_PROTOCOL: image_url 형식이 올바르지 않습니다.'
             USING ERRCODE = '22023';
     END IF;
 
-    -- Perform Update
+    -- Perform Update (preserve existing video_url / image_url if NULL is passed)
     UPDATE public.submissions
     SET name = trim(p_name),
         dept = trim(p_dept),
         title = trim(p_title),
         description = trim(p_description),
         project_url = v_clean_project_url,
-        video_url = v_clean_video_url,
-        image_url = v_clean_image_url
+        video_url = CASE WHEN v_clean_video_url = 'DELETE' THEN NULL WHEN v_clean_video_url IS NOT NULL THEN v_clean_video_url ELSE video_url END,
+        image_url = CASE WHEN v_clean_image_url = 'DELETE' THEN NULL WHEN v_clean_image_url IS NOT NULL THEN v_clean_image_url ELSE image_url END,
+        updated_at = NOW()
     WHERE id = p_submission_id AND deleted_at IS NULL
     RETURNING * INTO v_sub;
 

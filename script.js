@@ -1306,9 +1306,13 @@ function openSubmissionDetailModal(submissionId) {
 }
 
 /* Edit Submission Modal Handlers */
+let editedVideoFile = null;
+
 function openEditSubmissionModal(submissionId) {
   const s = app.submissions.find(item => item.id === submissionId);
   if (!s) return;
+
+  editedVideoFile = null;
 
   document.getElementById('editSubId').value = s.id;
   document.getElementById('editName').value = s.name;
@@ -1316,6 +1320,31 @@ function openEditSubmissionModal(submissionId) {
   document.getElementById('editTitle').value = s.title;
   document.getElementById('editDesc').value = s.desc;
   document.getElementById('editUrl').value = s.url !== '#' ? s.url : '';
+
+  const editVideoFileInput = document.getElementById('editVideoFile');
+  const editVideoUrlInput = document.getElementById('editVideoUrl');
+  const previewWrapper = document.getElementById('editVideoPreviewWrapper');
+  const previewVideo = document.getElementById('editVideoPreview');
+  const noticeEl = document.getElementById('editVideoNotice');
+
+  if (editVideoFileInput) editVideoFileInput.value = '';
+  if (editVideoUrlInput) editVideoUrlInput.value = '';
+
+  // Show existing video preview if available
+  const playableSrc = getPlayableVideoUrl(s);
+  if (playableSrc) {
+    if (previewVideo) previewVideo.src = playableSrc;
+    if (previewWrapper) previewWrapper.style.display = 'block';
+    if (noticeEl) {
+      noticeEl.innerHTML = '💡 <strong>안내</strong>: 기존 시연 영상이 등록되어 있습니다. 새 영상을 선택하지 않으면 기존 영상이 그대로 유지됩니다.';
+    }
+  } else {
+    if (previewWrapper) previewWrapper.style.display = 'none';
+    if (previewVideo) previewVideo.src = '';
+    if (noticeEl) {
+      noticeEl.innerHTML = '💡 <strong>안내</strong>: 새 시연 영상 파일 또는 외부 URL을 선택/입력할 수 있습니다.';
+    }
+  }
 
   const presetSelect = document.getElementById('editImagePreset');
   const customInput = document.getElementById('editCustomImageUrl');
@@ -1330,6 +1359,30 @@ function openEditSubmissionModal(submissionId) {
   }
 
   openModal('editSubmissionModal');
+}
+
+function handleEditVideoFileSelect(event) {
+  const file = event?.target?.files?.[0];
+  if (!file) return;
+
+  if (!file.type.startsWith('video/')) {
+    showToast('⚠️ 동영상 파일(.mp4, .mov, .webm 등)만 선택할 수 있습니다.', 'warning');
+    if (event.target) event.target.value = '';
+    return;
+  }
+
+  editedVideoFile = file;
+
+  const previewWrapper = document.getElementById('editVideoPreviewWrapper');
+  const previewVideo = document.getElementById('editVideoPreview');
+  const noticeEl = document.getElementById('editVideoNotice');
+
+  const fileUrl = URL.createObjectURL(file);
+  if (previewVideo) previewVideo.src = fileUrl;
+  if (previewWrapper) previewWrapper.style.display = 'block';
+  if (noticeEl) {
+    noticeEl.innerHTML = `🎬 <strong>새 영상 선택 완료</strong>: (${file.name}, ${(file.size / (1024 * 1024)).toFixed(1)}MB). 저장 시 새 영상으로 교체됩니다.`;
+  }
 }
 
 function handleEditImagePresetChange(val) {
@@ -1372,6 +1425,7 @@ async function handleEditSubmissionSubmit(event) {
     const title = document.getElementById('editTitle').value.trim();
     const desc = document.getElementById('editDesc').value.trim();
     const url = document.getElementById('editUrl').value.trim();
+    const newVideoUrl = document.getElementById('editVideoUrl')?.value?.trim();
 
     const preset = document.getElementById('editImagePreset').value;
     const customImg = document.getElementById('editCustomImageUrl').value.trim();
@@ -1386,7 +1440,9 @@ async function handleEditSubmissionSubmit(event) {
       title,
       desc,
       url,
-      image_url
+      image_url,
+      videoFile: editedVideoFile || null,
+      video_url: newVideoUrl || null
     };
 
     const updatedSub = await window.SubmissionsService.updateSubmission(id, passcode, formData);
@@ -1397,6 +1453,7 @@ async function handleEditSubmissionSubmit(event) {
     }
     app.saveSubmissions();
 
+    editedVideoFile = null;
     verifyPasscodeCache = '';
     closeModal('editSubmissionModal');
     closeModal('verifyPasscodeModal');
@@ -1951,8 +2008,11 @@ window.openSimpleSubmissionModal = openUnifiedSubmissionForm;
 window.handleSubmissionSubmit = handleSubmissionSubmit;
 window.loadSampleDemoVideoIntoForm = loadSampleDemoVideoIntoForm;
 window.handleVideoFileSelect = handleVideoFileSelect;
+window.handleEditVideoFileSelect = handleEditVideoFileSelect;
 window.handleImageFileSelect = handleImageFileSelect;
 window.handleImagePresetChange = handleImagePresetChange;
+window.handleEditImagePresetChange = handleEditImagePresetChange;
+window.handleEditSubmissionSubmit = handleEditSubmissionSubmit;
 window.forceRefreshCentralSync = forceRefreshCentralSync;
 window.openSubmissionDetailModal = openSubmissionDetailModal;
 window.switchNavTab = switchNavTab;

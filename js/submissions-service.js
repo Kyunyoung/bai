@@ -148,16 +148,23 @@
       throw new Error('중앙 저장소가 설정되지 않았습니다.');
     }
 
+    // Step 1 & 2: Upload new media files ONLY if newly provided
     let imageUrl = formData.image_url || null;
     let videoUrl = formData.video_url || null;
 
-    if (formData.imageFile) {
-      imageUrl = await uploadMediaToStorage(formData.imageFile, 'images');
-    }
-    if (formData.videoFile) {
+    if (formData.deleteVideo) {
+      videoUrl = 'DELETE';
+    } else if (formData.videoFile) {
       videoUrl = await uploadMediaToStorage(formData.videoFile, 'videos');
     }
 
+    if (formData.deleteImage) {
+      imageUrl = 'DELETE';
+    } else if (formData.imageFile) {
+      imageUrl = await uploadMediaToStorage(formData.imageFile, 'images');
+    }
+
+    // Step 3 & 4: Call RPC (Passing NULL preserves existing DB video_url/image_url)
     const { data, error } = await client.rpc('update_submission_with_passcode', {
       p_submission_id: submissionId,
       p_passcode: passcode,
