@@ -224,12 +224,21 @@ function clearAllVotersList() {
 
 // Excel Upload Handler
 function handleExcelFileSelect(event) {
-  const file = event.target.files[0];
+  const file = event?.target?.files?.[0];
   if (!file) return;
+
+  const fileName = file.name.toLowerCase();
+  const isExcel = fileName.endsWith('.xlsx') || fileName.endsWith('.xls');
+
+  if (isExcel && typeof XLSX === 'undefined') {
+    showToast('⚠️ 엑셀 파싱 라이브러리(XLSX)를 로드 중입니다. 잠시 후 다시 시도하거나 페이지를 새로고침해주세요.', 'warning');
+    if (event.target) event.target.value = '';
+    return;
+  }
 
   const reader = new FileReader();
 
-  if (window.XLSX && (file.name.endsWith('.xlsx') || file.name.endsWith('.xls'))) {
+  if (typeof XLSX !== 'undefined') {
     reader.onload = function(e) {
       try {
         const data = new Uint8Array(e.target.result);
@@ -254,7 +263,7 @@ function handleExcelFileSelect(event) {
     reader.readAsText(file, 'utf-8');
   }
 
-  event.target.value = '';
+  if (event.target) event.target.value = '';
 }
 
 // Process Rows
@@ -481,6 +490,11 @@ function handleAdminLogout() {
   }
 }
 
+window.handleExcelFileSelect = handleExcelFileSelect;
+window.processAdminExcelRows = processAdminExcelRows;
+window.filterVoterTable = filterVoterTable;
+window.clearAllVotersList = clearAllVotersList;
+window.clearAllSubmissions = clearAllSubmissions;
 window.handleAdminLoginSubmit = handleAdminLoginSubmit;
 window.handleAdminLogout = handleAdminLogout;
 window.checkAdminAuth = checkAdminAuth;
