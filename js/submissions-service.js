@@ -368,6 +368,111 @@
     return mapRecordToSubmission(record);
   }
 
+  // Verify Voter Credentials via RPC
+  async function verifyVoterService(name, birthdate, dept = null) {
+    const client = window.getSupabaseClient();
+    if (!client) return [];
+
+    const { data, error } = await client.rpc('verify_voter', {
+      p_name: name,
+      p_birthdate: birthdate,
+      p_dept: dept || null
+    });
+
+    if (error) {
+      console.error('Verify Voter RPC Error:', error);
+      throw new Error(error.message || '투표자 정보 검증 실패');
+    }
+
+    return (Array.isArray(data) ? data : []).map(v => ({
+      id: v.id,
+      name: v.name,
+      dept: v.dept,
+      birthdate: v.birthdate,
+      votedSubmissionId: v.voted_submission_id
+    }));
+  }
+
+  // Atomic Cast Voter Vote Transaction via RPC
+  async function castVoterVoteService(voterId, submissionId = null) {
+    const client = window.getSupabaseClient();
+    if (!client) return null;
+
+    const { data, error } = await client.rpc('cast_voter_vote', {
+      p_voter_id: voterId,
+      p_submission_id: submissionId || null
+    });
+
+    if (error) {
+      console.error('Cast Voter Vote RPC Error:', error);
+      throw new Error(error.message || '투표 처리 중 오류가 발생했습니다.');
+    }
+
+    return data;
+  }
+
+  // Admin Batch Upsert Voters via RPC
+  async function adminUpsertVotersService(votersArray) {
+    const client = window.getSupabaseClient();
+    if (!client) return { inserted: 0, total: 0 };
+
+    const formattedVoters = votersArray.map(v => ({
+      name: v.name,
+      dept: v.dept || '소속미지정',
+      birthdate: String(v.birthdate || '').replace(/[^0-9]/g, '')
+    }));
+
+    const { data, error } = await client.rpc('admin_upsert_voters', {
+      p_voters: formattedVoters
+    });
+
+    if (error) {
+      console.error('Admin Upsert Voters RPC Error:', error);
+      throw new Error(error.message || '투표자 명단 업로드 실패');
+    }
+
+    return data;
+  }
+
+  // Admin Fetch Voters via RPC
+  async function adminFetchVotersService(searchQuery = null) {
+    const client = window.getSupabaseClient();
+    if (!client) return [];
+
+    const { data, error } = await client.rpc('admin_fetch_voters', {
+      p_search: searchQuery || null
+    });
+
+    if (error) {
+      console.error('Admin Fetch Voters RPC Error:', error);
+      throw new Error(error.message || '투표자 명단 조회 실패');
+    }
+
+    return (Array.isArray(data) ? data : []).map(v => ({
+      id: v.id,
+      name: v.name,
+      dept: v.dept,
+      birthdate: v.birthdate,
+      votedSubmissionId: v.voted_submission_id,
+      createdAt: v.created_at
+    }));
+  }
+
+  // Admin Clear All Voters via RPC
+  async function adminClearVotersService() {
+    const client = window.getSupabaseClient();
+    if (!client) return false;
+
+    const { data, error } = await client.rpc('admin_clear_voters');
+
+    if (error) {
+      console.error('Admin Clear Voters RPC Error:', error);
+      throw new Error(error.message || '투표자 명단 초기화 실패');
+    }
+
+    return data;
+  }
+
   // Export to window namespace
   window.SubmissionsService = {
     mapRecordToSubmission,
@@ -378,6 +483,11 @@
     deleteSubmission: deleteSubmissionService,
     incrementVote: incrementVoteService,
     decrementVote: decrementVoteService,
+    verifyVoter: verifyVoterService,
+    castVoterVote: castVoterVoteService,
+    adminUpsertVoters: adminUpsertVotersService,
+    adminFetchVoters: adminFetchVotersService,
+    adminClearVoters: adminClearVotersService,
     adminUpdateStatus: adminUpdateStatusService,
     adminDeleteSubmission: adminDeleteSubmissionService,
     subscribeToRealtimeSubmissions

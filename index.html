@@ -772,6 +772,14 @@
             </span>
           </div>
 
+          <!-- Department Choice (Shown when multiple voters have same name) -->
+          <div id="voterDeptChoiceGroup" class="form-group" style="display:none; margin-top: 14px; background:var(--bg-tertiary, #f8fafc); padding:12px; border-radius:8px; border:1px dashed #cbd5e1;">
+            <label class="form-label" for="voterDeptSelect" style="color:var(--primary-600); font-weight:700;">🏢 소속 부서 선택 <span class="required">*</span></label>
+            <select id="voterDeptSelect" class="filter-select" style="width:100%; margin-top:4px;">
+              <option value="">-- 본인의 소속 부서를 선택하세요 --</option>
+            </select>
+          </div>
+
           <!-- Error Alert Container -->
           <div id="voterLoginError" class="alert-box danger" style="display:none; margin-top:14px; color:#ef4444; font-size:0.85rem; font-weight:700;"></div>
 
@@ -890,10 +898,10 @@
   <!-- Supabase & Central DB Service Modules -->
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
-  <script src="config.js?v=20260814_v15"></script>
-  <script src="js/supabase-client.js?v=20260814_v15"></script>
-  <script src="js/submissions-service.js?v=20260814_v15"></script>
-  <script src="script.js?v=20260814_v15"></script>
+  <script src="config.js?v=20260814_v16"></script>
+  <script src="js/supabase-client.js?v=20260814_v16"></script>
+  <script src="js/submissions-service.js?v=20260814_v16"></script>
+  <script src="script.js?v=20260814_v16"></script>
 </body>
 
 </html>

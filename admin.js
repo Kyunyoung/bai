@@ -59,25 +59,23 @@ function initTheme() {
 async function loadAdminData() {
   const syncBadge = document.getElementById('syncStatusBadge');
 
-  try {
-    const localV = localStorage.getItem('vibe_voters_db');
-    if (localV) adminVoters = JSON.parse(localV);
-  } catch (e) {}
-
-  // Fetch Central Submissions via SubmissionsService
-  if (window.isBackendConfigured()) {
+  if (window.isBackendConfigured() && window.SubmissionsService) {
     try {
-      const items = await window.SubmissionsService.fetchSubmissions();
-      if (Array.isArray(items)) {
-        adminSubmissions = items;
-      }
+      const [items, fetchedVoters] = await Promise.all([
+        window.SubmissionsService.fetchSubmissions(),
+        window.SubmissionsService.adminFetchVoters()
+      ]);
+      if (Array.isArray(items)) adminSubmissions = items;
+      if (Array.isArray(fetchedVoters)) adminVoters = fetchedVoters;
     } catch (e) {
-      console.error('Admin Load Error:', e);
+      console.error('Admin Load Central Error:', e);
     }
   } else {
     try {
-      const local = localStorage.getItem('vibecoding_contest_submissions');
-      if (local) adminSubmissions = JSON.parse(local);
+      const localV = localStorage.getItem('vibe_voters_db');
+      if (localV) adminVoters = JSON.parse(localV);
+      const localS = localStorage.getItem('vibecoding_contest_submissions');
+      if (localS) adminSubmissions = JSON.parse(localS);
     } catch (err) {}
   }
 
@@ -96,15 +94,24 @@ async function loadAdminData() {
   renderSubmissionTable();
 }
 
-// Save Voters
-function saveAdminVoters() {
+// Save Voters (Persists to Supabase Central DB + LocalStorage fallback)
+async function saveAdminVoters() {
   try {
     localStorage.setItem('vibe_voters_db', JSON.stringify(adminVoters));
     localStorage.setItem('vibecoding_registered_voters', JSON.stringify(adminVoters));
-  } catch (e) {
-    console.error('Error saving admin voters:', e);
+  } catch (e) {}
+
+  if (window.isBackendConfigured() && window.SubmissionsService) {
+    try {
+      await window.SubmissionsService.adminUpsertVoters(adminVoters);
+      const refreshed = await window.SubmissionsService.adminFetchVoters();
+      if (Array.isArray(refreshed)) adminVoters = refreshed;
+    } catch (err) {
+      console.error('Admin save voters error:', err);
+    }
   }
   renderAdminKPIs();
+  renderVoterTable();
 }
 
 // Save Submissions
@@ -278,13 +285,14 @@ function handleExcelFileSelect(event) {
 }
 
 // Process Rows
-function processAdminExcelRows(rows) {
+async function processAdminExcelRows(rows) {
   if (!rows || rows.length < 2) {
     showToast('⚠️ 엑셀 데이터가 부족합니다. 최소 헤더 1행과 데이터 1행이 필요합니다.', 'warning');
     return;
   }
 
-  const headers = rows[0].map(h => String(h || '').trim());
+  const cleanStr = (s) => String(s || '').replace(/^\uFEFF/, '').replace(/^["']|["']$/g, '').trim();
+  const headers = rows[0].map(h => cleanStr(h));
   
   let nameColIdx = headers.findIndex(h => h.includes('성명') || h.includes('이름') || h.toLowerCase().includes('name'));
   let deptColIdx = headers.findIndex(h => h.includes('소속') || h.includes('부서') || h.includes('팀') || h.toLowerCase().includes('dept'));
@@ -301,31 +309,44 @@ function processAdminExcelRows(rows) {
     const row = rows[i];
     if (!row || row.length === 0) continue;
 
-    const name = String(row[nameColIdx] || '').trim();
-    const dept = String(row[deptColIdx] || '').trim();
-    let birthdate = String(row[birthColIdx] || '').trim();
+    const name = cleanStr(row[nameColIdx]);
+    const dept = cleanStr(row[deptColIdx]);
+    let birthdate = cleanStr(row[birthColIdx]);
 
     if (!name) continue;
 
-    // Clean birthdate format (e.g. 1990.01.01 or 1990-01-01 -> 19900101)
     const cleanedBirth = birthdate.replace(/[^0-9]/g, '');
 
     const newVoter = {
-      id: 'voter_' + Date.now() + '_' + i + '_' + Math.floor(Math.random()*1000),
       name: name,
       dept: dept || '소속미지정',
-      birthdate: cleanedBirth || birthdate || '19900101',
-      votedSubmissionId: null
+      birthdate: cleanedBirth || birthdate || '19900101'
     };
     newVoters.push(newVoter);
     addedCount++;
   }
 
   if (newVoters.length > 0) {
-    adminVoters = newVoters;
-    saveAdminVoters();
+    if (window.isBackendConfigured() && window.SubmissionsService) {
+      showToast('⏳ Supabase 중앙 DB에 투표자 명단을 업로드 및 연동 중입니다...', 'info');
+      try {
+        const result = await window.SubmissionsService.adminUpsertVoters(newVoters);
+        const refreshed = await window.SubmissionsService.adminFetchVoters();
+        if (Array.isArray(refreshed)) adminVoters = refreshed;
+        showToast(`🎉 Supabase 중앙 DB에 총 ${result.inserted || addedCount}명의 투표자 명단이 성공적으로 업로드되었습니다!`, 'success');
+      } catch (err) {
+        console.error('Upsert voters error:', err);
+        showToast('❌ Supabase 중앙 DB 업로드 실패: ' + err.message, 'danger');
+        adminVoters = [...adminVoters, ...newVoters];
+        saveAdminVoters();
+      }
+    } else {
+      adminVoters = [...adminVoters, ...newVoters];
+      saveAdminVoters();
+      showToast(`🎉 로컬 저장소에 ${addedCount}명의 투표자가 성공적으로 등록되었습니다!`, 'success');
+    }
     renderVoterTable();
-    showToast(`🎉 엑셀에서 ${addedCount}명의 투표자가 성공적으로 등록되었습니다!`, 'success');
+    renderAdminKPIs();
   } else {
     showToast('등록할 유효한 투표자 데이터가 없습니다.', 'warning');
   }

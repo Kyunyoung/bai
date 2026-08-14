@@ -610,18 +610,17 @@ async function handleVote(submissionId) {
   const sub = app.submissions.find(s => s.id === submissionId);
   if (!sub) return;
 
-  const voter = app.voters.find(v => v.name.trim() === app.currentVoter.name.trim() && normalizeBirthdate(v.birthdate) === normalizeBirthdate(app.currentVoter.birthdate)) || app.currentVoter;
-
+  const voter = app.currentVoter;
   const isCanceling = voter.votedSubmissionId === submissionId;
+  const targetSubId = isCanceling ? null : submissionId;
   const previousVotedId = voter.votedSubmissionId;
 
+  // Optimistic UI update
   if (isCanceling) {
-    // Cancel Vote
     voter.votedSubmissionId = null;
     sub.votes = Math.max(0, sub.votes - 1);
     showToast(`'${sub.title}' 투표를 취소했습니다.`, 'info');
   } else {
-    // If already voted for another submission, cancel previous vote first
     if (previousVotedId) {
       const prevSub = app.submissions.find(s => s.id === previousVotedId);
       if (prevSub) prevSub.votes = Math.max(0, prevSub.votes - 1);
@@ -631,7 +630,6 @@ async function handleVote(submissionId) {
     showToast(`🎉 '${sub.title}' 작품에 투표하셨습니다!`, 'success');
   }
 
-  app.currentVoter = voter;
   app.saveCurrentVoter();
   app.saveVoters();
   app.saveSubmissions();
@@ -641,27 +639,25 @@ async function handleVote(submissionId) {
   renderHomeStats();
   renderHomeTopEntries();
 
-  // Central DB Persistence
+  // Supabase Central DB Atomic Transaction via cast_voter_vote RPC
   if (window.isBackendConfigured && window.isBackendConfigured() && window.SubmissionsService) {
     try {
-      if (isCanceling) {
-        const updated = await window.SubmissionsService.decrementVote(submissionId);
-        if (updated) sub.votes = updated.votes;
-      } else {
-        if (previousVotedId) {
-          try {
-            await window.SubmissionsService.decrementVote(previousVotedId);
-          } catch (e) {}
+      const result = await window.SubmissionsService.castVoterVote(voter.id, targetSubId);
+      if (result) {
+        voter.votedSubmissionId = result.voted_submission_id;
+        app.saveCurrentVoter();
+        const items = await window.SubmissionsService.fetchSubmissions();
+        if (Array.isArray(items)) {
+          app.submissions = items;
+          app.saveSubmissions();
         }
-        const updated = await window.SubmissionsService.incrementVote(submissionId);
-        if (updated) sub.votes = updated.votes;
+        renderContestGallery();
+        renderHomeStats();
+        renderHomeTopEntries();
       }
-      app.saveSubmissions();
-      renderContestGallery();
-      renderHomeStats();
-      renderHomeTopEntries();
     } catch (err) {
       console.error('Central DB Vote Error:', err);
+      showToast('❌ 투표 중앙 DB 연동 실패: ' + (err.message || '다시 시도해주세요.'), 'danger');
     }
   }
 }
@@ -2260,10 +2256,14 @@ function normalizeBirthdate(val) {
   return String(val).replace(/[^0-9]/g, '');
 }
 
-function handleVoterLoginSubmit(event) {
-  event.preventDefault();
+async function handleVoterLoginSubmit(event) {
+  if (event && typeof event.preventDefault === 'function') event.preventDefault();
+
   const searchName = (document.getElementById('voterSearchInput')?.value || '').trim();
   const rawBirth = (document.getElementById('voterBirthInput')?.value || '').trim();
+  const selectedDept = (document.getElementById('voterDeptSelect')?.value || '').trim();
+  const deptGroup = document.getElementById('voterDeptChoiceGroup');
+  const deptSelect = document.getElementById('voterDeptSelect');
   const errBox = document.getElementById('voterLoginError');
 
   if (!searchName || !rawBirth) {
@@ -2276,16 +2276,73 @@ function handleVoterLoginSubmit(event) {
 
   const normalizedInputBirth = normalizeBirthdate(rawBirth);
 
-  // Search voter
-  const matchedVoter = app.voters.find(v => {
-    if (v.name.trim() !== searchName) return false;
-    const voterBirth = normalizeBirthdate(v.birthdate);
-    if (voterBirth === normalizedInputBirth) return true;
-    if (voterBirth.length >= 6 && normalizedInputBirth.length >= 6) {
-      if (voterBirth.slice(-6) === normalizedInputBirth.slice(-6)) return true;
+  let matchedVoter = null;
+
+  if (window.isBackendConfigured() && window.SubmissionsService) {
+    try {
+      const results = await window.SubmissionsService.verifyVoter(searchName, normalizedInputBirth, selectedDept);
+      
+      if (!results || results.length === 0) {
+        if (errBox) {
+          errBox.textContent = '❌ 등록된 성명 및 생년월일과 일치하지 않습니다. 사전 엑셀 명단 업로드 여부를 확인하세요.';
+          errBox.style.display = 'block';
+        }
+        return;
+      }
+
+      if (results.length > 1 && !selectedDept) {
+        // Multiple voters with same name & birthdate found! Show department selector
+        if (deptGroup && deptSelect) {
+          let optHtml = '<option value="">-- 동명이인 수신: 본인의 소속 부서를 선택하세요 --</option>';
+          results.forEach(r => {
+            optHtml += `<option value="${r.dept}">${r.name} (${r.dept})</option>`;
+          });
+          deptSelect.innerHTML = optHtml;
+          deptGroup.style.display = 'block';
+        }
+        if (errBox) {
+          errBox.textContent = '⚠️ 동일한 이름의 투표자가 발견되었습니다. 아래에서 본인의 소속 부서를 선택 후 로그인 버튼을 눌러주세요.';
+          errBox.style.display = 'block';
+        }
+        return;
+      }
+
+      matchedVoter = results[0];
+    } catch (err) {
+      console.error('Verify voter error:', err);
     }
-    return false;
-  });
+  }
+
+  // Fallback to local voters if backend not used
+  if (!matchedVoter) {
+    const candidates = app.voters.filter(v => {
+      if (v.name.trim() !== searchName) return false;
+      const voterBirth = normalizeBirthdate(v.birthdate);
+      if (voterBirth === normalizedInputBirth) return true;
+      if (voterBirth.length >= 6 && normalizedInputBirth.length >= 6) {
+        if (voterBirth.slice(-6) === normalizedInputBirth.slice(-6)) return true;
+      }
+      return false;
+    });
+
+    if (candidates.length > 1 && !selectedDept) {
+      if (deptGroup && deptSelect) {
+        let optHtml = '<option value="">-- 본인의 소속 부서를 선택하세요 --</option>';
+        candidates.forEach(c => {
+          optHtml += `<option value="${c.dept}">${c.name} (${c.dept})</option>`;
+        });
+        deptSelect.innerHTML = optHtml;
+        deptGroup.style.display = 'block';
+      }
+      if (errBox) {
+        errBox.textContent = '⚠️ 동일한 이름의 투표자가 발견되었습니다. 아래에서 본인의 소속 부서를 선택 후 로그인 버튼을 눌러주세요.';
+        errBox.style.display = 'block';
+      }
+      return;
+    }
+
+    matchedVoter = selectedDept ? candidates.find(c => c.dept === selectedDept) || candidates[0] : candidates[0];
+  }
 
   if (!matchedVoter) {
     if (errBox) {
@@ -2294,6 +2351,9 @@ function handleVoterLoginSubmit(event) {
     }
     return;
   }
+
+  // Hide dept group
+  if (deptGroup) deptGroup.style.display = 'none';
 
   // Login success
   app.currentVoter = matchedVoter;
