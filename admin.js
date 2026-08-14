@@ -96,6 +96,17 @@ async function loadAdminData() {
   renderSubmissionTable();
 }
 
+// Save Voters
+function saveAdminVoters() {
+  try {
+    localStorage.setItem('vibe_voters_db', JSON.stringify(adminVoters));
+    localStorage.setItem('vibecoding_registered_voters', JSON.stringify(adminVoters));
+  } catch (e) {
+    console.error('Error saving admin voters:', e);
+  }
+  renderAdminKPIs();
+}
+
 // Save Submissions
 async function saveAdminSubmissions() {
   try {
@@ -292,15 +303,18 @@ function processAdminExcelRows(rows) {
 
     const name = String(row[nameColIdx] || '').trim();
     const dept = String(row[deptColIdx] || '').trim();
-    const birthdate = String(row[birthColIdx] || '').trim();
+    let birthdate = String(row[birthColIdx] || '').trim();
 
     if (!name) continue;
 
+    // Clean birthdate format (e.g. 1990.01.01 or 1990-01-01 -> 19900101)
+    const cleanedBirth = birthdate.replace(/[^0-9]/g, '');
+
     const newVoter = {
-      id: 'voter_' + Date.now() + '_' + Math.floor(Math.random()*1000),
+      id: 'voter_' + Date.now() + '_' + i + '_' + Math.floor(Math.random()*1000),
       name: name,
-      dept: dept || '사내',
-      birthdate: birthdate || '19900101',
+      dept: dept || '소속미지정',
+      birthdate: cleanedBirth || birthdate || '19900101',
       votedSubmissionId: null
     };
     newVoters.push(newVoter);
@@ -492,6 +506,7 @@ function handleAdminLogout() {
 
 window.handleExcelFileSelect = handleExcelFileSelect;
 window.processAdminExcelRows = processAdminExcelRows;
+window.saveAdminVoters = saveAdminVoters;
 window.filterVoterTable = filterVoterTable;
 window.clearAllVotersList = clearAllVotersList;
 window.clearAllSubmissions = clearAllSubmissions;
