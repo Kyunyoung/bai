@@ -343,10 +343,62 @@ BEGIN
 END;
 $$;
 
+-- RPC 6: Increment Vote Count
+CREATE OR REPLACE FUNCTION public.increment_submission_vote(p_submission_id UUID)
+RETURNS SETOF public.submissions
+LANGUAGE plpgsql
+SECURITY DEFINER
+SET search_path = public, pg_temp
+AS $$
+DECLARE
+    v_sub public.submissions;
+BEGIN
+    UPDATE public.submissions
+    SET votes = votes + 1,
+        updated_at = NOW()
+    WHERE id = p_submission_id AND deleted_at IS NULL
+    RETURNING * INTO v_sub;
+
+    IF v_sub.id IS NULL THEN
+        RAISE EXCEPTION 'NOT_FOUND: 작품을 찾을 수 없거나 삭제되었습니다.'
+            USING ERRCODE = 'P0002';
+    END IF;
+
+    RETURN NEXT v_sub;
+END;
+$$;
+
+-- RPC 7: Decrement Vote Count
+CREATE OR REPLACE FUNCTION public.decrement_submission_vote(p_submission_id UUID)
+RETURNS SETOF public.submissions
+LANGUAGE plpgsql
+SECURITY DEFINER
+SET search_path = public, pg_temp
+AS $$
+DECLARE
+    v_sub public.submissions;
+BEGIN
+    UPDATE public.submissions
+    SET votes = GREATEST(0, votes - 1),
+        updated_at = NOW()
+    WHERE id = p_submission_id AND deleted_at IS NULL
+    RETURNING * INTO v_sub;
+
+    IF v_sub.id IS NULL THEN
+        RAISE EXCEPTION 'NOT_FOUND: 작품을 찾을 수 없거나 삭제되었습니다.'
+            USING ERRCODE = 'P0002';
+    END IF;
+
+    RETURN NEXT v_sub;
+END;
+$$;
+
 -- Grant EXECUTE permissions on RPC functions to anon and authenticated roles
 GRANT EXECUTE ON FUNCTION public.create_submission TO anon, authenticated;
 GRANT EXECUTE ON FUNCTION public.update_submission_with_passcode TO anon, authenticated;
 GRANT EXECUTE ON FUNCTION public.delete_submission_with_passcode TO anon, authenticated;
+GRANT EXECUTE ON FUNCTION public.increment_submission_vote TO anon, authenticated;
+GRANT EXECUTE ON FUNCTION public.decrement_submission_vote TO anon, authenticated;
 GRANT EXECUTE ON FUNCTION public.admin_update_submission_status TO authenticated;
 GRANT EXECUTE ON FUNCTION public.admin_delete_submission TO authenticated;
 GRANT EXECUTE ON FUNCTION public.is_admin TO authenticated;

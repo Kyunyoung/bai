@@ -599,7 +599,7 @@ function filterContestGallery() {
   renderContestGallery();
 }
 
-function handleVote(submissionId) {
+async function handleVote(submissionId) {
   // Check if voter is logged in
   if (!app.currentVoter) {
     showToast('⚠️ 투표를 위해 먼저 성명 검색 및 생년월일 비밀번호로 로그인해 주세요!', 'info');
@@ -612,15 +612,18 @@ function handleVote(submissionId) {
 
   const voter = app.voters.find(v => v.name.trim() === app.currentVoter.name.trim() && normalizeBirthdate(v.birthdate) === normalizeBirthdate(app.currentVoter.birthdate)) || app.currentVoter;
 
-  if (voter.votedSubmissionId === submissionId) {
+  const isCanceling = voter.votedSubmissionId === submissionId;
+  const previousVotedId = voter.votedSubmissionId;
+
+  if (isCanceling) {
     // Cancel Vote
     voter.votedSubmissionId = null;
     sub.votes = Math.max(0, sub.votes - 1);
     showToast(`'${sub.title}' 투표를 취소했습니다.`, 'info');
   } else {
     // If already voted for another submission, cancel previous vote first
-    if (voter.votedSubmissionId) {
-      const prevSub = app.submissions.find(s => s.id === voter.votedSubmissionId);
+    if (previousVotedId) {
+      const prevSub = app.submissions.find(s => s.id === previousVotedId);
       if (prevSub) prevSub.votes = Math.max(0, prevSub.votes - 1);
     }
     voter.votedSubmissionId = submissionId;
@@ -637,6 +640,30 @@ function handleVote(submissionId) {
   renderContestGallery();
   renderHomeStats();
   renderHomeTopEntries();
+
+  // Central DB Persistence
+  if (window.isBackendConfigured && window.isBackendConfigured() && window.SubmissionsService) {
+    try {
+      if (isCanceling) {
+        const updated = await window.SubmissionsService.decrementVote(submissionId);
+        if (updated) sub.votes = updated.votes;
+      } else {
+        if (previousVotedId) {
+          try {
+            await window.SubmissionsService.decrementVote(previousVotedId);
+          } catch (e) {}
+        }
+        const updated = await window.SubmissionsService.incrementVote(submissionId);
+        if (updated) sub.votes = updated.votes;
+      }
+      app.saveSubmissions();
+      renderContestGallery();
+      renderHomeStats();
+      renderHomeTopEntries();
+    } catch (err) {
+      console.error('Central DB Vote Error:', err);
+    }
+  }
 }
 
 let uploadedVideoFile = null;

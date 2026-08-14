@@ -332,6 +332,42 @@
     return activeRealtimeChannel;
   }
 
+  // Increment Vote via RPC
+  async function incrementVoteService(submissionId) {
+    const client = window.getSupabaseClient();
+    if (!client) return null;
+
+    const { data, error } = await client.rpc('increment_submission_vote', {
+      p_submission_id: submissionId
+    });
+
+    if (error) {
+      console.error('Increment Vote RPC Error:', error);
+      throw new Error(error.message || '투표 반영 중 오류가 발생했습니다.');
+    }
+
+    const record = Array.isArray(data) ? data[0] : data;
+    return mapRecordToSubmission(record);
+  }
+
+  // Decrement Vote via RPC
+  async function decrementVoteService(submissionId) {
+    const client = window.getSupabaseClient();
+    if (!client) return null;
+
+    const { data, error } = await client.rpc('decrement_submission_vote', {
+      p_submission_id: submissionId
+    });
+
+    if (error) {
+      console.error('Decrement Vote RPC Error:', error);
+      throw new Error(error.message || '투표 취소 중 오류가 발생했습니다.');
+    }
+
+    const record = Array.isArray(data) ? data[0] : data;
+    return mapRecordToSubmission(record);
+  }
+
   // Export to window namespace
   window.SubmissionsService = {
     mapRecordToSubmission,
@@ -340,6 +376,8 @@
     createSubmission: createSubmissionService,
     updateSubmission: updateSubmissionService,
     deleteSubmission: deleteSubmissionService,
+    incrementVote: incrementVoteService,
+    decrementVote: decrementVoteService,
     adminUpdateStatus: adminUpdateStatusService,
     adminDeleteSubmission: adminDeleteSubmissionService,
     subscribeToRealtimeSubmissions
