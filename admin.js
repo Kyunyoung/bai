@@ -518,7 +518,7 @@ async function handleAdminLoginSubmit(event) {
   if (!authenticated) {
     const configuredId = (window.BAI_CONFIG?.ADMIN_ID || '').trim();
     const configuredPass = (window.BAI_CONFIG?.ADMIN_PASSCODE || '').trim();
-    if (configuredPass && configuredPass !== 'admin1234' && configuredPass !== 'admin!!1234') {
+    if (configuredPass) {
       if (inputId === (configuredId || 'admin') && inputPass === configuredPass) {
         authenticated = true;
       }
