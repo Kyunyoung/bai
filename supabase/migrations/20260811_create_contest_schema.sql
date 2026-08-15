@@ -291,6 +291,9 @@ BEGIN
 END;
 $$;
 
+DROP FUNCTION IF EXISTS public.increment_submission_vote(UUID);
+DROP FUNCTION IF EXISTS public.decrement_submission_vote(UUID);
+
 -- RPC 6: Increment Vote Count
 CREATE OR REPLACE FUNCTION public.increment_submission_vote(p_submission_id UUID)
 RETURNS SETOF public.submissions
@@ -625,8 +628,6 @@ ON CONFLICT (id) DO UPDATE
 SET public = true,
     file_size_limit = 104857600,
     allowed_mime_types = ARRAY['image/jpeg', 'image/png', 'image/webp', 'video/mp4', 'video/webm', 'video/quicktime'];
-
-ALTER TABLE storage.objects ENABLE ROW LEVEL SECURITY;
 
 DO $$
 BEGIN
