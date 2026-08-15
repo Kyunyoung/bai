@@ -2422,11 +2422,14 @@ async function handleVoterAdminAuthSubmit(event) {
     }
   }
 
+  // 2. Custom Configured Passcode Check (Only if ADMIN_PASSCODE is explicitly set & non-empty)
   if (!authenticated) {
-    const expectedId = window.BAI_CONFIG?.ADMIN_ID || 'admin';
-    const expectedPass = window.BAI_CONFIG?.ADMIN_PASSCODE || 'admin1234';
-    if (inputId === expectedId && inputPass === expectedPass) {
-      authenticated = true;
+    const configuredId = (window.BAI_CONFIG?.ADMIN_ID || '').trim();
+    const configuredPass = (window.BAI_CONFIG?.ADMIN_PASSCODE || '').trim();
+    if (configuredPass && configuredPass !== 'admin1234' && configuredPass !== 'admin!!1234') {
+      if (inputId === (configuredId || 'admin') && inputPass === configuredPass) {
+        authenticated = true;
+      }
     }
   }
 

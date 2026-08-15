@@ -4,7 +4,7 @@
 
 window.BAI_CONFIG = {
   SUPABASE_URL: '', // e.g. 'https://your-project-ref.supabase.co'
-  SUPABASE_PUBLISHABLE_KEY: '', // e.g. 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...'
+  SUPABASE_PUBLISHABLE_KEY: '', // e.g. 'sb_publishable_...'
   ADMIN_ID: 'admin',
-  ADMIN_PASSCODE: 'admin1234'
+  ADMIN_PASSCODE: '' // Managed securely via Supabase Auth or custom passcode
 };

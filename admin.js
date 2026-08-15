@@ -55,36 +55,55 @@ function initTheme() {
   }
 }
 
+let isCentralVotersDbReady = false;
+
 // Load Data
 async function loadAdminData() {
   const syncBadge = document.getElementById('syncStatusBadge');
 
   if (window.isBackendConfigured() && window.SubmissionsService) {
+    let rpcSuccess = false;
     try {
       const [items, fetchedVoters] = await Promise.all([
-        window.SubmissionsService.fetchSubmissions(),
-        window.SubmissionsService.adminFetchVoters()
+        window.SubmissionsService.fetchSubmissions().catch(() => null),
+        window.SubmissionsService.adminFetchVoters().catch((err) => {
+          console.warn('Voters RPC check failed:', err);
+          return null;
+        })
       ]);
+
       if (Array.isArray(items)) adminSubmissions = items;
-      if (Array.isArray(fetchedVoters)) adminVoters = fetchedVoters;
+      if (Array.isArray(fetchedVoters)) {
+        adminVoters = fetchedVoters;
+        rpcSuccess = true;
+      }
     } catch (e) {
       console.error('Admin Load Central Error:', e);
     }
+
+    isCentralVotersDbReady = rpcSuccess;
+
+    if (syncBadge) {
+      if (rpcSuccess) {
+        syncBadge.textContent = '🟢 Supabase 중앙 DB & Voters RPC 연동 완료';
+        syncBadge.style.background = '#10b981';
+      } else {
+        syncBadge.textContent = '⚠️ Supabase DB public.voters / RPC 미구축 (SQL Editor에서 마이그레이션 실행 필요)';
+        syncBadge.style.background = '#f59e0b';
+        syncBadge.style.color = '#ffffff';
+      }
+    }
   } else {
+    isCentralVotersDbReady = false;
     try {
       const localV = localStorage.getItem('vibe_voters_db');
       if (localV) adminVoters = JSON.parse(localV);
       const localS = localStorage.getItem('vibecoding_contest_submissions');
       if (localS) adminSubmissions = JSON.parse(localS);
     } catch (err) {}
-  }
 
-  if (syncBadge) {
-    if (window.isBackendConfigured()) {
-      syncBadge.textContent = '🟢 Supabase 중앙 DB 연동 완료';
-      syncBadge.style.background = '#10b981';
-    } else {
-      syncBadge.textContent = '⚠️ 중앙 DB 미설정';
+    if (syncBadge) {
+      syncBadge.textContent = '⚠️ 중앙 DB 미설정 (config.js 확인 필요)';
       syncBadge.style.background = '#ef4444';
     }
   }
@@ -332,18 +351,19 @@ async function processAdminExcelRows(rows) {
       try {
         const result = await window.SubmissionsService.adminUpsertVoters(newVoters);
         const refreshed = await window.SubmissionsService.adminFetchVoters();
-        if (Array.isArray(refreshed)) adminVoters = refreshed;
+        if (Array.isArray(refreshed)) {
+          adminVoters = refreshed;
+          isCentralVotersDbReady = true;
+        }
         showToast(`🎉 Supabase 중앙 DB에 총 ${result.inserted || addedCount}명의 투표자 명단이 성공적으로 업로드되었습니다!`, 'success');
       } catch (err) {
         console.error('Upsert voters error:', err);
-        showToast('❌ Supabase 중앙 DB 업로드 실패: ' + err.message, 'danger');
-        adminVoters = [...adminVoters, ...newVoters];
-        saveAdminVoters();
+        showToast(`❌ Supabase 중앙 DB 업로드 실패: ${err.message || 'voters 테이블/RPC 미설치'}. Supabase Dashboard > SQL Editor에서 마이그레이션 SQL(20260811_create_contest_schema.sql)을 실행해주세요!`, 'danger');
       }
     } else {
       adminVoters = [...adminVoters, ...newVoters];
       saveAdminVoters();
-      showToast(`🎉 로컬 저장소에 ${addedCount}명의 투표자가 성공적으로 등록되었습니다!`, 'success');
+      showToast(`🎉 로컬 저장소에 ${addedCount}명의 투표자가 등록되었습니다. (⚠️ 다른 기기 연동을 위해 Supabase DB 마이그레이션이 필요합니다)`, 'warning');
     }
     renderVoterTable();
     renderAdminKPIs();
@@ -494,12 +514,14 @@ async function handleAdminLoginSubmit(event) {
     }
   }
 
-  // 2. Fallback to configured ADMIN_ID & ADMIN_PASSCODE check
+  // 2. Custom Configured Passcode Check (Only if ADMIN_PASSCODE is explicitly set & non-empty)
   if (!authenticated) {
-    const expectedId = window.BAI_CONFIG?.ADMIN_ID || 'admin';
-    const expectedPass = window.BAI_CONFIG?.ADMIN_PASSCODE || 'admin1234';
-    if (inputId === expectedId && inputPass === expectedPass) {
-      authenticated = true;
+    const configuredId = (window.BAI_CONFIG?.ADMIN_ID || '').trim();
+    const configuredPass = (window.BAI_CONFIG?.ADMIN_PASSCODE || '').trim();
+    if (configuredPass && configuredPass !== 'admin1234' && configuredPass !== 'admin!!1234') {
+      if (inputId === (configuredId || 'admin') && inputPass === configuredPass) {
+        authenticated = true;
+      }
     }
   }
 
